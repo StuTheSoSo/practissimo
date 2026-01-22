@@ -1,0 +1,7 @@
+{
+  "name": "practissimo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
