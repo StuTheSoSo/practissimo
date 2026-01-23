@@ -278,7 +278,6 @@ import { MetronomeService } from '../../core/services/metronome.service';
     IonLabel,
     IonSelect,
     IonSelectOption,
-    IonButtons,
     IonToggle
   ]
 })

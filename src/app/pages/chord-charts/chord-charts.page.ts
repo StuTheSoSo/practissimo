@@ -323,8 +323,6 @@ import { Chord, ChordCategory, GuitarChordPosition, PianoChordPosition } from '.
     IonGrid,
     IonRow,
     IonCol,
-    IonList,
-    IonItem,
     GuitarChordDiagramComponent,
     PianoChordDiagramComponent
   ]

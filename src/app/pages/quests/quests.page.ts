@@ -115,9 +115,6 @@ import { QuestService } from '../../core/services/quest.service';
     IonCardContent,
     IonButtons,
     IonBackButton,
-    IonList,
-    IonItem,
-    IonLabel,
     IonBadge,
     IonProgressBar,
     IonIcon

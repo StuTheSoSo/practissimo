@@ -152,7 +152,7 @@ import { QuestService } from '../../core/services/quest.service';
             </ion-card-header>
             <ion-card-content>
               <ion-list>
-                @for (quest of todaysQuests(); track quest.id) {
+                @for (quest of todaysQuests().slice(0, 3); track quest.id) {
                   <ion-item>
                     <ion-label>
                       <h3>{{ quest.title }}</h3>
@@ -164,6 +164,11 @@ import { QuestService } from '../../core/services/quest.service';
                   </ion-item>
                 }
               </ion-list>
+              @if (todaysQuests().length > 3) {
+                <ion-button expand="block" fill="clear" (click)="goToQuests()">
+                  View All Quests ({{ todaysQuests().length }})
+                </ion-button>
+              }
             </ion-card-content>
           </ion-card>
         }
@@ -247,7 +252,6 @@ import { QuestService } from '../../core/services/quest.service';
     IonProgressBar,
     IonBadge,
     IonButtons,
-    IonMenuButton,
     IonGrid,
     IonRow,
     IonCol,
