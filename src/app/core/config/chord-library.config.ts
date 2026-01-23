@@ -323,7 +323,7 @@ export const CHORD_LIBRARY: Chord[] = [
   },
 
   // ============================================================================
-  // PIANO - MAJOR CHORDS (Examples)
+  // PIANO - MAJOR CHORDS
   // ============================================================================
   {
     id: 'piano_c_major',
@@ -345,6 +345,329 @@ export const CHORD_LIBRARY: Chord[] = [
             { note: 'C', octave: 4, finger: 1 },
             { note: 'E', octave: 4, finger: 3 },
             { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_d_major',
+    name: 'D Major',
+    displayName: 'D',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Common major chord with two black keys',
+    commonIn: ['Key of D', 'Bright sound'],
+    variations: [
+      {
+        id: 'piano_d_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'F#', octave: 4, finger: 3 },
+            { note: 'A', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_e_major',
+    name: 'E Major',
+    displayName: 'E',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Major chord with four sharps',
+    commonIn: ['Key of E', 'Bright and ringing'],
+    variations: [
+      {
+        id: 'piano_e_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 4, finger: 1 },
+            { note: 'G#', octave: 4, finger: 3 },
+            { note: 'B', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_f_major',
+    name: 'F Major',
+    displayName: 'F',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Warm major chord with one flat',
+    commonIn: ['Key of F', 'Classical', 'Hymns'],
+    variations: [
+      {
+        id: 'piano_f_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F', octave: 4, finger: 1 },
+            { note: 'A', octave: 4, finger: 3 },
+            { note: 'C', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_g_major',
+    name: 'G Major',
+    displayName: 'G',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Bright major chord with one sharp',
+    commonIn: ['Key of G', 'Folk', 'Classical'],
+    variations: [
+      {
+        id: 'piano_g_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G', octave: 4, finger: 1 },
+            { note: 'B', octave: 4, finger: 3 },
+            { note: 'D', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_a_major',
+    name: 'A Major',
+    displayName: 'A',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Resonant major chord',
+    commonIn: ['Key of A', 'Romantic'],
+    variations: [
+      {
+        id: 'piano_a_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'A', octave: 4, finger: 1 },
+            { note: 'C#', octave: 5, finger: 3 },
+            { note: 'E', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_b_major',
+    name: 'B Major',
+    displayName: 'B',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Major chord with five sharps',
+    commonIn: ['Key of B', 'Brilliant sound'],
+    variations: [
+      {
+        id: 'piano_b_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'B', octave: 4, finger: 1 },
+            { note: 'D#', octave: 5, finger: 3 },
+            { note: 'F#', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - MINOR CHORDS
+  // ============================================================================
+  {
+    id: 'piano_am_minor',
+    name: 'A Minor',
+    displayName: 'Am',
+    category: 'minor',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'All white keys - easiest minor chord',
+    commonIn: ['Key of C', 'Sad and contemplative'],
+    variations: [
+      {
+        id: 'piano_am_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'A', octave: 4, finger: 1 },
+            { note: 'C', octave: 5, finger: 3 },
+            { note: 'E', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_dm_minor',
+    name: 'D Minor',
+    displayName: 'Dm',
+    category: 'minor',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Melancholic minor chord',
+    commonIn: ['Key of F', 'Classical', 'Emotional'],
+    variations: [
+      {
+        id: 'piano_dm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'F', octave: 4, finger: 3 },
+            { note: 'A', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_em_minor',
+    name: 'E Minor',
+    displayName: 'Em',
+    category: 'minor',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Dark and mysterious',
+    commonIn: ['Key of G', 'Gothic', 'Dramatic'],
+    variations: [
+      {
+        id: 'piano_em_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 4, finger: 1 },
+            { note: 'G', octave: 4, finger: 3 },
+            { note: 'B', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - SEVENTH CHORDS
+  // ============================================================================
+  {
+    id: 'piano_c7',
+    name: 'C Dominant 7',
+    displayName: 'C7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Blues and jazz essential',
+    commonIn: ['Blues', 'Jazz', 'Key of F'],
+    variations: [
+      {
+        id: 'piano_c7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 2 },
+            { note: 'G', octave: 4, finger: 3 },
+            { note: 'Bb', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_g7',
+    name: 'G Dominant 7',
+    displayName: 'G7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Classic resolution to C',
+    commonIn: ['Jazz', 'Blues', 'Key of C'],
+    variations: [
+      {
+        id: 'piano_g7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G', octave: 4, finger: 1 },
+            { note: 'B', octave: 4, finger: 2 },
+            { note: 'D', octave: 5, finger: 3 },
+            { note: 'F', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_cmaj7',
+    name: 'C Major 7',
+    displayName: 'Cmaj7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Dreamy and sophisticated',
+    commonIn: ['Jazz', 'Bossa Nova', 'Ballads'],
+    variations: [
+      {
+        id: 'piano_cmaj7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 2 },
+            { note: 'G', octave: 4, finger: 3 },
+            { note: 'B', octave: 4, finger: 5 }
           ],
           octave: 4
         }

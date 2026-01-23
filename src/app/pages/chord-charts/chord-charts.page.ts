@@ -31,7 +31,8 @@ import { heart, heartOutline, informationCircle, musicalNotes } from 'ionicons/i
 import { ChordService } from '../../core/services/chord.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { GuitarChordDiagramComponent } from '../../shared/components/guitar-chord-diagram.component';
-import { Chord, ChordCategory, GuitarChordPosition } from '../../core/models/chord.model';
+import { PianoChordDiagramComponent } from '../../shared/components/piano-chord-diagram.component';
+import { Chord, ChordCategory, GuitarChordPosition, PianoChordPosition } from '../../core/models/chord.model';
 
 @Component({
   selector: 'app-chord-charts',
@@ -177,6 +178,13 @@ import { Chord, ChordCategory, GuitarChordPosition } from '../../core/models/cho
                         size="medium"
                       ></app-guitar-chord-diagram>
                     }
+                    @if (isPianoType(chord)) {
+                      <app-piano-chord-diagram
+                        [position]="getPianoPosition(chord)"
+                        [chordName]="chord.displayName"
+                        size="medium"
+                      ></app-piano-chord-diagram>
+                    }
 
                     <!-- Description -->
                     @if (chord.description) {
@@ -317,7 +325,8 @@ import { Chord, ChordCategory, GuitarChordPosition } from '../../core/models/cho
     IonCol,
     IonList,
     IonItem,
-    GuitarChordDiagramComponent
+    GuitarChordDiagramComponent,
+    PianoChordDiagramComponent
   ]
 })
 export class ChordChartsPage {
@@ -421,7 +430,15 @@ export class ChordChartsPage {
     return chord.instrument === 'guitar' || chord.instrument === 'bass';
   }
 
+  isPianoType(chord: Chord): boolean {
+    return chord.instrument === 'piano';
+  }
+
   getGuitarPosition(chord: Chord): GuitarChordPosition {
     return chord.variations[0].positions as GuitarChordPosition;
+  }
+
+  getPianoPosition(chord: Chord): PianoChordPosition {
+    return chord.variations[0].positions as PianoChordPosition;
   }
 }
