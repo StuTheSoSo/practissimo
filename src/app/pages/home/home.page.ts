@@ -33,7 +33,8 @@ import {
   settings,
   calendar,
   chevronForward,
-  musicalNotes
+  musicalNotes,
+  musicalNote
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
@@ -117,6 +118,14 @@ import { QuestService } from '../../core/services/quest.service';
                 }
               </ion-button>
             </ion-col>
+            <ion-col size="6">
+              <ion-button expand="block" fill="outline" (click)="goToTuner()">
+                <ion-icon name="musical-note" slot="start"></ion-icon>
+                Tuner
+              </ion-button>
+            </ion-col>
+          </ion-row>
+          <ion-row>
             <ion-col size="6">
               <ion-button expand="block" fill="outline" (click)="goToAchievements()">
                 <ion-icon name="star" slot="start"></ion-icon>
@@ -275,7 +284,7 @@ export class HomePage {
   });
 
   constructor() {
-    addIcons({ flame, trophy, star, play, settings, calendar, chevronForward, musicalNotes });
+    addIcons({ flame, trophy, star, play, settings, calendar, chevronForward, musicalNotes, musicalNote });
   }
 
   startPractice() {
@@ -284,6 +293,14 @@ export class HomePage {
 
   goToChordCharts() {
     this.router.navigate(['/chord-charts']);
+  }
+
+  goToBackingTracks() {
+    this.router.navigate(['/backing-tracks']);
+  }
+
+  goToTuner() {
+    this.router.navigate(['/tuner']);
   }
 
   goToQuests() {

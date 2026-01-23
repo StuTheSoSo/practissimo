@@ -1,4 +1,3 @@
-// src/app/app.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { StorageService } from './core/services/storage.service';

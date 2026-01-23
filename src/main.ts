@@ -1,4 +1,3 @@
-// src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, Routes } from '@angular/router';
 import { provideIonicAngular } from '@ionic/angular/standalone';
@@ -25,6 +24,10 @@ const routes: Routes = [
   {
     path: 'chord-charts',
     loadComponent: () => import('./app/pages/chord-charts/chord-charts.page').then(m => m.ChordChartsPage)
+  },
+  {
+    path: 'tuner',
+    loadComponent: () => import('./app/pages/tuner/tuner.page').then(m => m.TunerPage)
   },
   {
     path: 'quests',
