@@ -30,6 +30,7 @@ import { PracticeService } from '../../core/services/practice.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
 import { AchievementService } from '../../core/services/achievement.service';
+import { MetronomeComponent } from '../../shared/components/metronome.component';
 
 @Component({
   selector: 'app-practice',
@@ -60,7 +61,8 @@ import { AchievementService } from '../../core/services/achievement.service';
               <ion-item>
                 <ion-label position="stacked">Category *</ion-label>
                 <ion-select
-                  [(ngModel)]="selectedCategory"
+                  [value]="selectedCategory"
+                  (ionChange)="onCategoryChange($event)"
                   placeholder="Select a category"
                   interface="action-sheet"
                 >
@@ -83,10 +85,12 @@ import { AchievementService } from '../../core/services/achievement.service';
             </ion-card-content>
           </ion-card>
 
+          <!-- Metronome (Setup Phase) -->
+          <app-metronome></app-metronome>
+
           <ion-button
             expand="block"
             size="large"
-            [disabled]="!selectedCategory"
             (click)="startSession()"
           >
             <ion-icon name="play" slot="start"></ion-icon>
@@ -135,6 +139,9 @@ import { AchievementService } from '../../core/services/achievement.service';
               }
             </ion-card-content>
           </ion-card>
+
+          <!-- Metronome (Practice Phase) -->
+          <app-metronome></app-metronome>
         }
       </div>
     </ion-content>
@@ -212,7 +219,8 @@ import { AchievementService } from '../../core/services/achievement.service';
     IonTextarea,
     IonItem,
     IonLabel,
-    IonNote
+    IonNote,
+    MetronomeComponent
   ]
 })
 export class PracticePage {
@@ -232,18 +240,38 @@ export class PracticePage {
   elapsedMinutes = this.practiceService.elapsedMinutes;
   sessionNotes = this.practiceService.notes;
 
-  selectedCategory = signal<string>('');
+  selectedCategory: string = '';
 
   constructor() {
     addIcons({ play, pause, stop, checkmark });
   }
 
-  startSession() {
-    if (!this.selectedCategory()) return;
+  onCategoryChange(event: any) {
+    this.selectedCategory = event.detail.value;
+    console.log('Category selected:', this.selectedCategory);
+  }
 
-    this.practiceService.setCategory(this.selectedCategory());
+  async startSession() {
+    console.log('Start session clicked, category:', this.selectedCategory);
+
+    if (!this.selectedCategory) {
+      console.log('No category selected');
+      const alert = await this.alertController.create({
+        header: 'Category Required',
+        message: 'Please select a practice category before starting your session.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
+    this.practiceService.setCategory(this.selectedCategory);
     this.practiceService.setNotes(this.sessionNotes() || '');
+
+    console.log('Starting timer with category:', this.selectedCategory);
     this.practiceService.startTimer();
+
+    console.log('Timer state after start:', this.timerState());
   }
 
   pauseSession() {
@@ -288,13 +316,10 @@ export class PracticePage {
   async stopSession() {
     const session = await this.practiceService.stopTimer();
 
-    // Update quests
     await this.questService.onPracticeCompleted(session);
 
-    // Check achievements
     const newAchievements = await this.achievementService.checkAchievements();
 
-    // Show success message
     const alert = await this.alertController.create({
       header: 'Session Complete!',
       message: `You earned ${session.xpEarned} XP!${newAchievements.length > 0 ? ` 🎉 ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''} unlocked!` : ''}`,

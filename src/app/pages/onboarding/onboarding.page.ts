@@ -18,7 +18,7 @@ import {
   IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { musicalNotes, musicalNote, disc, musicalNotesOutline } from 'ionicons/icons';
+import { musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline } from 'ionicons/icons';
 import { Instrument } from '../../core/models/instrument.model';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { GamificationService } from '../../core/services/gamification.service';
@@ -124,7 +124,6 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
     IonCard,
     IonCardHeader,
     IonCardTitle,
-    IonCardContent,
     IonButton,
     IonIcon,
     IonGrid,
@@ -142,7 +141,7 @@ export class OnboardingPage {
   selectedInstrument = signal<Instrument | null>(null);
 
   constructor() {
-    addIcons({ musicalNotes, musicalNote, disc, musicalNotesOutline });
+    addIcons({ musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline });
     this.checkOnboardingStatus();
   }
 

@@ -21,7 +21,7 @@ export const INSTRUMENT_CONFIG: Record<Instrument, InstrumentConfig> = {
   piano: {
     id: 'piano',
     displayName: 'Piano',
-    icon: 'piano',
+    icon: 'list-outline',
     categories: ['Scales', 'Chords', 'Repertoire', 'Technique', 'Sight Reading']
   },
   drums: {

@@ -1,6 +1,6 @@
 // src/app/core/services/practice.service.ts
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
-import { Observable, interval, map } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { PracticeSession } from '../models/practice-session.model';
 import { TimerState } from '../models/timer-state.model';
 import { StorageService } from './storage.service';
@@ -9,9 +9,6 @@ import { XpService } from './xp.service';
 import { GamificationService } from './gamification.service';
 import { STORAGE_KEYS } from '../models/storage-keys.model';
 
-/**
- * PracticeService - Manages practice sessions and timer
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -21,7 +18,6 @@ export class PracticeService {
   private xpService = inject(XpService);
   private gamificationService = inject(GamificationService);
 
-  // Timer state
   private timerState = signal<TimerState>({
     isRunning: false,
     isPaused: false,
@@ -30,20 +26,15 @@ export class PracticeService {
     pausedTime: null
   });
 
-  // Session state
   private currentCategory = signal<string | null>(null);
   private currentNotes = signal<string>('');
-
-  // Sessions cache
   private sessions = signal<PracticeSession[]>([]);
 
-  // Public readonly signals
   readonly timer = this.timerState.asReadonly();
   readonly category = this.currentCategory.asReadonly();
   readonly notes = this.currentNotes.asReadonly();
   readonly allSessions = this.sessions.asReadonly();
 
-  // Computed signals
   readonly elapsedMinutes = computed(() =>
     Math.floor(this.timer().elapsedSeconds / 60)
   );
@@ -74,17 +65,14 @@ export class PracticeService {
     this.timer().isRunning
   );
 
-  // Filter sessions by instrument
   readonly currentInstrumentSessions = computed(() => {
     const currentInstrument = this.instrumentService.currentInstrument();
     return this.sessions().filter(s => s.instrument === currentInstrument);
   });
 
-  // Timer observable
-  private timer$?: Observable<number>;
+  private timerSubscription?: Subscription;
 
   constructor() {
-    // Effect to persist sessions when they change
     effect(() => {
       const sessionsData = this.sessions();
       if (sessionsData.length > 0) {
@@ -93,9 +81,6 @@ export class PracticeService {
     });
   }
 
-  /**
-   * Initialize service
-   */
   async initialize(): Promise<void> {
     const savedSessions = await this.storage.get<PracticeSession[]>(
       STORAGE_KEYS.PRACTICE_SESSIONS
@@ -106,25 +91,22 @@ export class PracticeService {
     }
   }
 
-  /**
-   * Set practice category
-   */
   setCategory(category: string): void {
     this.currentCategory.set(category);
   }
 
-  /**
-   * Set practice notes
-   */
   setNotes(notes: string): void {
     this.currentNotes.set(notes);
   }
 
-  /**
-   * Start practice timer
-   */
   startTimer(): void {
-    if (!this.canStart()) return;
+    if (!this.canStart()) {
+      console.log('Cannot start - conditions not met:', {
+        isRunning: this.timer().isRunning,
+        category: this.currentCategory()
+      });
+      return;
+    }
 
     const now = Date.now();
     this.timerState.update(state => ({
@@ -135,12 +117,10 @@ export class PracticeService {
       elapsedSeconds: 0
     }));
 
+    console.log('Timer started at:', new Date(now).toISOString());
     this.startTimerTick();
   }
 
-  /**
-   * Pause timer
-   */
   pauseTimer(): void {
     if (!this.canPause()) return;
 
@@ -149,11 +129,10 @@ export class PracticeService {
       isPaused: true,
       pausedTime: Date.now()
     }));
+
+    console.log('Timer paused');
   }
 
-  /**
-   * Resume timer
-   */
   resumeTimer(): void {
     if (!this.canResume()) return;
 
@@ -165,24 +144,24 @@ export class PracticeService {
       startTime: (state.startTime || 0) + pausedDuration,
       pausedTime: null
     }));
+
+    console.log('Timer resumed');
   }
 
-  /**
-   * Stop timer and save session
-   */
   async stopTimer(): Promise<PracticeSession> {
-    if (!this.canStop()) return Promise.reject('Cannot stop timer');
+    if (!this.canStop()) {
+      console.log('Cannot stop - timer not running');
+      return Promise.reject('Cannot stop timer');
+    }
 
     const duration = this.elapsedMinutes();
     const category = this.currentCategory();
     const notes = this.currentNotes();
     const instrument = this.instrumentService.currentInstrument();
 
-    // Get current streak for XP calculation
     const currentStreak = this.gamificationService.currentStreak();
     const xpEarned = this.xpService.calculateXpForSession(duration, currentStreak);
 
-    // Create session
     const session: PracticeSession = {
       id: this.generateSessionId(),
       instrument,
@@ -193,22 +172,24 @@ export class PracticeService {
       xpEarned
     };
 
-    // Save session
+    console.log('Session completed:', session);
+
     this.sessions.update(sessions => [...sessions, session]);
 
-    // Update gamification
     await this.gamificationService.onPracticeCompleted(session);
 
-    // Reset timer
     this.resetTimer();
 
     return session;
   }
 
-  /**
-   * Reset timer state
-   */
   private resetTimer(): void {
+    // Stop timer subscription
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+      this.timerSubscription = undefined;
+    }
+
     this.timerState.set({
       isRunning: false,
       isPaused: false,
@@ -218,36 +199,40 @@ export class PracticeService {
     });
     this.currentCategory.set(null);
     this.currentNotes.set('');
+
+    console.log('Timer reset');
   }
 
-  /**
-   * Start timer tick (RxJS interval)
-   */
   private startTimerTick(): void {
-    this.timer$ = interval(1000).pipe(
-      map(() => {
-        const state = this.timerState();
-        if (!state.isRunning || state.isPaused) return state.elapsedSeconds;
+    // Clear any existing subscription
+    if (this.timerSubscription) {
+      this.timerSubscription.unsubscribe();
+    }
 
-        const elapsed = Math.floor((Date.now() - (state.startTime || 0)) / 1000);
-        this.timerState.update(s => ({ ...s, elapsedSeconds: elapsed }));
-        return elapsed;
-      })
-    );
+    // Create interval that ticks every second
+    this.timerSubscription = interval(1000).subscribe(() => {
+      const state = this.timerState();
 
-    this.timer$.subscribe();
+      // Only update if running and not paused
+      if (!state.isRunning || state.isPaused) {
+        return;
+      }
+
+      const elapsed = Math.floor((Date.now() - (state.startTime || 0)) / 1000);
+
+      this.timerState.update(s => ({
+        ...s,
+        elapsedSeconds: elapsed
+      }));
+    });
+
+    console.log('Timer tick started');
   }
 
-  /**
-   * Get sessions for a specific instrument
-   */
   getSessionsByInstrument(instrument: string): PracticeSession[] {
     return this.sessions().filter(s => s.instrument === instrument);
   }
 
-  /**
-   * Get total practice time for an instrument (in minutes)
-   */
   getTotalPracticeTime(instrument?: string): number {
     const filteredSessions = instrument
       ? this.sessions().filter(s => s.instrument === instrument)
@@ -256,9 +241,6 @@ export class PracticeService {
     return filteredSessions.reduce((total, session) => total + session.duration, 0);
   }
 
-  /**
-   * Generate unique session ID
-   */
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
