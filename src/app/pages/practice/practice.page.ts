@@ -85,9 +85,6 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
             </ion-card-content>
           </ion-card>
 
-          <!-- Metronome (Setup Phase) -->
-          <app-metronome></app-metronome>
-
           <ion-button
             expand="block"
             size="large"
@@ -96,6 +93,9 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
             <ion-icon name="play" slot="start"></ion-icon>
             Start Practice
           </ion-button>
+
+          <!-- Metronome (Setup Phase) -->
+          <app-metronome></app-metronome>
         }
 
         <!-- Practice Phase -->
