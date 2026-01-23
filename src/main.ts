@@ -23,6 +23,10 @@ const routes: Routes = [
     loadComponent: () => import('./app/pages/practice/practice.page').then(m => m.PracticePage)
   },
   {
+    path: 'chord-charts',
+    loadComponent: () => import('./app/pages/chord-charts/chord-charts.page').then(m => m.ChordChartsPage)
+  },
+  {
     path: 'quests',
     loadComponent: () => import('./app/pages/quests/quests.page').then(m => m.QuestsPage)
   },
