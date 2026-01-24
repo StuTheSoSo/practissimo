@@ -295,8 +295,10 @@ import { Chord, ChordCategory, GuitarChordPosition, PianoChordPosition } from '.
       padding: 2rem;
     }
 
-    ion-card-content {
+     .ion-card-content {
       text-align: center;
+      overflow-x: auto;
+      padding: 1rem 0.5rem;
     }
   `],
   standalone: true,

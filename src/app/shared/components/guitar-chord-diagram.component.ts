@@ -18,7 +18,7 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
 
       <!-- SVG Diagram -->
       <svg
-        [attr.width]="width"
+        [attr.width]="width + 50"
         [attr.height]="height"
         [attr.viewBox]="'0 0 ' + width + ' ' + height"
         class="diagram-svg"
