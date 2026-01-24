@@ -1,4 +1,3 @@
-
 // src/app/pages/quests/quests.page.ts
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -115,6 +114,9 @@ import { QuestService } from '../../core/services/quest.service';
     IonCardContent,
     IonButtons,
     IonBackButton,
+    IonList,
+    IonItem,
+    IonLabel,
     IonBadge,
     IonProgressBar,
     IonIcon

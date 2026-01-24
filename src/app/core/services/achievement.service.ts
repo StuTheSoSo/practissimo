@@ -57,11 +57,14 @@ export class AchievementService {
       STORAGE_KEYS.ACHIEVEMENTS
     );
 
-    if (savedAchievements) {
+    if (savedAchievements && savedAchievements.length > 0) {
       this.achievements.set(savedAchievements);
     } else {
-      // Generate initial achievements
-      this.achievements.set(this.generateInitialAchievements());
+      // Generate initial achievements if none exist
+      const initialAchievements = this.generateInitialAchievements();
+      this.achievements.set(initialAchievements);
+      // Save them immediately
+      await this.storage.set(STORAGE_KEYS.ACHIEVEMENTS, initialAchievements);
     }
   }
 
@@ -208,9 +211,11 @@ export class AchievementService {
    */
   async checkAchievements(): Promise<Achievement[]> {
     const newlyUnlocked: Achievement[] = [];
+
+    // Get current progress data
     const userProgress = this.gamificationService.userProgress();
     const allSessions = this.practiceService.allSessions();
-    const totalPracticeMinutes = this.practiceService.getTotalPracticeTime();
+    const totalPracticeMinutes = allSessions.reduce((total, session) => total + session.duration, 0);
 
     this.achievements.update(achievements => {
       return achievements.map(achievement => {
@@ -266,7 +271,7 @@ export class AchievementService {
 
     const userProgress = this.gamificationService.userProgress();
     const allSessions = this.practiceService.allSessions();
-    const totalPracticeMinutes = this.practiceService.getTotalPracticeTime();
+    const totalPracticeMinutes = allSessions.reduce((total, session) => total + session.duration, 0);
 
     let current = 0;
 

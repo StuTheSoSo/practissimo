@@ -1,5 +1,5 @@
 // src/app/pages/achievements/achievements.page.ts
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -22,8 +22,6 @@ import {
 import { addIcons } from 'ionicons';
 import { star, lockClosed } from 'ionicons/icons';
 import { AchievementService } from '../../core/services/achievement.service';
-import { signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-achievements',
@@ -36,7 +34,7 @@ import { FormsModule } from '@angular/forms';
         <ion-title>Achievements</ion-title>
       </ion-toolbar>
       <ion-toolbar>
-        <ion-segment [(ngModel)]="selectedSegment" (ionChange)="segmentChanged()">
+        <ion-segment [value]="selectedSegment()" (ionChange)="segmentChanged($event)">
           <ion-segment-button value="all">
             <ion-label>All ({{ totalCount() }})</ion-label>
           </ion-segment-button>
@@ -49,6 +47,14 @@ import { FormsModule } from '@angular/forms';
 
     <ion-content class="ion-padding">
       <div class="achievements-container">
+        @if (displayedAchievements().length === 0) {
+          <ion-card>
+            <ion-card-content>
+              <p class="empty-state">No achievements to display. Keep practicing to unlock achievements!</p>
+            </ion-card-content>
+          </ion-card>
+        }
+
         @for (achievement of displayedAchievements(); track achievement.id) {
           <ion-card [class.unlocked]="achievement.unlocked">
             <ion-card-header>
@@ -73,6 +79,9 @@ import { FormsModule } from '@angular/forms';
                 ></ion-progress-bar>
               } @else {
                 <ion-badge color="success">Unlocked!</ion-badge>
+                @if (achievement.unlockedAt) {
+                  <p class="unlocked-date">{{ formatDate(achievement.unlockedAt) }}</p>
+                }
               }
             </ion-card-content>
           </ion-card>
@@ -102,6 +111,18 @@ import { FormsModule } from '@angular/forms';
     ion-card.unlocked {
       background: linear-gradient(135deg, var(--ion-color-warning-tint), var(--ion-color-success-tint));
     }
+
+    .empty-state {
+      text-align: center;
+      color: var(--ion-color-medium);
+      padding: 2rem;
+    }
+
+    .unlocked-date {
+      font-size: 0.85rem;
+      color: var(--ion-color-medium);
+      margin-top: 0.5rem;
+    }
   `],
   standalone: true,
   imports: [
@@ -121,11 +142,10 @@ import { FormsModule } from '@angular/forms';
     IonLabel,
     IonIcon,
     IonBadge,
-    IonProgressBar,
-    FormsModule
+    IonProgressBar
   ]
 })
-export class AchievementsPage {
+export class AchievementsPage implements OnInit {
   achievementService = inject(AchievementService);
 
   allAchievements = this.achievementService.allAchievements;
@@ -141,11 +161,34 @@ export class AchievementsPage {
     addIcons({ star, lockClosed });
   }
 
-  segmentChanged() {
-    if (this.selectedSegment() === 'unlocked') {
+  async ngOnInit() {
+    // Check if achievements are empty and initialize if needed
+    if (this.allAchievements().length === 0) {
+      await this.achievementService.initialize();
+    }
+    this.updateDisplay();
+  }
+
+  segmentChanged(event: any) {
+    this.selectedSegment.set(event.detail.value);
+    this.updateDisplay();
+  }
+
+  private updateDisplay() {
+    const segment = this.selectedSegment();
+    if (segment === 'unlocked') {
       this.displayedAchievements.set(this.unlockedAchievements());
     } else {
       this.displayedAchievements.set(this.allAchievements());
     }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
 }
