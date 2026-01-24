@@ -122,7 +122,6 @@ import { PracticeService } from '../../core/services/practice.service';
     IonList,
     IonItem,
     IonLabel,
-    IonNote,
     IonBadge
   ]
 })
