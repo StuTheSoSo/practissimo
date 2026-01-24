@@ -16,7 +16,6 @@ import {
   IonProgressBar,
   IonBadge,
   IonButtons,
-  IonMenuButton,
   IonGrid,
   IonRow,
   IonCol,
@@ -95,17 +94,11 @@ import { QuestService } from '../../core/services/quest.service';
         <!-- Quick Actions -->
         <ion-grid class="quick-actions">
           <ion-row>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" size="large" (click)="startPractice()">
-                <ion-icon name="play" slot="start"></ion-icon>
-                Start Practice
-              </ion-button>
-            </ion-col>
-            <ion-col size="12" size-md="6">
-              <ion-button expand="block" size="large" fill="outline" (click)="goToChordCharts()">
-                <ion-icon name="musical-notes" slot="start"></ion-icon>
-                Chord Charts
-              </ion-button>
+            <ion-col size="12">
+             <ion-button expand="block" (click)="startPractice()">
+              <ion-icon name="play" slot="start"></ion-icon>
+              Start Practice
+            </ion-button>
             </ion-col>
           </ion-row>
           <ion-row>
@@ -130,6 +123,12 @@ import { QuestService } from '../../core/services/quest.service';
               <ion-button expand="block" fill="outline" (click)="goToAchievements()">
                 <ion-icon name="star" slot="start"></ion-icon>
                 Achievements
+              </ion-button>
+            </ion-col>
+       <ion-col size="6">
+              <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
+                <ion-icon name="musical-notes" slot="start"></ion-icon>
+                Chord Charts
               </ion-button>
             </ion-col>
           </ion-row>
@@ -232,9 +231,10 @@ import { QuestService } from '../../core/services/quest.service';
       margin: 0;
     }
 
-    ion-list {
+    .ion-list {
       padding: 0;
     }
+
   `],
   standalone: true,
   imports: [
@@ -299,9 +299,9 @@ export class HomePage {
     this.router.navigate(['/chord-charts']);
   }
 
-  goToBackingTracks() {
-    this.router.navigate(['/backing-tracks']);
-  }
+  // goToBackingTracks() {
+  //   this.router.navigate(['/backing-tracks']);
+  // }
 
   goToTuner() {
     this.router.navigate(['/tuner']);
