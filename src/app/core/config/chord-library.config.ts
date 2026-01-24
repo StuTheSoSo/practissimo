@@ -1016,6 +1016,213 @@ export const CHORD_LIBRARY: Chord[] = [
     ]
   },
 
+
+  // Add these to the GUITAR section
+
+  // Bb Major (A-shape barre at fret 1)
+  {
+    id: 'guitar_bb_major',
+    name: 'Bb Major',
+    displayName: 'Bb',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Common barre chord in pop, rock, and country keys',
+    commonIn: ['Key of F', 'Key of Bb', 'Pop', 'Country'],
+    variations: [
+      {
+        id: 'bb_major_barre_a_shape',
+        name: 'A-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 1,
+          fingering: ['x', 1, 3, 3, 3, 1],
+          fingers: [null, 1, 2, 3, 4, 1],
+          barres: [
+            { fret: 1, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // Bb Minor (A minor shape barre)
+  {
+    id: 'guitar_bbm_minor',
+    name: 'Bb Minor',
+    displayName: 'Bbm',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Melancholic barre minor chord',
+    commonIn: ['Key of Fm', 'Key of Bb minor', 'Ballads', 'Rock'],
+    variations: [
+      {
+        id: 'bbm_minor_barre',
+        name: 'Barre Chord (A minor shape)',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 1,
+          fingering: ['x', 1, 3, 3, 2, 1],
+          fingers: [null, 1, 3, 4, 2, 1],
+          barres: [
+            { fret: 1, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // F# Major (E-shape barre at fret 2)
+  {
+    id: 'guitar_fsharp_major',
+    name: 'F# Major',
+    displayName: 'F#',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Bright barre chord common in rock and transpositions',
+    commonIn: ['Key of E', 'Key of B', 'Rock', 'Pop'],
+    variations: [
+      {
+        id: 'fsharp_major_barre_e_shape',
+        name: 'E-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 2,
+          fingering: [2, 4, 4, 3, 2, 2],
+          fingers: [1, 3, 4, 2, 1, 1],
+          barres: [
+            { fret: 2, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // Easy / Partial F Major (very popular beginner workaround)
+  {
+    id: 'guitar_f_major_easy',
+    name: 'F Major (Easy/Partial)',
+    displayName: 'F (easy)',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'guitar',
+    description: 'Beginner-friendly partial barre - avoids full 6-string barre',
+    commonIn: ['Key of C', 'Key of F', 'Pop', 'Folk'],
+    variations: [
+      {
+        id: 'f_major_easy_partial',
+        name: 'Partial F (133211 variant without low E)',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 1,
+          fingering: ['x', 3, 3, 2, 1, 1],
+          fingers: [null, 3, 4, 2, 1, 1],
+          barres: [
+            { fret: 1, fromString: 1, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // Cadd9 (extremely common add9 shape in pop/rock)
+  {
+    id: 'guitar_cadd9',
+    name: 'C add9',
+    displayName: 'Cadd9',
+    category: 'add',
+    difficulty: 'beginner',
+    instrument: 'guitar',
+    description: 'Beautiful, dreamy add9 chord used in countless pop songs',
+    commonIn: ['Pop', 'Rock', 'Acoustic', 'Key of C', 'Key of G'],
+    variations: [
+      {
+        id: 'cadd9_open',
+        name: 'Open Position',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 1,
+          fingering: ['x', 3, 2, 'o', 3, 3],
+          fingers: [null, 3, 2, null, 4, 1]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // Gadd9 (another super common add9)
+  {
+    id: 'guitar_gadd9',
+    name: 'G add9',
+    displayName: 'Gadd9',
+    category: 'add',
+    difficulty: 'beginner',
+    instrument: 'guitar',
+    description: 'Warm, ringing add9 shape - staple in modern acoustic playing',
+    commonIn: ['Pop', 'Folk', 'Rock', 'Key of G', 'Key of D'],
+    variations: [
+      {
+        id: 'gadd9_open',
+        name: 'Open Position',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 1,
+          fingering: [3, 2, 'o', 2, 'o', 3],
+          fingers: [4, 2, null, 1, null, 3]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
+  // B7 barre (E dominant 7 shape) - common in blues/rock
+  {
+    id: 'guitar_b7_barre',
+    name: 'B Dominant 7 (barre)',
+    displayName: 'B7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Moveable dominant 7 barre shape - great for blues and rock',
+    commonIn: ['Blues', 'Rock', 'Key of E'],
+    variations: [
+      {
+        id: 'b7_barre_e_shape',
+        name: 'E-Shape Barre at fret 7',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 7,
+          fingering: [1, 2, 1, 'o', 1, 2],
+          fingers: [1, 2, 1, null, 3, 4],
+          barres: [
+            { fret: 7, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+
   // ============================================================================
   // PIANO - MAJOR CHORDS
   // ============================================================================
@@ -1367,7 +1574,297 @@ export const CHORD_LIBRARY: Chord[] = [
         }
       }
     ]
-  }
+  },
+  // ============================================================================
+  // PIANO - MAJOR CHORDS (completing the basics)
+  // ============================================================================
+
+  {
+    id: 'piano_bb_major',
+    name: 'Bb Major',
+    displayName: 'Bb',
+    category: 'major',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Warm major chord with two flats - common in pop and ballads',
+    commonIn: ['Key of F', 'Key of Bb', 'Pop', 'Soul'],
+    variations: [
+      {
+        id: 'piano_bb_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Bb', octave: 3, finger: 1 },
+            { note: 'D', octave: 4, finger: 3 },
+            { note: 'F', octave: 4, finger: 5 }
+          ],
+          octave: 3  // Starting lower for comfortable hand position
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_eb_major',
+    name: 'Eb Major',
+    displayName: 'Eb',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Rich major chord with three flats - staple in ballads and gospel',
+    commonIn: ['Key of Eb', 'Key of Ab', 'Ballads', 'Gospel'],
+    variations: [
+      {
+        id: 'piano_eb_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Eb', octave: 3, finger: 2 },
+            { note: 'G', octave: 3, finger: 1 },
+            { note: 'Bb', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - MINOR CHORDS (completing the diatonic set)
+  // ============================================================================
+
+  {
+    id: 'piano_cm_minor',
+    name: 'C Minor',
+    displayName: 'Cm',
+    category: 'minor',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Dark, emotional minor chord - all white keys except Eb',
+    commonIn: ['Key of Eb', 'Key of Cm', 'Pop ballads', 'Classical'],
+    variations: [
+      {
+        id: 'piano_cm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'Eb', octave: 4, finger: 3 },
+            { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_fm_minor',
+    name: 'F Minor',
+    displayName: 'Fm',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Melancholic minor chord with four flats',
+    commonIn: ['Key of Ab', 'Key of Fm', 'Ballads', 'R&B'],
+    variations: [
+      {
+        id: 'piano_fm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F', octave: 3, finger: 1 },
+            { note: 'Ab', octave: 3, finger: 3 },
+            { note: 'C', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_gm_minor',
+    name: 'G Minor',
+    displayName: 'Gm',
+    category: 'minor',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Soulful minor chord - common in rock and pop',
+    commonIn: ['Key of Bb', 'Key of Gm', 'Rock', 'Pop'],
+    variations: [
+      {
+        id: 'piano_gm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G', octave: 3, finger: 1 },
+            { note: 'Bb', octave: 3, finger: 3 },
+            { note: 'D', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - MINOR 7TH CHORDS (very common in pop, jazz, R&B)
+  // ============================================================================
+
+  {
+    id: 'piano_am7',
+    name: 'A Minor 7',
+    displayName: 'Am7',
+    category: 'seventh',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Smooth, jazzy minor seventh - extremely common in pop',
+    commonIn: ['Pop', 'R&B', 'Jazz', 'Key of C', 'Key of G'],
+    variations: [
+      {
+        id: 'piano_am7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'A', octave: 3, finger: 1 },
+            { note: 'C', octave: 4, finger: 2 },
+            { note: 'E', octave: 4, finger: 3 },
+            { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_dm7',
+    name: 'D Minor 7',
+    displayName: 'Dm7',
+    category: 'seventh',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Mellow minor seventh - backbone of ii–V–I progressions',
+    commonIn: ['Jazz', 'Pop', 'Blues', 'Key of C', 'Key of G'],
+    variations: [
+      {
+        id: 'piano_dm7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 3, finger: 1 },
+            { note: 'F', octave: 3, finger: 2 },
+            { note: 'A', octave: 3, finger: 4 },
+            { note: 'C', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_em7',
+    name: 'E Minor 7',
+    displayName: 'Em7',
+    category: 'seventh',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Open-sounding minor seventh - great for ballads',
+    commonIn: ['Pop', 'Rock', 'Folk', 'Key of D', 'Key of G'],
+    variations: [
+      {
+        id: 'piano_em7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 3, finger: 1 },
+            { note: 'G', octave: 3, finger: 2 },
+            { note: 'B', octave: 3, finger: 4 },
+            { note: 'D', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - MORE DOMINANT 7TH & MAJOR 7TH
+  // ============================================================================
+
+  {
+    id: 'piano_f7',
+    name: 'F Dominant 7',
+    displayName: 'F7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Bluesy dominant seventh - resolves strongly to Bb',
+    commonIn: ['Blues', 'Jazz', 'Key of Bb', 'Key of F'],
+    variations: [
+      {
+        id: 'piano_f7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F', octave: 3, finger: 1 },
+            { note: 'A', octave: 3, finger: 2 },
+            { note: 'C', octave: 4, finger: 3 },
+            { note: 'Eb', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_fmaj7',
+    name: 'F Major 7',
+    displayName: 'Fmaj7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Dreamy major seventh - popular in pop and bossa nova',
+    commonIn: ['Jazz', 'Bossa Nova', 'Pop ballads', 'Key of F'],
+    variations: [
+      {
+        id: 'piano_fmaj7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F', octave: 3, finger: 1 },
+            { note: 'A', octave: 3, finger: 2 },
+            { note: 'C', octave: 4, finger: 3 },
+            { note: 'E', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
 ];
 
 /**
@@ -1406,4 +1903,4 @@ export function searchChords(instrument: string, query: string): Chord[] {
       (chord.name.toLowerCase().includes(lowerQuery) ||
         chord.displayName.toLowerCase().includes(lowerQuery))
   );
-} 6
+}

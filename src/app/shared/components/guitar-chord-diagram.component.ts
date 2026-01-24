@@ -63,7 +63,7 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
             [attr.x1]="marginLeft + (i * stringSpacing)"
             [attr.y1]="marginTop"
             [attr.x2]="marginLeft + (i * stringSpacing)"
-            [attr.y2]="marginTop + ((position.frets - 1) * fretHeight)"
+            [attr.y2]="marginTop + (position.frets * fretHeight)"
             stroke="#666"
             [attr.stroke-width]="i === 0 ? 3 : (7 - i) * 0.5"
           />
@@ -242,8 +242,11 @@ export class GuitarChordDiagramComponent implements OnInit {
   }
 
   private generateDiagram() {
-    // Generate fret lines
-    this.fretLines = Array.from({ length: this.position.frets }, (_, i) => i);
+    const baseFret = this.position.baseFret || 1;
+    const visibleFretOffset = baseFret - 1;
+
+    // Generate fret lines (one more than the number of fret spaces)
+    this.fretLines = Array.from({ length: this.position.frets + 1 }, (_, i) => i);
 
     // Generate string lines
     this.stringLines = Array.from({ length: this.position.strings }, (_, i) => i);
@@ -261,23 +264,29 @@ export class GuitarChordDiagramComponent implements OnInit {
         this.stringMarkers.push({ string: stringIndex, type: 'o' });
       } else if (fret === 'x') {
         this.stringMarkers.push({ string: stringIndex, type: 'x' });
-      } else if (typeof fret === 'number') {
-        const finger = this.position.fingers?.[stringIndex];
-        this.fingerDots.push({
-          string: stringIndex,
-          fret: fret,
-          finger: finger || undefined
-        });
+      } else if (typeof fret === 'number' && fret > 0) {
+        const visualFret = fret - visibleFretOffset;
+        if (visualFret >= 1 && visualFret <= this.position.frets) {
+          const finger = this.position.fingers?.[stringIndex];
+          this.fingerDots.push({
+            string: stringIndex,
+            fret: visualFret,
+            finger: finger || undefined
+          });
+        }
       }
     });
 
     // Process barres
     if (this.position.barres) {
-      this.barres = this.position.barres.map(b => ({
-        fret: b.fret,
-        fromString: b.fromString,
-        toString: b.toString
-      }));
+      this.barres = this.position.barres.map(b => {
+        const visualFret = b.fret - visibleFretOffset;
+        return {
+          fret: visualFret,
+          fromString: b.fromString,
+          toString: b.toString
+        };
+      }).filter(barre => barre.fret >= 1 && barre.fret <= this.position.frets);
     }
   }
 }

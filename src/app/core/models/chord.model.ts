@@ -38,7 +38,8 @@ export type ChordCategory =
   | 'suspended'
   | 'diminished'
   | 'augmented'
-  | 'power';
+  | 'power'
+  | 'add';
 
 /**
  * Instrument-specific chord positions
