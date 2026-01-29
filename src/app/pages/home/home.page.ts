@@ -21,7 +21,8 @@ import {
   IonCol,
   IonList,
   IonItem,
-  IonLabel
+  IonLabel,
+  ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -38,6 +39,7 @@ import {
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
+import { FeedbackModalComponent } from 'src/app/shared/components/feedback.component';
 
 @Component({
   selector: 'app-home',
@@ -171,6 +173,39 @@ import { QuestService } from '../../core/services/quest.service';
             </ion-card-content>
           </ion-card>
         }
+
+        <!-- Feedback Section -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Help Us Improve</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Your feedback is invaluable! Report bugs, request features, or share your thoughts.</p>
+
+            <!-- Direct feedback button instead of component -->
+            <ion-button
+              expand="block"
+              fill="solid"
+              (click)="openFeedback()"
+            >
+              <ion-icon name="chatbubble-ellipses" slot="start"></ion-icon>
+              Send Feedback
+            </ion-button>
+
+            <!-- Quick Links -->
+            <div class="feedback-links">
+              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('bug')">
+                <ion-icon name="bug" slot="start"></ion-icon>
+                Report Bug
+              </ion-button>
+              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('feature')">
+                <ion-icon name="bulb" slot="start"></ion-icon>
+                Request Feature
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
       </div>
     </ion-content>
   `,
@@ -235,6 +270,18 @@ import { QuestService } from '../../core/services/quest.service';
       padding: 0;
     }
 
+        .feedback-links {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .feedback-links ion-button {
+      flex: 1;
+      min-width: 140px;
+    }
+
   `],
   standalone: true,
   imports: [
@@ -265,6 +312,7 @@ export class HomePage {
   private gamificationService = inject(GamificationService);
   private instrumentService = inject(InstrumentService);
   private questService = inject(QuestService);
+  private modalController = inject(ModalController);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   currentStreak = this.gamificationService.currentStreak;
@@ -321,5 +369,23 @@ export class HomePage {
 
   goToSettings() {
     this.router.navigate(['/settings']);
+  }
+
+  async openFeedback() {
+    const modal = await this.modalController.create({
+      component: FeedbackModalComponent
+    });
+    await modal.present();
+  }
+
+  async openFeedbackWithType(type: 'bug' | 'feature') {
+    // Open feedback modal - you could pass the type as componentProps if needed
+    const modal = await this.modalController.create({
+      component: FeedbackModalComponent,
+      componentProps: {
+        initialType: type
+      }
+    });
+    await modal.present();
   }
 }
