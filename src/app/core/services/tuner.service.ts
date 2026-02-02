@@ -92,7 +92,6 @@ export class TunerService {
    */
   async start(): Promise<void> {
     if (this.isListening()) {
-      console.log('Tuner already listening');
       return;
     }
 
@@ -270,7 +269,6 @@ export class TunerService {
     const tuning = TUNING_PRESETS.find(t => t.id === tuningId);
     if (tuning) {
       this.selectedTuning.set(tuning);
-      console.log('Tuning set to:', tuning.name);
     }
   }
 
