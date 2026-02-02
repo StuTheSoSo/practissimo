@@ -248,14 +248,11 @@ export class PracticePage {
 
   onCategoryChange(event: any) {
     this.selectedCategory = event.detail.value;
-    console.log('Category selected:', this.selectedCategory);
   }
 
   async startSession() {
-    console.log('Start session clicked, category:', this.selectedCategory);
 
     if (!this.selectedCategory) {
-      console.log('No category selected');
       const alert = await this.alertController.create({
         header: 'Category Required',
         message: 'Please select a practice category before starting your session.',
@@ -268,10 +265,7 @@ export class PracticePage {
     this.practiceService.setCategory(this.selectedCategory);
     this.practiceService.setNotes(this.sessionNotes() || '');
 
-    console.log('Starting timer with category:', this.selectedCategory);
     this.practiceService.startTimer();
-
-    console.log('Timer state after start:', this.timerState());
   }
 
   pauseSession() {

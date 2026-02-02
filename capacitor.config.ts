@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'practissimo',
+  appId: 'com.practissimo.app',
+  appName: 'Practissimo',
   webDir: 'www'
 };
 

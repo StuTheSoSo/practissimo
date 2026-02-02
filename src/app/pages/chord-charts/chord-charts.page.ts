@@ -400,7 +400,6 @@ export class ChordChartsPage {
 
   selectChord(chord: Chord) {
     // Could navigate to detailed chord view
-    console.log('Selected chord:', chord);
   }
 
   categoryLabel(category: string): string {

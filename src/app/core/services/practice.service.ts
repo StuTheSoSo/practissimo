@@ -101,10 +101,6 @@ export class PracticeService {
 
   startTimer(): void {
     if (!this.canStart()) {
-      console.log('Cannot start - conditions not met:', {
-        isRunning: this.timer().isRunning,
-        category: this.currentCategory()
-      });
       return;
     }
 
@@ -116,8 +112,6 @@ export class PracticeService {
       startTime: now,
       elapsedSeconds: 0
     }));
-
-    console.log('Timer started at:', new Date(now).toISOString());
     this.startTimerTick();
   }
 
@@ -129,8 +123,6 @@ export class PracticeService {
       isPaused: true,
       pausedTime: Date.now()
     }));
-
-    console.log('Timer paused');
   }
 
   resumeTimer(): void {
@@ -144,13 +136,10 @@ export class PracticeService {
       startTime: (state.startTime || 0) + pausedDuration,
       pausedTime: null
     }));
-
-    console.log('Timer resumed');
   }
 
   async stopTimer(): Promise<PracticeSession> {
     if (!this.canStop()) {
-      console.log('Cannot stop - timer not running');
       return Promise.reject('Cannot stop timer');
     }
 
@@ -171,8 +160,6 @@ export class PracticeService {
       notes: notes || undefined,
       xpEarned
     };
-
-    console.log('Session completed:', session);
 
     this.sessions.update(sessions => [...sessions, session]);
 
@@ -199,8 +186,6 @@ export class PracticeService {
     });
     this.currentCategory.set(null);
     this.currentNotes.set('');
-
-    console.log('Timer reset');
   }
 
   private startTimerTick(): void {
@@ -225,8 +210,6 @@ export class PracticeService {
         elapsedSeconds: elapsed
       }));
     });
-
-    console.log('Timer tick started');
   }
 
   getSessionsByInstrument(instrument: string): PracticeSession[] {
