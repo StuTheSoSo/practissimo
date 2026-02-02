@@ -828,6 +828,90 @@ export const CHORD_LIBRARY: Chord[] = [
       }
     ]
   },
+  {
+    id: 'guitar_csharp_major',
+    name: 'C# Major',
+    displayName: 'C#',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'A-shape barre chord with a bright, modern tone',
+    commonIn: ['Key of C#', 'Key of F#', 'Pop', 'Rock'],
+    variations: [
+      {
+        id: 'csharp_major_barre_a_shape',
+        name: 'A-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 4,
+          fingering: ['x', 4, 6, 6, 6, 4],
+          fingers: [null, 1, 2, 3, 4, 1],
+          barres: [
+            { fret: 4, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+  {
+    id: 'guitar_eb_major',
+    name: 'Eb Major',
+    displayName: 'Eb',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Warm barre chord often used in soul and jazz',
+    commonIn: ['Key of Eb', 'Soul', 'Jazz', 'Ballads'],
+    variations: [
+      {
+        id: 'eb_major_barre_a_shape',
+        name: 'A-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 6,
+          fingering: ['x', 6, 8, 8, 8, 6],
+          fingers: [null, 1, 2, 3, 4, 1],
+          barres: [
+            { fret: 6, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+  {
+    id: 'guitar_ab_major',
+    name: 'Ab Major',
+    displayName: 'Ab',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Bold barre chord with a rich midrange',
+    commonIn: ['Key of Ab', 'Key of Db', 'Soul', 'Pop'],
+    variations: [
+      {
+        id: 'ab_major_barre_e_shape',
+        name: 'E-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 4,
+          fingering: [4, 6, 6, 5, 4, 4],
+          fingers: [1, 3, 4, 2, 1, 1],
+          barres: [
+            { fret: 4, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
 
   // ============================================================================
   // GUITAR - MINOR CHORDS
@@ -903,6 +987,90 @@ export const CHORD_LIBRARY: Chord[] = [
           baseFret: 1,
           fingering: ['x', 'x', 'o', 2, 3, 1],
           fingers: [null, null, null, 2, 3, 1]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+  {
+    id: 'guitar_fsharp_minor',
+    name: 'F# Minor',
+    displayName: 'F#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Common minor barre chord in modern pop and rock',
+    commonIn: ['Key of A', 'Key of E', 'Pop', 'Rock'],
+    variations: [
+      {
+        id: 'fsharp_minor_barre_e_shape',
+        name: 'E-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 2,
+          fingering: [2, 4, 4, 2, 2, 2],
+          fingers: [1, 3, 4, 1, 1, 1],
+          barres: [
+            { fret: 2, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+  {
+    id: 'guitar_csharp_minor',
+    name: 'C# Minor',
+    displayName: 'C#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Moody minor barre chord with a smooth timbre',
+    commonIn: ['Key of E', 'Key of B', 'Pop', 'R&B'],
+    variations: [
+      {
+        id: 'csharp_minor_barre_a_shape',
+        name: 'A-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 4,
+          fingering: ['x', 4, 6, 6, 5, 4],
+          fingers: [null, 1, 3, 4, 2, 1],
+          barres: [
+            { fret: 4, fromString: 0, toString: 5, finger: 1 }
+          ]
+        } as GuitarChordPosition
+      }
+    ]
+  },
+  {
+    id: 'guitar_gsharp_minor',
+    name: 'G# Minor',
+    displayName: 'G#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'guitar',
+    description: 'Dark, tense minor barre chord',
+    commonIn: ['Key of B', 'Key of E', 'Rock', 'Alternative'],
+    variations: [
+      {
+        id: 'gsharp_minor_barre_e_shape',
+        name: 'E-Shape Barre',
+        isPrimary: true,
+        positions: {
+          type: 'guitar',
+          strings: 6,
+          frets: 4,
+          baseFret: 4,
+          fingering: [4, 6, 6, 4, 4, 4],
+          fingers: [1, 3, 4, 1, 1, 1],
+          barres: [
+            { fret: 4, fromString: 0, toString: 5, finger: 1 }
+          ]
         } as GuitarChordPosition
       }
     ]
@@ -1408,6 +1576,84 @@ export const CHORD_LIBRARY: Chord[] = [
       }
     ]
   },
+  {
+    id: 'piano_db_major',
+    name: 'Db Major',
+    displayName: 'Db',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Lush major chord with five flats',
+    commonIn: ['Key of Db', 'Romantic', 'Film'],
+    variations: [
+      {
+        id: 'piano_db_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Db', octave: 4, finger: 1 },
+            { note: 'F', octave: 4, finger: 3 },
+            { note: 'Ab', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_fsharp_major',
+    name: 'F# Major',
+    displayName: 'F#',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Brilliant major chord with six sharps',
+    commonIn: ['Key of F#', 'Bright pop', 'Classical'],
+    variations: [
+      {
+        id: 'piano_fsharp_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F#', octave: 3, finger: 1 },
+            { note: 'A#', octave: 3, finger: 3 },
+            { note: 'C#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_ab_major',
+    name: 'Ab Major',
+    displayName: 'Ab',
+    category: 'major',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Warm major chord with four flats',
+    commonIn: ['Key of Ab', 'Key of Eb', 'Ballads'],
+    variations: [
+      {
+        id: 'piano_ab_major_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Ab', octave: 3, finger: 1 },
+            { note: 'C', octave: 4, finger: 3 },
+            { note: 'Eb', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
 
   // ============================================================================
   // PIANO - MINOR CHORDS
@@ -1717,6 +1963,162 @@ export const CHORD_LIBRARY: Chord[] = [
       }
     ]
   },
+  {
+    id: 'piano_bbm_minor',
+    name: 'Bb Minor',
+    displayName: 'Bbm',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Somber minor chord with five flats',
+    commonIn: ['Key of Db', 'R&B', 'Film'],
+    variations: [
+      {
+        id: 'piano_bbm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Bb', octave: 3, finger: 1 },
+            { note: 'Db', octave: 4, finger: 3 },
+            { note: 'F', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_bm_minor',
+    name: 'B Minor',
+    displayName: 'Bm',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Brooding minor chord with two sharps',
+    commonIn: ['Key of D', 'Key of Bm', 'Rock', 'Classical'],
+    variations: [
+      {
+        id: 'piano_bm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'B', octave: 3, finger: 1 },
+            { note: 'D', octave: 4, finger: 3 },
+            { note: 'F#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_csharp_minor',
+    name: 'C# Minor',
+    displayName: 'C#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Expressive minor chord with four sharps',
+    commonIn: ['Key of E', 'Key of A', 'Pop'],
+    variations: [
+      {
+        id: 'piano_csharp_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C#', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 3 },
+            { note: 'G#', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_ebm_minor',
+    name: 'Eb Minor',
+    displayName: 'Ebm',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Deep minor chord with six flats',
+    commonIn: ['Key of Gb', 'Neo-soul', 'Film'],
+    variations: [
+      {
+        id: 'piano_ebm_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Eb', octave: 3, finger: 1 },
+            { note: 'Gb', octave: 3, finger: 3 },
+            { note: 'Bb', octave: 3, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_fsharp_minor',
+    name: 'F# Minor',
+    displayName: 'F#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Moody minor chord with three sharps',
+    commonIn: ['Key of A', 'Key of E', 'Pop', 'Rock'],
+    variations: [
+      {
+        id: 'piano_fsharp_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F#', octave: 3, finger: 1 },
+            { note: 'A', octave: 3, finger: 3 },
+            { note: 'C#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_gsharp_minor',
+    name: 'G# Minor',
+    displayName: 'G#m',
+    category: 'minor',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Tense minor chord with five sharps',
+    commonIn: ['Key of B', 'Key of E', 'Rock', 'Pop'],
+    variations: [
+      {
+        id: 'piano_gsharp_minor_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G#', octave: 3, finger: 1 },
+            { note: 'B', octave: 3, finger: 3 },
+            { note: 'D#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
 
   // ============================================================================
   // PIANO - MINOR 7TH CHORDS (very common in pop, jazz, R&B)
@@ -1859,6 +2261,87 @@ export const CHORD_LIBRARY: Chord[] = [
             { note: 'A', octave: 3, finger: 2 },
             { note: 'C', octave: 4, finger: 3 },
             { note: 'E', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_a7',
+    name: 'A Dominant 7',
+    displayName: 'A7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Classic dominant seventh - common in blues turnarounds',
+    commonIn: ['Blues', 'Rock', 'Key of D'],
+    variations: [
+      {
+        id: 'piano_a7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'A', octave: 3, finger: 1 },
+            { note: 'C#', octave: 4, finger: 2 },
+            { note: 'E', octave: 4, finger: 3 },
+            { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_d7',
+    name: 'D Dominant 7',
+    displayName: 'D7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Strong dominant seventh - resolves to G',
+    commonIn: ['Blues', 'Jazz', 'Key of G'],
+    variations: [
+      {
+        id: 'piano_d7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 3, finger: 1 },
+            { note: 'F#', octave: 3, finger: 2 },
+            { note: 'A', octave: 3, finger: 3 },
+            { note: 'C', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+  {
+    id: 'piano_gmaj7',
+    name: 'G Major 7',
+    displayName: 'Gmaj7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Silky major seventh with a bright, airy sound',
+    commonIn: ['Jazz', 'Bossa Nova', 'Key of G'],
+    variations: [
+      {
+        id: 'piano_gmaj7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G', octave: 3, finger: 1 },
+            { note: 'B', octave: 3, finger: 2 },
+            { note: 'D', octave: 4, finger: 3 },
+            { note: 'F#', octave: 4, finger: 5 }
           ],
           octave: 3
         }
