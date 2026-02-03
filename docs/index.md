@@ -1,6 +1,6 @@
 # Practissimo
 
-This is the README content copied into `docs/index.md` so the repository can be published with GitHub Pages.
+This is the README content copied into docs/index.md so the repository can be published with GitHub Pages.
 
 ## Overview
 
