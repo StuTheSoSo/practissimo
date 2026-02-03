@@ -30,7 +30,7 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
   template: `
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>Welcome to Practissimo</ion-title>
+        <ion-title>Welcome to PracticeQuest</ion-title>
       </ion-toolbar>
     </ion-header>
 

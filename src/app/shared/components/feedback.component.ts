@@ -130,7 +130,7 @@ export class FeedbackButtonComponent {
 
         <p class="privacy-note">
           <small>
-            Your feedback helps us improve Practissimo. We respect your privacy and will only use your email to respond to your feedback.
+            Your feedback helps us improve PracticeQuest. We respect your privacy and will only use your email to respond to your feedback.
           </small>
         </p>
       </div>
@@ -210,7 +210,7 @@ export class FeedbackModalComponent {
   }
 
   private async sendViaEmail(feedback: any) {
-    const subject = encodeURIComponent(`[Practissimo Feedback] ${feedback.type}`);
+    const subject = encodeURIComponent(`[PracticeQuest Feedback] ${feedback.type}`);
     const body = encodeURIComponent(`
 Feedback Type: ${feedback.type}
 Email: ${feedback.email || 'Not provided'}
@@ -283,7 +283,7 @@ App Version: ${feedback.appVersion}
   private async showSuccessMessage() {
     const alert = await this.alertController.create({
       header: 'Thank You!',
-      message: 'Your feedback has been submitted. We appreciate you helping us improve Practissimo!',
+      message: 'Your feedback has been submitted. We appreciate you helping us improve PracticeQuest!',
       buttons: ['Awesome!']
     });
     await alert.present();

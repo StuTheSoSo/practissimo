@@ -46,7 +46,7 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
   template: `
     <ion-header>
       <ion-toolbar color="primary">
-        <ion-title>Practissimo</ion-title>
+        <ion-title>PracticeQuest</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="goToSettings()">
             <ion-icon name="settings" slot="icon-only"></ion-icon>

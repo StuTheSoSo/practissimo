@@ -97,7 +97,7 @@ import { FeedbackModalComponent } from '../../shared/components/feedback.compone
             <ion-card-title>About</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p>Practissimo v1.0.0</p>
+            <p>PracticeQuest v1.0.0</p>
             <p>A gamified practice tracker for musicians</p>
             <br>
             <p class="made-with-love">
