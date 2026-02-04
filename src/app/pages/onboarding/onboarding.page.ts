@@ -74,7 +74,7 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
       max-width: 600px;
       margin: 0 auto;
       text-align: center;
-      padding: 2rem 0;
+      padding: 1.5rem 0 1rem;
     }
 
     h1 {
@@ -102,16 +102,52 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
-      padding: 1.5rem;
+      gap: 0.35rem;
+      padding: 1rem;
+    }
+
+    ion-card-title {
+      font-size: 1rem;
     }
 
     ion-icon {
       color: var(--ion-color-primary);
+      font-size: 32px;
     }
 
     .continue-button {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 380px), (max-height: 700px) {
+      .onboarding-container {
+        padding: 1rem 0 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        margin-bottom: 1rem;
+      }
+
+      ion-card-header {
+        padding: 0.7rem;
+      }
+
+      ion-card-title {
+        font-size: 0.85rem;
+      }
+
+      ion-icon {
+        font-size: 24px;
+      }
+
+      .continue-button {
+        margin-top: 1rem;
+      }
     }
   `],
   standalone: true,

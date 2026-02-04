@@ -37,5 +37,14 @@ export class AppComponent implements OnInit {
       this.questService.initialize(),
       this.achievementService.initialize()
     ]);
+
+    this.hideSplash();
+  }
+
+  private hideSplash(): void {
+    const splash = document.getElementById('app-splash');
+    if (!splash) return;
+    splash.classList.add('is-hidden');
+    window.setTimeout(() => splash.remove(), 350);
   }
 }

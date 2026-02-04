@@ -20,6 +20,8 @@ export class TunerService {
   private analyser?: AnalyserNode;
   private mediaStream?: MediaStream;
   private animationId?: number;
+  private highPassFilter?: BiquadFilterNode;
+  private lowPassFilter?: BiquadFilterNode;
 
   // Pitchy detector
   private pitchDetector?: PitchDetector<Float32Array<ArrayBuffer>>;
@@ -27,10 +29,11 @@ export class TunerService {
 
   // Configuration
   private readonly A4_FREQUENCY = 440; // Standard tuning reference
-  private readonly MIN_CLARITY = 0.95; // Confidence threshold (Pitchy returns 0-1)
-  private readonly BUFFER_SIZE = 2048; // Pitchy works well with 2048
+  private readonly MIN_CLARITY = 0.9; // Base confidence threshold (Pitchy returns 0-1)
+  private readonly BUFFER_SIZE = 8192; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.4; // For stable readings
-  private readonly MIN_RMS = 0.01; // Silence threshold
+  private readonly MIN_RMS = 0.005; // Silence threshold
+  private readonly LOW_STRING_FREQUENCY = 120; // Hz threshold for low strings
 
   // State
   private tunerState = signal<TunerState>({
@@ -109,16 +112,27 @@ export class TunerService {
       this.audioContext = new AudioContext();
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
 
+      // Filter chain to reduce noise and improve low-string detection
+      this.highPassFilter = this.audioContext.createBiquadFilter();
+      this.highPassFilter.type = 'highpass';
+      this.highPassFilter.frequency.value = 55;
+
+      this.lowPassFilter = this.audioContext.createBiquadFilter();
+      this.lowPassFilter.type = 'lowpass';
+      this.lowPassFilter.frequency.value = 1200;
+
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = this.BUFFER_SIZE;
-      this.analyser.smoothingTimeConstant = 0.8;
+      this.analyser.smoothingTimeConstant = 0.4;
 
-      source.connect(this.analyser);
+      source.connect(this.highPassFilter);
+      this.highPassFilter.connect(this.lowPassFilter);
+      this.lowPassFilter.connect(this.analyser);
 
       // Initialize Pitchy detector and buffer
       this.audioBuffer = new Float32Array(this.BUFFER_SIZE) as Float32Array<ArrayBuffer>;
       this.pitchDetector = PitchDetector.forFloat32Array(this.BUFFER_SIZE);
-      this.pitchDetector.minVolumeDecibels = -30; // Ignore very quiet sounds
+      this.pitchDetector.minVolumeDecibels = -45; // Allow quieter sounds
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -149,6 +163,8 @@ export class TunerService {
       this.audioContext = undefined;
     }
 
+    this.highPassFilter = undefined;
+    this.lowPassFilter = undefined;
     this.analyser = undefined;
     this.pitchDetector = undefined;
     this.audioBuffer = undefined;
@@ -183,37 +199,36 @@ export class TunerService {
       return;
     }
 
+    const autoResult = this.autoCorrelate(this.audioBuffer, this.audioContext.sampleRate);
+    const preferAuto = !!autoResult && autoResult.frequency < this.LOW_STRING_FREQUENCY;
+
+    if (preferAuto && autoResult) {
+      const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
+      if (autoResult.clarity >= autoMinClarity * 0.7) {
+        this.updateTunerState(autoResult.frequency, autoResult.clarity);
+        this.animationId = requestAnimationFrame(() => this.detectPitch());
+        return;
+      }
+    }
+
     // Detect pitch using Pitchy
     const [frequency, clarity] = this.pitchDetector.findPitch(
       this.audioBuffer,
       this.audioContext.sampleRate
     );
 
+    const minClarity = this.getAdaptiveClarity(frequency);
+
     // Only update if confidence is high and frequency is valid
-    if (clarity >= this.MIN_CLARITY && frequency > 0) {
+    if (clarity >= minClarity && frequency > 0) {
       // Validate frequency range (30 Hz to 4000 Hz for musical instruments)
       if (frequency >= 30 && frequency <= 4000) {
-        // Smooth the frequency
-        if (this.smoothedFrequency === 0) {
-          this.smoothedFrequency = frequency;
-        } else {
-          this.smoothedFrequency =
-            (this.smoothedFrequency * (1 - this.SMOOTHING_FACTOR)) +
-            (frequency * this.SMOOTHING_FACTOR);
-        }
-
-        // Convert to note
-        const noteInfo = this.frequencyToNote(this.smoothedFrequency);
-
-        // Update state
-        this.tunerState.update(state => ({
-          ...state,
-          currentFrequency: this.smoothedFrequency,
-          detectedNote: noteInfo.note,
-          detectedOctave: noteInfo.octave,
-          cents: noteInfo.cents,
-          clarity
-        }));
+        this.updateTunerState(frequency, clarity);
+      }
+    } else if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
+      const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
+      if (autoResult.clarity >= autoMinClarity * 0.7) {
+        this.updateTunerState(autoResult.frequency, autoResult.clarity);
       }
     }
 
@@ -230,6 +245,107 @@ export class TunerService {
       sum += buffer[i] * buffer[i];
     }
     return Math.sqrt(sum / buffer.length);
+  }
+
+  /**
+   * Update tuner state with smoothing
+   */
+  private updateTunerState(frequency: number, clarity: number): void {
+    if (this.smoothedFrequency === 0) {
+      this.smoothedFrequency = frequency;
+    } else {
+      this.smoothedFrequency =
+        (this.smoothedFrequency * (1 - this.SMOOTHING_FACTOR)) +
+        (frequency * this.SMOOTHING_FACTOR);
+    }
+
+    const noteInfo = this.frequencyToNote(this.smoothedFrequency);
+
+    this.tunerState.update(state => ({
+      ...state,
+      currentFrequency: this.smoothedFrequency,
+      detectedNote: noteInfo.note,
+      detectedOctave: noteInfo.octave,
+      cents: noteInfo.cents,
+      clarity
+    }));
+  }
+
+  /**
+   * Adaptive clarity threshold for low strings
+   */
+  private getAdaptiveClarity(frequency: number): number {
+    if (frequency <= 0) return this.MIN_CLARITY;
+    if (frequency < 90) return 0.75;
+    if (frequency < this.LOW_STRING_FREQUENCY) return 0.85;
+    return this.MIN_CLARITY;
+  }
+
+  /**
+   * Autocorrelation pitch detection for low strings
+   * Returns frequency and a normalized clarity estimate (0-1)
+   */
+  private autoCorrelate(buffer: Float32Array, sampleRate: number): { frequency: number; clarity: number } | null {
+    const size = buffer.length;
+    const minLag = Math.floor(sampleRate / 4000);
+    const maxLag = Math.floor(sampleRate / 30);
+
+    let rms = 0;
+    let mean = 0;
+    for (let i = 0; i < size; i++) {
+      mean += buffer[i];
+    }
+    mean /= size;
+
+    const normalized = new Float32Array(size);
+    for (let i = 0; i < size; i++) {
+      const value = buffer[i] - mean;
+      normalized[i] = value;
+      rms += value * value;
+    }
+    rms = Math.sqrt(rms / size);
+    if (rms < this.MIN_RMS) return null;
+
+    let bestLag = -1;
+    let bestCorrelation = 0;
+
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let sum = 0;
+      for (let i = 0; i < size - lag; i++) {
+        sum += normalized[i] * normalized[i + lag];
+      }
+      const correlation = sum / (size - lag);
+      if (correlation > bestCorrelation) {
+        bestCorrelation = correlation;
+        bestLag = lag;
+      }
+    }
+
+    if (bestLag === -1) return null;
+
+    // Parabolic interpolation around best lag for better accuracy
+    const prevLag = Math.max(minLag, bestLag - 1);
+    const nextLag = Math.min(maxLag, bestLag + 1);
+    const prev = this.autocorrelationAtLag(normalized, prevLag);
+    const curr = this.autocorrelationAtLag(normalized, bestLag);
+    const next = this.autocorrelationAtLag(normalized, nextLag);
+
+    const denom = (prev - 2 * curr + next);
+    const shift = denom !== 0 ? 0.5 * (prev - next) / denom : 0;
+    const refinedLag = bestLag + shift;
+
+    const frequency = sampleRate / refinedLag;
+    const clarity = Math.min(Math.max(bestCorrelation / (rms * rms), 0), 1);
+
+    return { frequency, clarity };
+  }
+
+  private autocorrelationAtLag(buffer: Float32Array, lag: number): number {
+    let sum = 0;
+    for (let i = 0; i < buffer.length - lag; i++) {
+      sum += buffer[i] * buffer[i + lag];
+    }
+    return sum / (buffer.length - lag);
   }
 
   /**
