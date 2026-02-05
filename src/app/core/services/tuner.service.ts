@@ -30,10 +30,11 @@ export class TunerService {
   // Configuration
   private readonly A4_FREQUENCY = 440; // Standard tuning reference
   private readonly MIN_CLARITY = 0.9; // Base confidence threshold (Pitchy returns 0-1)
-  private readonly BUFFER_SIZE = 8192; // Larger buffer improves low-frequency accuracy
-  private readonly SMOOTHING_FACTOR = 0.4; // For stable readings
-  private readonly MIN_RMS = 0.005; // Silence threshold
-  private readonly LOW_STRING_FREQUENCY = 120; // Hz threshold for low strings
+  private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
+  private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
+  private readonly MIN_RMS = 0.003; // Silence threshold
+  private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
+  private readonly HISTORY_SIZE = 7;
 
   // State
   private tunerState = signal<TunerState>({
@@ -47,6 +48,7 @@ export class TunerService {
 
   private selectedTuning = signal<TuningPreset | null>(null);
   private smoothedFrequency = 0;
+  private frequencyHistory: number[] = [];
 
   // Public readonly signals
   readonly state = this.tunerState.asReadonly();
@@ -138,7 +140,7 @@ export class TunerService {
 
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = this.BUFFER_SIZE;
-      this.analyser.smoothingTimeConstant = 0.4;
+      this.analyser.smoothingTimeConstant = 0.6;
 
       source.connect(this.highPassFilter);
       this.highPassFilter.connect(this.lowPassFilter);
@@ -184,6 +186,7 @@ export class TunerService {
     this.pitchDetector = undefined;
     this.audioBuffer = undefined;
     this.smoothedFrequency = 0;
+    this.frequencyHistory = [];
 
     this.tunerState.update(state => ({
       ...state,
@@ -266,19 +269,12 @@ export class TunerService {
    * Update tuner state with smoothing
    */
   private updateTunerState(frequency: number, clarity: number): void {
-    if (this.smoothedFrequency === 0) {
-      this.smoothedFrequency = frequency;
-    } else {
-      this.smoothedFrequency =
-        (this.smoothedFrequency * (1 - this.SMOOTHING_FACTOR)) +
-        (frequency * this.SMOOTHING_FACTOR);
-    }
-
-    const noteInfo = this.frequencyToNote(this.smoothedFrequency);
+    const stableFrequency = this.applyFrequencySmoothing(frequency);
+    const noteInfo = this.frequencyToNote(stableFrequency);
 
     this.tunerState.update(state => ({
       ...state,
-      currentFrequency: this.smoothedFrequency,
+      currentFrequency: stableFrequency,
       detectedNote: noteInfo.note,
       detectedOctave: noteInfo.octave,
       cents: noteInfo.cents,
@@ -294,6 +290,36 @@ export class TunerService {
     if (frequency < 90) return 0.75;
     if (frequency < this.LOW_STRING_FREQUENCY) return 0.85;
     return this.MIN_CLARITY;
+  }
+
+  private applyFrequencySmoothing(frequency: number): number {
+    if (frequency <= 0) return this.smoothedFrequency;
+
+    this.frequencyHistory.push(frequency);
+    if (this.frequencyHistory.length > this.HISTORY_SIZE) {
+      this.frequencyHistory.shift();
+    }
+
+    const sorted = [...this.frequencyHistory].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+
+    if (this.smoothedFrequency === 0) {
+      this.smoothedFrequency = median;
+      return this.smoothedFrequency;
+    }
+
+    const delta = median - this.smoothedFrequency;
+    const maxStep = this.smoothedFrequency < this.LOW_STRING_FREQUENCY ? 6 : 12;
+    const limited =
+      Math.abs(delta) > maxStep
+        ? this.smoothedFrequency + Math.sign(delta) * maxStep
+        : median;
+
+    this.smoothedFrequency =
+      (this.smoothedFrequency * (1 - this.SMOOTHING_FACTOR)) +
+      (limited * this.SMOOTHING_FACTOR);
+
+    return this.smoothedFrequency;
   }
 
   /**
