@@ -10,31 +10,41 @@ export const INSTRUMENT_CONFIG: Record<Instrument, InstrumentConfig> = {
     id: 'guitar',
     displayName: 'Guitar',
     icon: 'musical-notes', // Ionic icon name
-    categories: ['Scales', 'Chords', 'Songs', 'Technique', 'Ear Training']
+    categories: ['Scales', 'Chords', 'Songs', 'Technique', 'Ear Training'],
+    supportsTuner: true,
+    supportsChords: true
   },
   bass: {
     id: 'bass',
     displayName: 'Bass',
     icon: 'musical-note',
-    categories: ['Scales', 'Chords', 'Grooves', 'Songs', 'Technique']
+    categories: ['Scales', 'Chords', 'Grooves', 'Songs', 'Technique'],
+    supportsTuner: true,
+    supportsChords: false
   },
   piano: {
     id: 'piano',
     displayName: 'Piano',
     icon: 'list-outline',
-    categories: ['Scales', 'Chords', 'Repertoire', 'Technique', 'Sight Reading']
+    categories: ['Scales', 'Chords', 'Repertoire', 'Technique', 'Sight Reading'],
+    supportsTuner: false,
+    supportsChords: true
   },
   drums: {
     id: 'drums',
     displayName: 'Drums',
     icon: 'disc',
-    categories: ['Rudiments', 'Grooves', 'Songs', 'Technique', 'Fills']
+    categories: ['Rudiments', 'Grooves', 'Songs', 'Technique', 'Fills'],
+    supportsTuner: false,
+    supportsChords: false
   },
   violin: {
     id: 'violin',
     displayName: 'Violin',
     icon: 'musical-notes-outline',
-    categories: ['Scales', 'Études', 'Repertoire', 'Technique', 'Sight Reading']
+    categories: ['Scales', 'Études', 'Repertoire', 'Technique', 'Sight Reading'],
+    supportsTuner: true,
+    supportsChords: false
   }
 };
 

@@ -1,5 +1,5 @@
 // src/app/core/services/tuner.service.ts
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { PitchDetector } from 'pitchy';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
@@ -82,12 +82,23 @@ export class TunerService {
   });
 
   constructor() {
-    // Set default tuning based on current instrument
-    const instrument = this.instrumentService.currentInstrument();
-    const defaultTuning = this.availableTunings()[0];
-    if (defaultTuning) {
-      this.selectedTuning.set(defaultTuning);
-    }
+    effect(() => {
+      const instrument = this.instrumentService.currentInstrument();
+      const tunings = getTuningsForInstrument(instrument);
+      const current = this.selectedTuning();
+
+      if (tunings.length === 0) {
+        if (this.isListening()) {
+          this.stop();
+        }
+        this.selectedTuning.set(null);
+        return;
+      }
+
+      if (!current || current.instrument !== instrument) {
+        this.selectedTuning.set(tunings[0]);
+      }
+    });
   }
 
   /**
@@ -96,6 +107,10 @@ export class TunerService {
   async start(): Promise<void> {
     if (this.isListening()) {
       return;
+    }
+
+    if (this.availableTunings().length === 0) {
+      throw new Error('Tuner is not available for this instrument');
     }
 
     try {

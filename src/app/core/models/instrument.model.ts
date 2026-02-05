@@ -5,4 +5,6 @@ export interface InstrumentConfig {
   displayName: string;
   icon: string;
   categories: string[];
+  supportsTuner: boolean;
+  supportsChords: boolean;
 }

@@ -38,6 +38,14 @@ export class InstrumentService {
     this.currentConfig().icon
   );
 
+  readonly supportsTuner = computed<boolean>(() =>
+    this.currentConfig().supportsTuner
+  );
+
+  readonly supportsChords = computed<boolean>(() =>
+    this.currentConfig().supportsChords
+  );
+
   readonly allInstruments = computed<InstrumentConfig[]>(() =>
     getAllInstruments()
   );

@@ -476,9 +476,14 @@ export class TunerPage {
     try {
       await this.tunerService.start();
     } catch (error) {
+      const isUnavailable =
+        error instanceof Error && error.message.includes('not available');
+      const message = isUnavailable
+        ? 'Tuner is only available for guitar, bass, and violin.'
+        : 'Please allow microphone access to use the tuner.';
       const alert = await this.alertController.create({
-        header: 'Microphone Access Required',
-        message: 'Please allow microphone access to use the tuner.',
+        header: isUnavailable ? 'Tuner Unavailable' : 'Microphone Access Required',
+        message,
         buttons: ['OK']
       });
       await alert.present();

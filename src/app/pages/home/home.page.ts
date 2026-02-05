@@ -104,7 +104,7 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
             </ion-col>
           </ion-row>
           <ion-row>
-            <ion-col size="6">
+            <ion-col [size]="supportsTuner() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
                 <ion-icon name="trophy" slot="start"></ion-icon>
                 Quests
@@ -113,26 +113,30 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
                 }
               </ion-button>
             </ion-col>
-            <ion-col size="6">
-              <ion-button expand="block" fill="outline" (click)="goToTuner()">
-                <ion-icon name="musical-note" slot="start"></ion-icon>
-                Tuner
-              </ion-button>
-            </ion-col>
+            @if (supportsTuner()) {
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="goToTuner()">
+                  <ion-icon name="musical-note" slot="start"></ion-icon>
+                  Tuner
+                </ion-button>
+              </ion-col>
+            }
           </ion-row>
           <ion-row>
-            <ion-col size="6">
+            <ion-col [size]="supportsChords() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToAchievements()">
                 <ion-icon name="star" slot="start"></ion-icon>
                 Achievements
               </ion-button>
             </ion-col>
-       <ion-col size="6">
-              <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
-                <ion-icon name="musical-notes" slot="start"></ion-icon>
-                Chord Charts
-              </ion-button>
-            </ion-col>
+            @if (supportsChords()) {
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
+                  <ion-icon name="musical-notes" slot="start"></ion-icon>
+                  Chord Charts
+                </ion-button>
+              </ion-col>
+            }
           </ion-row>
           <ion-row>
             <ion-col size="12">
@@ -315,6 +319,8 @@ export class HomePage {
   private modalController = inject(ModalController);
 
   currentInstrument = this.instrumentService.currentDisplayName;
+  supportsTuner = this.instrumentService.supportsTuner;
+  supportsChords = this.instrumentService.supportsChords;
   currentStreak = this.gamificationService.currentStreak;
   longestStreak = this.gamificationService.longestStreak;
   level = this.gamificationService.level;
