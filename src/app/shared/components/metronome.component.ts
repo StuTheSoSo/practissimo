@@ -89,7 +89,7 @@ import { MetronomeService } from '../../core/services/metronome.service';
             <ion-label>Volume</ion-label>
             <ion-range
               min="0"
-              max="1"
+              max="1.5"
               step="0.1"
               [value]="metronome.volume()"
               (ionChange)="onVolumeChange($event)"
