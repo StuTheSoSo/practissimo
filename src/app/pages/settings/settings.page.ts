@@ -99,10 +99,11 @@ import { FeedbackModalComponent } from '../../shared/components/feedback.compone
           <ion-card-content>
             <p>PracticeQuest v1.0.0</p>
             <p>A gamified practice tracker for musicians</p>
+            <p>The only magic I've ever found is "The more you practice, the better you get."</p>
             <br>
             <p class="made-with-love">
               <ion-icon name="heart" color="danger"></ion-icon>
-              Made with love for musicians
+              Made with love for musicians by musicians
             </p>
           </ion-card-content>
         </ion-card>
