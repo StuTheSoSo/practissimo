@@ -1,5 +1,5 @@
 // src/app/core/services/tuner.service.ts
-import { Injectable, signal, computed, inject, effect } from '@angular/core';
+import { Injectable, signal, computed, inject, effect, OnDestroy } from '@angular/core';
 import { PitchDetector } from 'pitchy';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
@@ -7,12 +7,12 @@ import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/t
 
 /**
  * TunerService - Audio-based instrument tuner
- * Uses Web Audio API for microphone access and Pitchfinder (YIN) for pitch detection
+ * Uses Web Audio API for microphone access and Pitchy for pitch detection
  */
 @Injectable({
   providedIn: 'root'
 })
-export class TunerService {
+export class TunerService implements OnDestroy {
   private instrumentService = inject(InstrumentService);
 
   // Web Audio API
@@ -29,13 +29,14 @@ export class TunerService {
   private audioBuffer?: Float32Array<ArrayBuffer>;
 
   // Configuration
-  private readonly A4_FREQUENCY = 440; // Standard tuning reference
+  private customA4Frequency = signal<number>(440); // Configurable tuning reference
   private readonly MIN_CLARITY = 0.9; // Base confidence threshold (Pitchy returns 0-1)
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
   private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
   private readonly HISTORY_SIZE = 7;
+  private readonly TUNING_HISTORY_SIZE = 30; // Keep last 30 readings for trends
 
   // State
   private tunerState = signal<TunerState>({
@@ -50,11 +51,16 @@ export class TunerService {
   private selectedTuning = signal<TuningPreset | null>(null);
   private smoothedFrequency = 0;
   private frequencyHistory: number[] = [];
+  private tuningHistory: number[] = []; // Track cents over time for trends
   private readonly visibilityHandler = () => this.handleVisibilityChange();
+
+  // Performance optimization: reuse normalized buffer
+  private normalizedBuffer?: Float32Array;
 
   // Public readonly signals
   readonly state = this.tunerState.asReadonly();
   readonly currentTuning = this.selectedTuning.asReadonly();
+  readonly a4Frequency = this.customA4Frequency.asReadonly();
 
   // Computed signals
   readonly isListening = computed(() => this.state().isListening);
@@ -77,12 +83,87 @@ export class TunerService {
 
     if (!tuning || !tuning.strings.length || frequency === 0) return undefined;
 
-    // Find closest string by frequency using reduce
-    return tuning.strings.reduce((closest, string) => {
-      const currentDiff = Math.abs(frequency - closest.frequency);
-      const newDiff = Math.abs(frequency - string.frequency);
-      return newDiff < currentDiff ? string : closest;
-    }, tuning.strings[0]);
+    // First, check if detected frequency might be a harmonic (octave error)
+    const possibleFundamental = frequency / 2;
+    const possibleSecondHarmonic = frequency / 3;
+    
+    // Find closest string considering potential octave errors
+    let bestMatch = tuning.strings[0];
+    let bestDiff = Math.abs(frequency - bestMatch.frequency);
+    
+    for (const string of tuning.strings) {
+      // Check fundamental frequency
+      const directDiff = Math.abs(frequency - string.frequency);
+      
+      // Check if detected frequency is an octave (2x) of the target
+      const octaveDiff = Math.abs(possibleFundamental - string.frequency);
+      
+      // Check if detected frequency is 3rd harmonic (3x) of the target
+      const thirdHarmonicDiff = Math.abs(possibleSecondHarmonic - string.frequency);
+      
+      // Use the smallest difference
+      const minDiff = Math.min(directDiff, octaveDiff, thirdHarmonicDiff);
+      
+      if (minDiff < bestDiff) {
+        bestDiff = minDiff;
+        bestMatch = string;
+      }
+    }
+    
+    // Additional validation: if the best match is still far off, it might be a harmonic issue
+    // For high strings (>250 Hz), be more tolerant of octave detection
+    const tolerance = bestMatch.frequency > 250 ? 50 : 30; // Hz
+    
+    if (bestDiff > tolerance) {
+      // Likely detecting a harmonic - try to find the actual fundamental
+      const fundamentalCandidate = frequency / 2;
+      const closestToFundamental = tuning.strings.reduce((closest, string) => {
+        const currentDiff = Math.abs(fundamentalCandidate - closest.frequency);
+        const newDiff = Math.abs(fundamentalCandidate - string.frequency);
+        return newDiff < currentDiff ? string : closest;
+      }, tuning.strings[0]);
+      
+      const fundamentalDiff = Math.abs(fundamentalCandidate - closestToFundamental.frequency);
+      if (fundamentalDiff < tolerance) {
+        return closestToFundamental;
+      }
+    }
+    
+    return bestMatch;
+  });
+
+  // New: Tuning trend analysis
+  readonly tuningTrend = computed<'improving' | 'stable' | 'worsening' | 'unknown'>(() => {
+    if (this.tuningHistory.length < 10) return 'unknown';
+    
+    const recent = this.tuningHistory.slice(-10);
+    const older = this.tuningHistory.slice(-20, -10);
+    
+    if (older.length === 0) return 'unknown';
+    
+    const recentAvg = recent.reduce((sum, val) => sum + Math.abs(val), 0) / recent.length;
+    const olderAvg = older.reduce((sum, val) => sum + Math.abs(val), 0) / older.length;
+    
+    const threshold = 2; // 2 cents difference threshold
+    
+    if (recentAvg < olderAvg - threshold) return 'improving';
+    if (recentAvg > olderAvg + threshold) return 'worsening';
+    return 'stable';
+  });
+
+  // New: Auto-tuning suggestion based on consistent sharp/flat readings
+  readonly tuningSuggestion = computed<'tighten' | 'loosen' | 'good' | null>(() => {
+    if (!this.isListening() || this.tuningHistory.length < 15) return null;
+    
+    const recent = this.tuningHistory.slice(-15);
+    const avgCents = recent.reduce((sum, val) => sum + val, 0) / recent.length;
+    const consistency = recent.filter(val => Math.sign(val) === Math.sign(avgCents)).length / recent.length;
+    
+    // Need 80% consistency and at least 8 cents off
+    if (consistency < 0.8 || Math.abs(avgCents) < 8) return null;
+    
+    if (Math.abs(avgCents) <= 5) return 'good';
+    return avgCents > 0 ? 'loosen' : 'tighten'; // Sharp = loosen, Flat = tighten
   });
 
   constructor() {
@@ -104,6 +185,49 @@ export class TunerService {
         this.selectedTuning.set(tunings[0]);
       }
     });
+  }
+
+  /**
+   * Cleanup on service destroy - fixes memory leak
+   */
+  ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+    this.stop();
+  }
+
+  /**
+   * Set custom A4 reference frequency (e.g., 442 Hz for orchestral tuning)
+   */
+  setA4Frequency(frequency: number): void {
+    if (frequency < 400 || frequency > 480) {
+      throw new Error('A4 frequency must be between 400 and 480 Hz');
+    }
+    this.customA4Frequency.set(frequency);
+    
+    // Recalculate current note if listening
+    if (this.isListening() && this.state().currentFrequency > 0) {
+      const noteInfo = this.frequencyToNote(this.state().currentFrequency);
+      this.tunerState.update(state => ({
+        ...state,
+        detectedNote: noteInfo.note,
+        detectedOctave: noteInfo.octave,
+        cents: noteInfo.cents
+      }));
+    }
+  }
+
+  /**
+   * Get tuning history for visualization
+   */
+  getTuningHistory(): ReadonlyArray<number> {
+    return [...this.tuningHistory];
+  }
+
+  /**
+   * Clear tuning history
+   */
+  clearTuningHistory(): void {
+    this.tuningHistory = [];
   }
 
   /**
@@ -150,15 +274,16 @@ export class TunerService {
 
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = this.BUFFER_SIZE;
-      this.analyser.smoothingTimeConstant = 0.6;
+      this.analyser.smoothingTimeConstant = 0.3; // Reduced from 0.6 for better high-string response
 
       source.connect(this.inputGain);
       this.inputGain.connect(this.highPassFilter);
       this.highPassFilter.connect(this.lowPassFilter);
       this.lowPassFilter.connect(this.analyser);
 
-      // Initialize Pitchy detector and buffer
+      // Initialize Pitchy detector and buffers
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
+      this.normalizedBuffer = new Float32Array(this.BUFFER_SIZE); // Reusable buffer
       this.pitchDetector = PitchDetector.forFloat32Array(this.audioBuffer.length);
 
       // Start detection loop
@@ -196,6 +321,7 @@ export class TunerService {
     this.analyser = undefined;
     this.pitchDetector = undefined;
     this.audioBuffer = undefined;
+    this.normalizedBuffer = undefined;
     this.smoothedFrequency = 0;
     this.frequencyHistory = [];
 
@@ -254,8 +380,11 @@ export class TunerService {
       // Validate frequency range (30 Hz to 4000 Hz for musical instruments)
       if (frequency >= 30 && frequency <= 4000) {
         const minClarity = this.getAdaptiveClarity(frequency);
+        
         if (clarity >= minClarity) {
-          this.updateTunerState(frequency, clarity);
+          // For high frequencies, check if this might be a harmonic (octave error)
+          const correctedFrequency = this.correctOctaveError(frequency, clarity);
+          this.updateTunerState(correctedFrequency, clarity);
         }
       }
     } else if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
@@ -267,6 +396,48 @@ export class TunerService {
 
     // Continue loop
     this.animationId = requestAnimationFrame(() => this.detectPitch());
+  }
+
+  /**
+   * Correct potential octave errors (detecting harmonics instead of fundamental)
+   * This is common with high strings where the 2nd harmonic is stronger than fundamental
+   */
+  private correctOctaveError(frequency: number, clarity: number): number {
+    // Only apply correction for frequencies above 250 Hz (typical high string territory)
+    if (frequency < 250) return frequency;
+    
+    const tuning = this.selectedTuning();
+    if (!tuning || !tuning.strings.length) return frequency;
+    
+    // Check if half the frequency (octave below) matches a string better
+    const halfFreq = frequency / 2;
+    const thirdFreq = frequency / 3;
+    
+    // Find closest string to detected frequency
+    const directMatch = tuning.strings.reduce((closest, string) => {
+      const currentDiff = Math.abs(frequency - closest.frequency);
+      const newDiff = Math.abs(frequency - string.frequency);
+      return newDiff < currentDiff ? string : closest;
+    }, tuning.strings[0]);
+    
+    // Find closest string to half frequency (potential fundamental)
+    const octaveMatch = tuning.strings.reduce((closest, string) => {
+      const currentDiff = Math.abs(halfFreq - closest.frequency);
+      const newDiff = Math.abs(halfFreq - string.frequency);
+      return newDiff < currentDiff ? string : closest;
+    }, tuning.strings[0]);
+    
+    const directDiff = Math.abs(frequency - directMatch.frequency);
+    const octaveDiff = Math.abs(halfFreq - octaveMatch.frequency);
+    
+    // If half frequency is much closer to a string, we're likely detecting the octave
+    // Use a threshold: if octave match is more than 2x better, use it
+    if (octaveDiff < directDiff * 0.4 && octaveDiff < 15) {
+      console.log(`Octave correction: ${frequency.toFixed(1)}Hz -> ${halfFreq.toFixed(1)}Hz (detected harmonic)`);
+      return halfFreq;
+    }
+    
+    return frequency;
   }
 
   /**
@@ -287,6 +458,12 @@ export class TunerService {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
     const noteInfo = this.frequencyToNote(stableFrequency);
 
+    // Update tuning history for trend analysis
+    this.tuningHistory.push(noteInfo.cents);
+    if (this.tuningHistory.length > this.TUNING_HISTORY_SIZE) {
+      this.tuningHistory.shift();
+    }
+
     this.tunerState.update(state => ({
       ...state,
       currentFrequency: stableFrequency,
@@ -298,12 +475,19 @@ export class TunerService {
   }
 
   /**
-   * Adaptive clarity threshold for low strings
+   * Adaptive clarity threshold for different frequency ranges
    */
   private getAdaptiveClarity(frequency: number): number {
     if (frequency <= 0) return this.MIN_CLARITY;
+    
+    // Low frequencies (bass strings) - more lenient
     if (frequency < 90) return 0.75;
     if (frequency < this.LOW_STRING_FREQUENCY) return 0.85;
+    
+    // High frequencies (treble strings) - stricter to avoid harmonic confusion
+    if (frequency > 400) return 0.93;
+    if (frequency > 300) return 0.91;
+    
     return this.MIN_CLARITY;
   }
 
@@ -338,7 +522,7 @@ export class TunerService {
   }
 
   /**
-   * Autocorrelation pitch detection for low strings
+   * Autocorrelation pitch detection for low strings (optimized)
    * Returns frequency and a normalized clarity estimate (0-1)
    */
   private autoCorrelate(buffer: Float32Array, sampleRate: number): { frequency: number; clarity: number } | null {
@@ -346,14 +530,16 @@ export class TunerService {
     const minLag = Math.floor(sampleRate / 4000);
     const maxLag = Math.floor(sampleRate / 30);
 
-    let rms = 0;
+    // Calculate mean
     let mean = 0;
     for (let i = 0; i < size; i++) {
       mean += buffer[i];
     }
     mean /= size;
 
-    const normalized = new Float32Array(size);
+    // Normalize and calculate RMS using reusable buffer (performance optimization)
+    let rms = 0;
+    const normalized = this.normalizedBuffer!; // Already allocated
     for (let i = 0; i < size; i++) {
       const value = buffer[i] - mean;
       normalized[i] = value;
@@ -365,6 +551,7 @@ export class TunerService {
     let bestLag = -1;
     let bestCorrelation = 0;
 
+    // Main autocorrelation loop
     for (let lag = minLag; lag <= maxLag; lag++) {
       let sum = 0;
       for (let i = 0; i < size - lag; i++) {
@@ -408,23 +595,51 @@ export class TunerService {
    * Convert frequency to note information
    */
   private frequencyToNote(frequency: number): NoteInfo {
-    // Calculate note number relative to A4 (440 Hz)
-    const noteNum = 12 * (Math.log2(frequency / this.A4_FREQUENCY));
+    const A4 = this.customA4Frequency(); // Use configurable A4 frequency
+    
+    // Calculate note number relative to A4 (A4 = note 0)
+    const noteNum = 12 * (Math.log2(frequency / A4));
     const roundedNote = Math.round(noteNum);
 
     // Calculate cents (deviation from nearest note)
     const cents = Math.round((noteNum - roundedNote) * 100);
 
-    // Get note name and octave
-    const noteIndex = (roundedNote + 9 + 120) % 12; // +9 because A is index 9
-    const octave = Math.floor((roundedNote + 9) / 12) + 4;
+    // Calculate octave
+    const octaveFromA4 = Math.floor((roundedNote + 9) / 12);
+    const octave = 4 + octaveFromA4;
+    
+    // Find the note index
+    // Check if NOTE_NAMES starts with 'A' or 'C'
+    // Most configs start with A: ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
+    // Some start with C: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    
+    let noteIndex: number;
+    if (NOTE_NAMES[0] === 'A') {
+      // Array starts with A, so A4 is at index 0
+      noteIndex = roundedNote % 12;
+      if (noteIndex < 0) noteIndex += 12;
+    } else {
+      // Array starts with C, so A4 is at index 9
+      noteIndex = ((roundedNote % 12) + 9) % 12;
+      if (noteIndex < 0) noteIndex += 12;
+    }
 
     // Validate note index
     if (noteIndex < 0 || noteIndex >= NOTE_NAMES.length) {
+      console.error('Invalid note index:', noteIndex, 'NOTE_NAMES length:', NOTE_NAMES.length);
+      console.error('NOTE_NAMES:', NOTE_NAMES);
       return { note: 'Unknown', octave: 0, frequency, cents: 0 };
     }
 
     const note = NOTE_NAMES[noteIndex];
+    
+    // Debug logging to help diagnose issues
+    if (frequency > 300 && frequency < 350) { // High E range
+      console.log(`High E debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
+    }
+    if (frequency > 190 && frequency < 205) { // G string range
+      console.log(`G string debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
+    }
 
     return {
       note,
@@ -448,14 +663,15 @@ export class TunerService {
    * Get frequency for a specific note
    */
   noteToFrequency(note: string, octave: number): number {
+    const A4 = this.customA4Frequency(); // Use configurable A4 frequency
     const noteIndex = NOTE_NAMES.indexOf(note);
     if (noteIndex === -1) return 0;
 
-    // A4 = 440 Hz, calculate relative to that
+    // A4 = configured frequency, calculate relative to that
     const a4Index = 9; // A is at index 9
     const semitoneOffset = (octave - 4) * 12 + (noteIndex - a4Index);
 
-    return this.A4_FREQUENCY * Math.pow(2, semitoneOffset / 12);
+    return A4 * Math.pow(2, semitoneOffset / 12);
   }
 
   /**
