@@ -1,6 +1,6 @@
 // src/app/core/services/tuner.service.ts
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
-import * as Pitchfinder from 'pitchfinder';
+import { PitchDetector } from 'pitchy';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/tuner.config';
@@ -22,9 +22,10 @@ export class TunerService {
   private animationId?: number;
   private highPassFilter?: BiquadFilterNode;
   private lowPassFilter?: BiquadFilterNode;
+  private inputGain?: GainNode;
 
-  // Pitchfinder detector
-  private pitchDetector?: (data: Float32Array) => number | null;
+  // Pitchy detector
+  private pitchDetector?: PitchDetector<Float32Array>;
   private audioBuffer?: Float32Array<ArrayBuffer>;
 
   // Configuration
@@ -32,13 +33,9 @@ export class TunerService {
   private readonly MIN_CLARITY = 0.9; // Base confidence threshold (Pitchy returns 0-1)
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
-  private readonly MIN_RMS = 0.003; // Silence threshold
-  private readonly MAX_RMS = 0.03; // Upper bound for clarity normalization
+  private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
   private readonly HISTORY_SIZE = 7;
-  // Pitchfinder YIN tuning: lower probability = faster response, higher = more stable
-  private readonly YIN_THRESHOLD = 0.2;
-  private readonly YIN_PROBABILITY = 0.75;
 
   // State
   private tunerState = signal<TunerState>({
@@ -53,6 +50,7 @@ export class TunerService {
   private selectedTuning = signal<TuningPreset | null>(null);
   private smoothedFrequency = 0;
   private frequencyHistory: number[] = [];
+  private readonly visibilityHandler = () => this.handleVisibilityChange();
 
   // Public readonly signals
   readonly state = this.tunerState.asReadonly();
@@ -88,6 +86,7 @@ export class TunerService {
   });
 
   constructor() {
+    document.addEventListener('visibilitychange', this.visibilityHandler);
     effect(() => {
       const instrument = this.instrumentService.currentInstrument();
       const tunings = getTuningsForInstrument(instrument);
@@ -130,8 +129,15 @@ export class TunerService {
       });
 
       // Setup Web Audio API
-      this.audioContext = new AudioContext();
+      this.audioContext = new AudioContext({ latencyHint: 'interactive' });
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+
+      // Input gain to boost low-level iOS mic signals
+      this.inputGain = this.audioContext.createGain();
+      this.inputGain.gain.value = 2.0;
 
       // Filter chain to reduce noise and improve low-string detection
       this.highPassFilter = this.audioContext.createBiquadFilter();
@@ -146,17 +152,14 @@ export class TunerService {
       this.analyser.fftSize = this.BUFFER_SIZE;
       this.analyser.smoothingTimeConstant = 0.6;
 
-      source.connect(this.highPassFilter);
+      source.connect(this.inputGain);
+      this.inputGain.connect(this.highPassFilter);
       this.highPassFilter.connect(this.lowPassFilter);
       this.lowPassFilter.connect(this.analyser);
 
-      // Initialize Pitchfinder detector and buffer
+      // Initialize Pitchy detector and buffer
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
-      this.pitchDetector = Pitchfinder.YIN({
-        sampleRate: this.audioContext.sampleRate,
-        threshold: this.YIN_THRESHOLD,
-        probabilityThreshold: this.YIN_PROBABILITY
-      });
+      this.pitchDetector = PitchDetector.forFloat32Array(this.audioBuffer.length);
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -189,6 +192,7 @@ export class TunerService {
 
     this.highPassFilter = undefined;
     this.lowPassFilter = undefined;
+    this.inputGain = undefined;
     this.analyser = undefined;
     this.pitchDetector = undefined;
     this.audioBuffer = undefined;
@@ -205,6 +209,15 @@ export class TunerService {
     }));
   }
 
+  private handleVisibilityChange(): void {
+    if (!this.isListening() || !this.audioContext) return;
+    if (document.visibilityState !== 'visible') return;
+
+    if (this.audioContext.state === 'suspended') {
+      void this.audioContext.resume();
+    }
+  }
+
   /**
    * Main pitch detection loop using Pitchy
    */
@@ -216,13 +229,8 @@ export class TunerService {
     // Get audio data
     this.analyser.getFloatTimeDomainData(this.audioBuffer);
 
-    // Check for silence using RMS
+    // Check for silence using RMS (do not early-return; iOS often reports low levels)
     const rms = this.calculateRMS(this.audioBuffer);
-    if (rms < this.MIN_RMS) {
-      // Continue loop even if silent
-      this.animationId = requestAnimationFrame(() => this.detectPitch());
-      return;
-    }
 
     const autoResult = this.autoCorrelate(this.audioBuffer, this.audioContext.sampleRate);
     const preferAuto = !!autoResult && autoResult.frequency < this.LOW_STRING_FREQUENCY;
@@ -236,13 +244,19 @@ export class TunerService {
       }
     }
 
-    // Detect pitch using Pitchfinder (YIN)
-    const frequency = this.pitchDetector(this.audioBuffer);
+    // Detect pitch using Pitchy
+    const [frequency, clarity] = this.pitchDetector.findPitch(
+      this.audioBuffer,
+      this.audioContext.sampleRate
+    );
 
-    if (frequency && frequency > 0) {
+    if (frequency > 0) {
       // Validate frequency range (30 Hz to 4000 Hz for musical instruments)
       if (frequency >= 30 && frequency <= 4000) {
-        this.updateTunerState(frequency, this.estimateClarity(rms));
+        const minClarity = this.getAdaptiveClarity(frequency);
+        if (clarity >= minClarity) {
+          this.updateTunerState(frequency, clarity);
+        }
       }
     } else if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
@@ -321,14 +335,6 @@ export class TunerService {
       (limited * this.SMOOTHING_FACTOR);
 
     return this.smoothedFrequency;
-  }
-
-  /**
-   * Estimate clarity from RMS to keep UI signal indicator meaningful
-   */
-  private estimateClarity(rms: number): number {
-    const normalized = (rms - this.MIN_RMS) / (this.MAX_RMS - this.MIN_RMS);
-    return Math.max(0, Math.min(1, normalized));
   }
 
   /**
