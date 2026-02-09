@@ -8,6 +8,7 @@ import { InstrumentService } from './instrument.service';
 import { XpService } from './xp.service';
 import { GamificationService } from './gamification.service';
 import { STORAGE_KEYS } from '../models/storage-keys.model';
+import { KeepAwakeService } from './keep-awake.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,6 +18,7 @@ export class PracticeService {
   private instrumentService = inject(InstrumentService);
   private xpService = inject(XpService);
   private gamificationService = inject(GamificationService);
+  private keepAwakeService = inject(KeepAwakeService);
 
   private timerState = signal<TimerState>({
     isRunning: false,
@@ -77,6 +79,15 @@ export class PracticeService {
       const sessionsData = this.sessions();
       if (sessionsData.length > 0) {
         this.storage.set(STORAGE_KEYS.PRACTICE_SESSIONS, sessionsData);
+      }
+    });
+
+    effect(() => {
+      const isRunning = this.timer().isRunning;
+      if (isRunning) {
+        void this.keepAwakeService.keepAwake();
+      } else {
+        void this.keepAwakeService.allowSleep();
       }
     });
   }

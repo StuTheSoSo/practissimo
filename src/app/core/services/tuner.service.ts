@@ -1,13 +1,13 @@
 // src/app/core/services/tuner.service.ts
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
-import { PitchDetector } from 'pitchy';
+import * as Pitchfinder from 'pitchfinder';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/tuner.config';
 
 /**
  * TunerService - Audio-based instrument tuner
- * Uses Web Audio API for microphone access and Pitchy for pitch detection
+ * Uses Web Audio API for microphone access and Pitchfinder (YIN) for pitch detection
  */
 @Injectable({
   providedIn: 'root'
@@ -23,8 +23,8 @@ export class TunerService {
   private highPassFilter?: BiquadFilterNode;
   private lowPassFilter?: BiquadFilterNode;
 
-  // Pitchy detector
-  private pitchDetector?: PitchDetector<Float32Array<ArrayBuffer>>;
+  // Pitchfinder detector
+  private pitchDetector?: (data: Float32Array) => number | null;
   private audioBuffer?: Float32Array<ArrayBuffer>;
 
   // Configuration
@@ -33,8 +33,12 @@ export class TunerService {
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
   private readonly MIN_RMS = 0.003; // Silence threshold
+  private readonly MAX_RMS = 0.03; // Upper bound for clarity normalization
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
   private readonly HISTORY_SIZE = 7;
+  // Pitchfinder YIN tuning: lower probability = faster response, higher = more stable
+  private readonly YIN_THRESHOLD = 0.2;
+  private readonly YIN_PROBABILITY = 0.75;
 
   // State
   private tunerState = signal<TunerState>({
@@ -146,10 +150,13 @@ export class TunerService {
       this.highPassFilter.connect(this.lowPassFilter);
       this.lowPassFilter.connect(this.analyser);
 
-      // Initialize Pitchy detector and buffer
-      this.audioBuffer = new Float32Array(this.BUFFER_SIZE) as Float32Array<ArrayBuffer>;
-      this.pitchDetector = PitchDetector.forFloat32Array(this.BUFFER_SIZE);
-      this.pitchDetector.minVolumeDecibels = -45; // Allow quieter sounds
+      // Initialize Pitchfinder detector and buffer
+      this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
+      this.pitchDetector = Pitchfinder.YIN({
+        sampleRate: this.audioContext.sampleRate,
+        threshold: this.YIN_THRESHOLD,
+        probabilityThreshold: this.YIN_PROBABILITY
+      });
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -229,19 +236,13 @@ export class TunerService {
       }
     }
 
-    // Detect pitch using Pitchy
-    const [frequency, clarity] = this.pitchDetector.findPitch(
-      this.audioBuffer,
-      this.audioContext.sampleRate
-    );
+    // Detect pitch using Pitchfinder (YIN)
+    const frequency = this.pitchDetector(this.audioBuffer);
 
-    const minClarity = this.getAdaptiveClarity(frequency);
-
-    // Only update if confidence is high and frequency is valid
-    if (clarity >= minClarity && frequency > 0) {
+    if (frequency && frequency > 0) {
       // Validate frequency range (30 Hz to 4000 Hz for musical instruments)
       if (frequency >= 30 && frequency <= 4000) {
-        this.updateTunerState(frequency, clarity);
+        this.updateTunerState(frequency, this.estimateClarity(rms));
       }
     } else if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
@@ -320,6 +321,14 @@ export class TunerService {
       (limited * this.SMOOTHING_FACTOR);
 
     return this.smoothedFrequency;
+  }
+
+  /**
+   * Estimate clarity from RMS to keep UI signal indicator meaningful
+   */
+  private estimateClarity(rms: number): number {
+    const normalized = (rms - this.MIN_RMS) / (this.MAX_RMS - this.MIN_RMS);
+    return Math.max(0, Math.min(1, normalized));
   }
 
   /**

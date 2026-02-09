@@ -15,6 +15,7 @@ export class MetronomeService {
   private lookahead = 25; // How frequently to call scheduling function (ms)
   private timerID: any = null;
   private currentBeatInBar = 0;
+  private readonly visibilityHandler = () => this.handleVisibilityChange();
 
   // State signals
   private isPlayingSignal = signal<boolean>(false);
@@ -45,15 +46,48 @@ export class MetronomeService {
   constructor() {
     // Initialize AudioContext on user interaction (browsers require this)
     this.initAudioContext();
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 
   /**
    * Initialize Web Audio API context
    */
   private initAudioContext(): void {
-    if (!this.audioContext) {
+    if (!this.audioContext || this.audioContext.state === 'closed') {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
+  }
+
+  private handleVisibilityChange(): void {
+    if (document.visibilityState === 'visible') {
+      this.onAppResume();
+    }
+  }
+
+  private async onAppResume(): Promise<void> {
+    this.initAudioContext();
+
+    if (this.audioContext && this.audioContext.state === 'suspended') {
+      try {
+        await this.audioContext.resume();
+      } catch {
+        // Some platforms require a user gesture; ignore and wait for next toggle.
+      }
+    }
+
+    if (this.isPlaying()) {
+      this.restartScheduler();
+    }
+  }
+
+  private restartScheduler(): void {
+    if (!this.audioContext) return;
+    if (this.timerID) {
+      clearTimeout(this.timerID);
+      this.timerID = null;
+    }
+    this.nextNoteTime = this.audioContext.currentTime;
+    this.scheduler();
   }
 
   /**
@@ -222,6 +256,7 @@ export class MetronomeService {
    */
   destroy(): void {
     this.stop();
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
     if (this.audioContext) {
       this.audioContext.close();
       this.audioContext = null;
