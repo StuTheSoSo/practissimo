@@ -1,13 +1,13 @@
 // src/app/core/services/tuner.service.ts
 import { Injectable, signal, computed, inject, effect, OnDestroy } from '@angular/core';
-import { PitchDetector } from 'pitchy';
+import * as Tone from 'tone';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/tuner.config';
 
 /**
  * TunerService - Audio-based instrument tuner
- * Uses Web Audio API for microphone access and Pitchy for pitch detection
+ * Uses Tone.js for audio input and autocorrelation for pitch detection
  */
 @Injectable({
   providedIn: 'root'
@@ -15,22 +15,19 @@ import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/t
 export class TunerService implements OnDestroy {
   private instrumentService = inject(InstrumentService);
 
-  // Web Audio API
+  // Tone.js Audio
   private audioContext?: AudioContext;
-  private analyser?: AnalyserNode;
-  private mediaStream?: MediaStream;
+  private analyser?: Tone.Analyser;
+  private userMedia?: Tone.UserMedia;
   private animationId?: number;
-  private highPassFilter?: BiquadFilterNode;
-  private lowPassFilter?: BiquadFilterNode;
-  private inputGain?: GainNode;
-
-  // Pitchy detector
-  private pitchDetector?: PitchDetector<Float32Array>;
+  private highPassFilter?: Tone.Filter;
+  private lowPassFilter?: Tone.Filter;
+  private inputGain?: Tone.Gain;
   private audioBuffer?: Float32Array<ArrayBuffer>;
 
   // Configuration
   private customA4Frequency = signal<number>(440); // Configurable tuning reference
-  private readonly MIN_CLARITY = 0.9; // Base confidence threshold (Pitchy returns 0-1)
+  private readonly MIN_CLARITY = 0.9; // Base confidence threshold (0-1)
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
   private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
@@ -243,48 +240,31 @@ export class TunerService implements OnDestroy {
     }
 
     try {
-      // Request microphone access
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        }
-      });
+      await Tone.start();
+      this.audioContext = Tone.getContext().rawContext as AudioContext;
 
-      // Setup Web Audio API
-      this.audioContext = new AudioContext({ latencyHint: 'interactive' });
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-      }
-      const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+      // Request microphone access via Tone.js
+      this.userMedia = new Tone.UserMedia();
+      await this.userMedia.open();
 
       // Input gain to boost low-level iOS mic signals
-      this.inputGain = this.audioContext.createGain();
-      this.inputGain.gain.value = 2.0;
+      this.inputGain = new Tone.Gain(2.0);
 
       // Filter chain to reduce noise and improve low-string detection
-      this.highPassFilter = this.audioContext.createBiquadFilter();
-      this.highPassFilter.type = 'highpass';
-      this.highPassFilter.frequency.value = 55;
+      this.highPassFilter = new Tone.Filter(55, 'highpass');
+      this.lowPassFilter = new Tone.Filter(1200, 'lowpass');
 
-      this.lowPassFilter = this.audioContext.createBiquadFilter();
-      this.lowPassFilter.type = 'lowpass';
-      this.lowPassFilter.frequency.value = 1200;
+      this.analyser = new Tone.Analyser('waveform', this.BUFFER_SIZE);
+      this.analyser.smoothing = 0.3; // Reduced from 0.6 for better high-string response
 
-      this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = this.BUFFER_SIZE;
-      this.analyser.smoothingTimeConstant = 0.3; // Reduced from 0.6 for better high-string response
-
-      source.connect(this.inputGain);
+      this.userMedia.connect(this.inputGain);
       this.inputGain.connect(this.highPassFilter);
       this.highPassFilter.connect(this.lowPassFilter);
       this.lowPassFilter.connect(this.analyser);
 
-      // Initialize Pitchy detector and buffers
+      // Initialize buffers
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
       this.normalizedBuffer = new Float32Array(this.BUFFER_SIZE); // Reusable buffer
-      this.pitchDetector = PitchDetector.forFloat32Array(this.audioBuffer.length);
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -305,21 +285,33 @@ export class TunerService implements OnDestroy {
       this.animationId = undefined;
     }
 
-    if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop());
-      this.mediaStream = undefined;
+    if (this.userMedia) {
+      this.userMedia.close();
+      this.userMedia.dispose();
+      this.userMedia = undefined;
     }
 
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = undefined;
+    if (this.highPassFilter) {
+      this.highPassFilter.dispose();
+      this.highPassFilter = undefined;
     }
 
-    this.highPassFilter = undefined;
-    this.lowPassFilter = undefined;
-    this.inputGain = undefined;
-    this.analyser = undefined;
-    this.pitchDetector = undefined;
+    if (this.lowPassFilter) {
+      this.lowPassFilter.dispose();
+      this.lowPassFilter = undefined;
+    }
+
+    if (this.inputGain) {
+      this.inputGain.dispose();
+      this.inputGain = undefined;
+    }
+
+    if (this.analyser) {
+      this.analyser.dispose();
+      this.analyser = undefined;
+    }
+
+    this.audioContext = undefined;
     this.audioBuffer = undefined;
     this.normalizedBuffer = undefined;
     this.smoothedFrequency = 0;
@@ -345,15 +337,21 @@ export class TunerService implements OnDestroy {
   }
 
   /**
-   * Main pitch detection loop using Pitchy
+   * Main pitch detection loop using autocorrelation
    */
   private detectPitch(): void {
-    if (!this.isListening() || !this.analyser || !this.audioContext || !this.pitchDetector || !this.audioBuffer) {
+    if (!this.isListening() || !this.analyser || !this.audioContext || !this.audioBuffer) {
       return;
     }
 
     // Get audio data
-    this.analyser.getFloatTimeDomainData(this.audioBuffer);
+    const waveform = this.analyser.getValue() as Float32Array;
+    if (waveform?.length === this.audioBuffer.length) {
+      this.audioBuffer.set(waveform);
+    } else if (waveform?.length) {
+      const len = Math.min(waveform.length, this.audioBuffer.length);
+      this.audioBuffer.set(waveform.subarray(0, len));
+    }
 
     // Check for silence using RMS (do not early-return; iOS often reports low levels)
     const rms = this.calculateRMS(this.audioBuffer);
@@ -370,27 +368,12 @@ export class TunerService implements OnDestroy {
       }
     }
 
-    // Detect pitch using Pitchy
-    const [frequency, clarity] = this.pitchDetector.findPitch(
-      this.audioBuffer,
-      this.audioContext.sampleRate
-    );
-
-    if (frequency > 0) {
-      // Validate frequency range (30 Hz to 4000 Hz for musical instruments)
-      if (frequency >= 30 && frequency <= 4000) {
-        const minClarity = this.getAdaptiveClarity(frequency);
-        
-        if (clarity >= minClarity) {
-          // For high frequencies, check if this might be a harmonic (octave error)
-          const correctedFrequency = this.correctOctaveError(frequency, clarity);
-          this.updateTunerState(correctedFrequency, clarity);
-        }
-      }
-    } else if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
+    // Autocorrelation result
+    if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
       if (autoResult.clarity >= autoMinClarity * 0.7) {
-        this.updateTunerState(autoResult.frequency, autoResult.clarity);
+        const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
+        this.updateTunerState(correctedFrequency, autoResult.clarity);
       }
     }
 
