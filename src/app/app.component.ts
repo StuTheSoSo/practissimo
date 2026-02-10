@@ -6,6 +6,7 @@ import { GamificationService } from './core/services/gamification.service';
 import { PracticeService } from './core/services/practice.service';
 import { QuestService } from './core/services/quest.service';
 import { AchievementService } from './core/services/achievement.service';
+import { RevenueCatService } from './core/services/revenuecat.service';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit {
   private practiceService = inject(PracticeService);
   private questService = inject(QuestService);
   private achievementService = inject(AchievementService);
+  private revenueCatService = inject(RevenueCatService);
 
   async ngOnInit() {
     // Initialize storage first
@@ -35,7 +37,8 @@ export class AppComponent implements OnInit {
       this.gamificationService.initialize(),
       this.practiceService.initialize(),
       this.questService.initialize(),
-      this.achievementService.initialize()
+      this.achievementService.initialize(),
+      this.revenueCatService.initialize()
     ]);
 
     this.hideSplash();

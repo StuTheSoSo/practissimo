@@ -14,7 +14,6 @@ import {
   IonLabel,
   IonSelect,
   IonSelectOption,
-  IonButtons,
   IonToggle
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
