@@ -21,8 +21,8 @@ export class MetronomeService {
   private isPlayingSignal = signal<boolean>(false);
   private bpmSignal = signal<number>(120);
   private beatsPerBarSignal = signal<number>(4);
-  private volumeSignal = signal<number>(0.7);
-  private readonly maxVolume = 1.5;
+  private volumeSignal = signal<number>(1.0);
+  private readonly maxVolume = 2.0;
 
   // Public readonly signals
   readonly isPlaying = this.isPlayingSignal.asReadonly();
@@ -209,8 +209,9 @@ export class MetronomeService {
 
     // Volume envelope
     const volume = this.volume();
-    const boosted = isAccent ? volume * 1.8 : volume * 1.4;
-    gainNode.gain.value = Math.min(this.maxVolume, boosted);
+    const boosted = isAccent ? volume * 2.0 : volume * 1.6;
+    const targetGain = Math.min(this.maxVolume, boosted);
+    gainNode.gain.setValueAtTime(targetGain, time);
     gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
     osc.connect(gainNode);
