@@ -29,7 +29,7 @@ export class TunerService implements OnDestroy {
   private customA4Frequency = signal<number>(440); // Configurable tuning reference
   private readonly MIN_CLARITY = 0.9; // Base confidence threshold (0-1)
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
-  private readonly SMOOTHING_FACTOR = 0.25; // For stable readings
+  private readonly SMOOTHING_FACTOR = 0.12; // For stable readings
   private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
   private readonly HISTORY_SIZE = 7;
@@ -255,7 +255,7 @@ export class TunerService implements OnDestroy {
       this.lowPassFilter = new Tone.Filter(1200, 'lowpass');
 
       this.analyser = new Tone.Analyser('waveform', this.BUFFER_SIZE);
-      this.analyser.smoothing = 0.3; // Reduced from 0.6 for better high-string response
+      this.analyser.smoothing = 0.8; // More averaging for steadier readings
 
       this.userMedia.connect(this.inputGain);
       this.inputGain.connect(this.highPassFilter);
