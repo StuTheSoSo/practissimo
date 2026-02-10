@@ -104,7 +104,7 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
             </ion-col>
           </ion-row>
           <ion-row>
-            <ion-col [size]="supportsTuner() ? '6' : '12'">
+            <ion-col [size]="showTuner ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
                 <ion-icon name="trophy" slot="start"></ion-icon>
                 Quests
@@ -113,7 +113,7 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
                 }
               </ion-button>
             </ion-col>
-            @if (supportsTuner()) {
+            @if (showTuner) {
               <ion-col size="6">
                 <ion-button expand="block" fill="outline" (click)="goToTuner()">
                   <ion-icon name="musical-note" slot="start"></ion-icon>
@@ -325,6 +325,7 @@ export class HomePage {
   longestStreak = this.gamificationService.longestStreak;
   level = this.gamificationService.level;
   levelInfo = this.gamificationService.levelInfo;
+  showTuner = false;
 
   todaysQuests = this.questService.currentInstrumentQuests;
   activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);

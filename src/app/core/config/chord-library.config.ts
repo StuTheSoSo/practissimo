@@ -308,6 +308,1073 @@ export const CHORD_LIBRARY: Chord[] = [
       }
     ]
   },
+  {
+  id: 'guitar_d_major',
+  name: 'D Major',
+  displayName: 'D',
+  category: 'major',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Bright, open major chord - one of the first chords to learn',
+  commonIn: ['Key of D', 'Key of G', 'Folk', 'Country'],
+  variations: [
+    {
+      id: 'd_major_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 3, 2],
+        fingers: [null, null, null, 1, 3, 2]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_e_major',
+  name: 'E Major',
+  displayName: 'E',
+  category: 'major',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Full, resonant open chord - essential for rock and blues',
+  commonIn: ['Key of E', 'Key of A', 'Rock', 'Blues'],
+  variations: [
+    {
+      id: 'e_major_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['o', 2, 2, 1, 'o', 'o'],
+        fingers: [null, 2, 3, 1, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_g_major',
+  name: 'G Major',
+  displayName: 'G',
+  category: 'major',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Big, full open chord - staple of folk and rock',
+  commonIn: ['Key of G', 'Key of C', 'Folk', 'Rock'],
+  variations: [
+    {
+      id: 'g_major_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: [3, 2, 'o', 'o', 'o', 3],
+        fingers: [2, 1, null, null, null, 3]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_a_major',
+  name: 'A Major',
+  displayName: 'A',
+  category: 'major',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Bright, cheerful open chord',
+  commonIn: ['Key of A', 'Key of D', 'Rock', 'Country'],
+  variations: [
+    {
+      id: 'a_major_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 2, 2, 'o'],
+        fingers: [null, null, 1, 2, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - MISSING MINOR CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_am_minor',
+  name: 'A Minor',
+  displayName: 'Am',
+  category: 'minor',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Somber, easy minor chord - one of the first minors learned',
+  commonIn: ['Key of C', 'Key of Am', 'Pop', 'Folk'],
+  variations: [
+    {
+      id: 'am_minor_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 2, 1, 'o'],
+        fingers: [null, null, 2, 3, 1, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_dm_minor',
+  name: 'D Minor',
+  displayName: 'Dm',
+  category: 'minor',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Melancholic open minor chord',
+  commonIn: ['Key of F', 'Key of C', 'Pop', 'Ballads'],
+  variations: [
+    {
+      id: 'dm_minor_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 3, 1],
+        fingers: [null, null, null, 2, 3, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_em_minor',
+  name: 'E Minor',
+  displayName: 'Em',
+  category: 'minor',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Dark, moody open chord - easiest minor to play',
+  commonIn: ['Key of G', 'Key of Em', 'Rock', 'Pop'],
+  variations: [
+    {
+      id: 'em_minor_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['o', 2, 2, 'o', 'o', 'o'],
+        fingers: [null, 2, 3, null, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - MISSING SEVENTH CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_c7',
+  name: 'C Dominant 7',
+  displayName: 'C7',
+  category: 'seventh',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Jazzy seventh chord - resolves to F',
+  commonIn: ['Blues', 'Jazz', 'Key of F'],
+  variations: [
+    {
+      id: 'c7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 3, 2, 3, 1, 'o'],
+        fingers: [null, 3, 2, 4, 1, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_g7',
+  name: 'G Dominant 7',
+  displayName: 'G7',
+  category: 'seventh',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Classic seventh - resolves to C',
+  commonIn: ['Blues', 'Jazz', 'Key of C'],
+  variations: [
+    {
+      id: 'g7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: [3, 2, 'o', 'o', 'o', 1],
+        fingers: [3, 2, null, null, null, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_cmaj7',
+  name: 'C Major 7',
+  displayName: 'Cmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Dreamy, sophisticated chord',
+  commonIn: ['Jazz', 'Pop', 'R&B', 'Key of C'],
+  variations: [
+    {
+      id: 'cmaj7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 3, 2, 'o', 'o', 'o'],
+        fingers: [null, 3, 2, null, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_dmaj7',
+  name: 'D Major 7',
+  displayName: 'Dmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Sweet, jazzy major seventh',
+  commonIn: ['Jazz', 'Pop', 'Key of D'],
+  variations: [
+    {
+      id: 'dmaj7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 2, 2],
+        fingers: [null, null, null, 1, 1, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_em7',
+  name: 'E Minor 7',
+  displayName: 'Em7',
+  category: 'seventh',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Smooth minor seventh - very popular in pop',
+  commonIn: ['Pop', 'Jazz', 'Key of G'],
+  variations: [
+    {
+      id: 'em7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['o', 2, 'o', 'o', 'o', 'o'],
+        fingers: [null, 2, null, null, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_am7',
+  name: 'A Minor 7',
+  displayName: 'Am7',
+  category: 'seventh',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Mellow minor seventh - extremely common',
+  commonIn: ['Pop', 'Jazz', 'R&B', 'Key of C'],
+  variations: [
+    {
+      id: 'am7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 'o', 1, 'o'],
+        fingers: [null, null, 2, null, 1, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_dm7',
+  name: 'D Minor 7',
+  displayName: 'Dm7',
+  category: 'seventh',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Jazzy minor seventh',
+  commonIn: ['Jazz', 'Pop', 'Key of C'],
+  variations: [
+    {
+      id: 'dm7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 1, 1],
+        fingers: [null, null, null, 2, 1, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_amaj7',
+  name: 'A Major 7',
+  displayName: 'Amaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Bright major seventh',
+  commonIn: ['Jazz', 'Pop', 'Key of A'],
+  variations: [
+    {
+      id: 'amaj7_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 1, 2, 'o'],
+        fingers: [null, null, 2, 1, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - SUSPENDED CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_asus2',
+  name: 'A Suspended 2',
+  displayName: 'Asus2',
+  category: 'suspended',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Open, airy suspended chord',
+  commonIn: ['Alternative', 'Rock', 'Pop'],
+  variations: [
+    {
+      id: 'asus2_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 2, 'o', 'o'],
+        fingers: [null, null, 1, 2, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_asus4',
+  name: 'A Suspended 4',
+  displayName: 'Asus4',
+  category: 'suspended',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Suspenseful chord that wants to resolve to A major',
+  commonIn: ['Rock', 'Pop', 'Folk'],
+  variations: [
+    {
+      id: 'asus4_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 2, 3, 'o'],
+        fingers: [null, null, 1, 2, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_dsus2',
+  name: 'D Suspended 2',
+  displayName: 'Dsus2',
+  category: 'suspended',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Bright, ringing suspended chord',
+  commonIn: ['Alternative', 'Rock', 'Folk'],
+  variations: [
+    {
+      id: 'dsus2_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 3, 'o'],
+        fingers: [null, null, null, 1, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_dsus4',
+  name: 'D Suspended 4',
+  displayName: 'Dsus4',
+  category: 'suspended',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Popular sus chord in many songs',
+  commonIn: ['Rock', 'Pop', 'Folk'],
+  variations: [
+    {
+      id: 'dsus4_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 3, 3],
+        fingers: [null, null, null, 1, 3, 4]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_esus4',
+  name: 'E Suspended 4',
+  displayName: 'Esus4',
+  category: 'suspended',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Full, resonant suspended chord',
+  commonIn: ['Rock', 'Alternative'],
+  variations: [
+    {
+      id: 'esus4_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['o', 2, 2, 2, 'o', 'o'],
+        fingers: [null, 1, 2, 3, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - POWER CHORDS (Essential for rock)
+// ============================================================================
+
+{
+  id: 'guitar_c5',
+  name: 'C Power Chord',
+  displayName: 'C5',
+  category: 'power',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Essential rock chord - just root and fifth',
+  commonIn: ['Rock', 'Metal', 'Punk'],
+  variations: [
+    {
+      id: 'c5_power',
+      name: 'Power Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 3, 5, 5, 'x', 'x'],
+        fingers: [null, 1, 3, 4, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_d5',
+  name: 'D Power Chord',
+  displayName: 'D5',
+  category: 'power',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Common rock power chord',
+  commonIn: ['Rock', 'Metal', 'Punk'],
+  variations: [
+    {
+      id: 'd5_power',
+      name: 'Power Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 'o', 2, 3, 'x'],
+        fingers: [null, null, null, 1, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_e5',
+  name: 'E Power Chord',
+  displayName: 'E5',
+  category: 'power',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Heavy, low power chord',
+  commonIn: ['Rock', 'Metal', 'Grunge'],
+  variations: [
+    {
+      id: 'e5_power',
+      name: 'Power Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['o', 2, 2, 'x', 'x', 'x'],
+        fingers: [null, 1, 3, null, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_g5',
+  name: 'G Power Chord',
+  displayName: 'G5',
+  category: 'power',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Punchy power chord',
+  commonIn: ['Rock', 'Metal', 'Punk'],
+  variations: [
+    {
+      id: 'g5_power',
+      name: 'Power Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: [3, 5, 5, 'x', 'x', 'x'],
+        fingers: [1, 3, 4, null, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_a5',
+  name: 'A Power Chord',
+  displayName: 'A5',
+  category: 'power',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Classic rock power chord',
+  commonIn: ['Rock', 'Metal', 'Hard Rock'],
+  variations: [
+    {
+      id: 'a5_power',
+      name: 'Power Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 2, 2, 'x', 'x'],
+        fingers: [null, null, 1, 3, null, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - ADD9 CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_cadd9',
+  name: 'C Add9',
+  displayName: 'Cadd9',
+  category: 'extended',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Shimmering, modern-sounding chord',
+  commonIn: ['Pop', 'Alternative', 'Singer-songwriter'],
+  variations: [
+    {
+      id: 'cadd9_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 3, 2, 'o', 3, 'o'],
+        fingers: [null, 2, 1, null, 3, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_gadd9',
+  name: 'G Add9',
+  displayName: 'Gadd9',
+  category: 'extended',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Rich, colorful chord',
+  commonIn: ['Pop', 'Alternative', 'Folk'],
+  variations: [
+    {
+      id: 'gadd9_open',
+      name: 'Open Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: [3, 2, 'o', 'o', 3, 3],
+        fingers: [2, 1, null, null, 3, 4]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - DIMINISHED & AUGMENTED
+// ============================================================================
+
+{
+  id: 'guitar_adim',
+  name: 'A Diminished',
+  displayName: 'Adim',
+  category: 'diminished',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Tense, dissonant chord',
+  commonIn: ['Jazz', 'Classical', 'Film scores'],
+  variations: [
+    {
+      id: 'adim_open',
+      name: 'Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'o', 1, 2, 1, 2],
+        fingers: [null, null, 1, 3, 2, 4]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_caug',
+  name: 'C Augmented',
+  displayName: 'Caug',
+  category: 'augmented',
+  difficulty: 'advanced',
+  instrument: 'guitar',
+  description: 'Unstable, mysterious chord',
+  commonIn: ['Jazz', 'Classical', 'Experimental'],
+  variations: [
+    {
+      id: 'caug_barre',
+      name: 'Barre Position',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 3, 2, 1, 1, 'x'],
+        fingers: [null, 4, 3, 1, 2, null]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - FLAT KEY MAJOR CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_ab_major',
+  name: 'Ab Major',
+  displayName: 'Ab',
+  category: 'major',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Warm barre chord',
+  commonIn: ['Key of Ab', 'Key of Db', 'Jazz'],
+  variations: [
+    {
+      id: 'ab_major_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 4,
+        fingering: [4, 6, 6, 5, 4, 4],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barres: [
+          { fret: 4, fromString: 0, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_bb_major',
+  name: 'Bb Major',
+  displayName: 'Bb',
+  category: 'major',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Common barre chord in many keys',
+  commonIn: ['Key of Bb', 'Key of F', 'Jazz', 'Pop'],
+  variations: [
+    {
+      id: 'bb_major_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 1, 3, 3, 3, 1],
+        fingers: [null, 1, 2, 3, 4, 1],
+        barres: [
+          { fret: 1, fromString: 1, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_eb_major',
+  name: 'Eb Major',
+  displayName: 'Eb',
+  category: 'major',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Rich, dark major chord',
+  commonIn: ['Key of Eb', 'Key of Ab', 'Blues'],
+  variations: [
+    {
+      id: 'eb_major_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 1, 3, 4, 3],
+        fingers: [null, null, 1, 2, 4, 3]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - SHARP KEY MAJOR & MINOR CHORDS
+// ============================================================================
+
+{
+  id: 'guitar_csharp_major',
+  name: 'C# Major',
+  displayName: 'C#',
+  category: 'major',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Bright barre chord',
+  commonIn: ['Key of C#', 'Key of F#', 'Pop'],
+  variations: [
+    {
+      id: 'csharp_major_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 4,
+        fingering: ['x', 4, 6, 6, 6, 4],
+        fingers: [null, 1, 3, 3, 3, 1],
+        barres: [
+          { fret: 4, fromString: 1, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_fsharp_major',
+  name: 'F# Major',
+  displayName: 'F#',
+  category: 'major',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Powerful barre chord',
+  commonIn: ['Key of F#', 'Key of B', 'Rock'],
+  variations: [
+    {
+      id: 'fsharp_major_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 2,
+        fingering: [2, 4, 4, 3, 2, 2],
+        fingers: [1, 3, 4, 2, 1, 1],
+        barres: [
+          { fret: 2, fromString: 0, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_csharp_minor',
+  name: 'C# Minor',
+  displayName: 'C#m',
+  category: 'minor',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Emotional minor barre chord',
+  commonIn: ['Key of A', 'Key of E', 'Pop', 'Ballads'],
+  variations: [
+    {
+      id: 'csharp_minor_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 4,
+        fingering: ['x', 4, 6, 6, 5, 4],
+        fingers: [null, 1, 3, 4, 2, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_fsharp_minor',
+  name: 'F# Minor',
+  displayName: 'F#m',
+  category: 'minor',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Dark, expressive minor chord',
+  commonIn: ['Key of A', 'Key of D', 'Rock', 'Pop'],
+  variations: [
+    {
+      id: 'fsharp_minor_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 2,
+        fingering: [2, 4, 4, 2, 2, 2],
+        fingers: [1, 3, 4, 1, 1, 1],
+        barres: [
+          { fret: 2, fromString: 0, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_gsharp_minor',
+  name: 'G# Minor',
+  displayName: 'G#m',
+  category: 'minor',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Tense minor barre chord',
+  commonIn: ['Key of B', 'Key of E', 'Rock'],
+  variations: [
+    {
+      id: 'gsharp_minor_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 4,
+        fingering: [4, 6, 6, 4, 4, 4],
+        fingers: [1, 3, 4, 1, 1, 1],
+        barres: [
+          { fret: 4, fromString: 0, toString: 5, finger: 1 }
+        ]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+{
+  id: 'guitar_bbm_minor',
+  name: 'Bb Minor',
+  displayName: 'Bbm',
+  category: 'minor',
+  difficulty: 'intermediate',
+  instrument: 'guitar',
+  description: 'Heavy, dramatic minor chord',
+  commonIn: ['Key of Db', 'Key of Ab', 'Blues'],
+  variations: [
+    {
+      id: 'bbm_minor_barre',
+      name: 'Barre Chord',
+      isPrimary: true,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 1, 3, 3, 2, 1],
+        fingers: [null, 1, 3, 4, 2, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
+
+// ============================================================================
+// GUITAR - EASY F MAJOR (for beginners)
+// ============================================================================
+
+{
+  id: 'guitar_f_major_easy',
+  name: 'F Major (Easy)',
+  displayName: 'F',
+  category: 'major',
+  difficulty: 'beginner',
+  instrument: 'guitar',
+  description: 'Simplified F chord for beginners - excludes bass strings',
+  commonIn: ['Key of F', 'Key of C', 'Pop'],
+  variations: [
+    {
+      id: 'f_major_easy_simple',
+      name: 'Easy Position',
+      isPrimary: false,
+      positions: {
+        type: 'guitar',
+        strings: 6,
+        frets: 4,
+        baseFret: 1,
+        fingering: ['x', 'x', 3, 2, 1, 1],
+        fingers: [null, null, 3, 2, 1, 1]
+      } as GuitarChordPosition
+    }
+  ]
+},
 
   // ============================================================================
   // GUITAR - MAJOR 7TH CHORDS
@@ -2348,6 +3415,381 @@ export const CHORD_LIBRARY: Chord[] = [
       }
     ]
   },
+  {
+  id: 'piano_e7',
+  name: 'E Dominant 7',
+  displayName: 'E7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Strong dominant seventh - resolves to A',
+  commonIn: ['Blues', 'Jazz', 'Key of A'],
+  variations: [
+    {
+      id: 'piano_e7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'E', octave: 3, finger: 1 },
+          { note: 'G#', octave: 3, finger: 2 },
+          { note: 'B', octave: 3, finger: 3 },
+          { note: 'D', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - B7
+{
+  id: 'piano_b7',
+  name: 'B Dominant 7',
+  displayName: 'B7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Sharp dominant seventh - resolves to E',
+  commonIn: ['Blues', 'Jazz', 'Key of E'],
+  variations: [
+    {
+      id: 'piano_b7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'B', octave: 3, finger: 1 },
+          { note: 'D#', octave: 4, finger: 2 },
+          { note: 'F#', octave: 4, finger: 3 },
+          { note: 'A', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Amaj7
+{
+  id: 'piano_amaj7',
+  name: 'A Major 7',
+  displayName: 'Amaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Bright, sophisticated major seventh',
+  commonIn: ['Jazz', 'Pop', 'Bossa Nova', 'Key of A'],
+  variations: [
+    {
+      id: 'piano_amaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'A', octave: 3, finger: 1 },
+          { note: 'C#', octave: 4, finger: 2 },
+          { note: 'E', octave: 4, finger: 3 },
+          { note: 'G#', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Dmaj7
+{
+  id: 'piano_dmaj7',
+  name: 'D Major 7',
+  displayName: 'Dmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Sweet, dreamy major seventh',
+  commonIn: ['Jazz', 'Pop', 'Key of D'],
+  variations: [
+    {
+      id: 'piano_dmaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'D', octave: 3, finger: 1 },
+          { note: 'F#', octave: 3, finger: 2 },
+          { note: 'A', octave: 3, finger: 3 },
+          { note: 'C#', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Emaj7
+{
+  id: 'piano_emaj7',
+  name: 'E Major 7',
+  displayName: 'Emaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Warm major seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of E'],
+  variations: [
+    {
+      id: 'piano_emaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'E', octave: 3, finger: 1 },
+          { note: 'G#', octave: 3, finger: 2 },
+          { note: 'B', octave: 3, finger: 4 },
+          { note: 'D#', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Bmaj7
+{
+  id: 'piano_bmaj7',
+  name: 'B Major 7',
+  displayName: 'Bmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Shimmering major seventh',
+  commonIn: ['Jazz', 'Pop', 'Key of B'],
+  variations: [
+    {
+      id: 'piano_bmaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'B', octave: 3, finger: 1 },
+          { note: 'D#', octave: 4, finger: 2 },
+          { note: 'F#', octave: 4, finger: 3 },
+          { note: 'A#', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Bm7
+{
+  id: 'piano_bm7',
+  name: 'B Minor 7',
+  displayName: 'Bm7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Melancholic minor seventh',
+  commonIn: ['Pop', 'Jazz', 'Key of D', 'Key of A'],
+  variations: [
+    {
+      id: 'piano_bm7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'B', octave: 3, finger: 1 },
+          { note: 'D', octave: 4, finger: 2 },
+          { note: 'F#', octave: 4, finger: 4 },
+          { note: 'A', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Cm7
+{
+  id: 'piano_cm7',
+  name: 'C Minor 7',
+  displayName: 'Cm7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Dark minor seventh',
+  commonIn: ['Jazz', 'Blues', 'Key of Bb'],
+  variations: [
+    {
+      id: 'piano_cm7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'C', octave: 3, finger: 1 },
+          { note: 'Eb', octave: 3, finger: 2 },
+          { note: 'G', octave: 3, finger: 4 },
+          { note: 'Bb', octave: 3, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Fm7
+{
+  id: 'piano_fm7',
+  name: 'F Minor 7',
+  displayName: 'Fm7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Somber minor seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of Ab'],
+  variations: [
+    {
+      id: 'piano_fm7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'F', octave: 3, finger: 1 },
+          { note: 'Ab', octave: 3, finger: 2 },
+          { note: 'C', octave: 4, finger: 4 },
+          { note: 'Eb', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Gm7
+{
+  id: 'piano_gm7',
+  name: 'G Minor 7',
+  displayName: 'Gm7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Soulful minor seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of Bb', 'Key of F'],
+  variations: [
+    {
+      id: 'piano_gm7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'G', octave: 3, finger: 1 },
+          { note: 'Bb', octave: 3, finger: 2 },
+          { note: 'D', octave: 4, finger: 4 },
+          { note: 'F', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Bbmaj7
+{
+  id: 'piano_bbmaj7',
+  name: 'Bb Major 7',
+  displayName: 'Bbmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Smooth, jazzy major seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of Bb'],
+  variations: [
+    {
+      id: 'piano_bbmaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'Bb', octave: 3, finger: 1 },
+          { note: 'D', octave: 4, finger: 2 },
+          { note: 'F', octave: 4, finger: 3 },
+          { note: 'A', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Ebmaj7
+{
+  id: 'piano_ebmaj7',
+  name: 'Eb Major 7',
+  displayName: 'Ebmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Rich, luxurious major seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of Eb'],
+  variations: [
+    {
+      id: 'piano_ebmaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'Eb', octave: 3, finger: 1 },
+          { note: 'G', octave: 3, finger: 2 },
+          { note: 'Bb', octave: 3, finger: 3 },
+          { note: 'D', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
+
+// PIANO - Abmaj7
+{
+  id: 'piano_abmaj7',
+  name: 'Ab Major 7',
+  displayName: 'Abmaj7',
+  category: 'seventh',
+  difficulty: 'intermediate',
+  instrument: 'piano',
+  description: 'Warm, velvety major seventh',
+  commonIn: ['Jazz', 'R&B', 'Key of Ab'],
+  variations: [
+    {
+      id: 'piano_abmaj7_root',
+      name: 'Root Position',
+      isPrimary: true,
+      positions: {
+        type: 'piano',
+        notes: [
+          { note: 'Ab', octave: 3, finger: 1 },
+          { note: 'C', octave: 4, finger: 2 },
+          { note: 'Eb', octave: 4, finger: 3 },
+          { note: 'G', octave: 4, finger: 5 }
+        ],
+        octave: 3
+      }
+    }
+  ]
+},
 ];
 
 /**
