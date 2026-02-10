@@ -22,6 +22,7 @@ import {
   IonList,
   AlertController
 } from '@ionic/angular/standalone';
+import { Capacitor } from '@capacitor/core';
 import { addIcons } from 'ionicons';
 import { play, stop, musicalNote, volumeHigh, settings } from 'ionicons/icons';
 import { TunerService } from '../../core/services/tuner.service';
@@ -476,15 +477,52 @@ export class TunerPage {
     try {
       await this.tunerService.start();
     } catch (error) {
-      const isUnavailable =
-        error instanceof Error && error.message.includes('not available');
-      const message = isUnavailable
-        ? 'Tuner is only available for guitar, bass, and violin.'
-        : 'Please allow microphone access to use the tuner.';
+      const errorMessage = error instanceof Error ? error.message : '';
+      const isUnavailable = errorMessage.includes('not available');
+      let header = 'Microphone Access Required';
+      let message =
+        'Please allow microphone access to use the tuner.';
+
+      if (isUnavailable) {
+        header = 'Tuner Unavailable';
+        message = 'Tuner is only available for guitar, bass, and violin.';
+      } else if (errorMessage.includes('NotAllowedError')) {
+        message =
+          'Microphone access is blocked. On iOS, delete and reinstall the app, then accept the microphone prompt. You can also check Settings > Privacy & Security > Microphone.';
+      } else if (errorMessage.includes('NotFoundError')) {
+        message =
+          'No microphone was found. Please check that your device microphone is available.';
+      } else if (errorMessage.includes('SecurityError')) {
+        message =
+          'Microphone access is blocked by security settings. Please check your device restrictions.';
+      } else if (errorMessage.includes('getUserMedia')) {
+        message =
+          'Microphone access is not available on this device.';
+      } else if (errorMessage.length > 0) {
+        message = `${message}\n\nDetails: ${errorMessage}`;
+      }
+
+      const canOpenSettings = Capacitor.getPlatform() === 'ios';
+      const buttons = isUnavailable
+        ? ['OK']
+        : [
+            ...(canOpenSettings
+              ? [
+                  {
+                    text: 'Open Settings',
+                    handler: () => {
+                      this.openSettings();
+                    }
+                  }
+                ]
+              : []),
+            'OK'
+          ];
+
       const alert = await this.alertController.create({
-        header: isUnavailable ? 'Tuner Unavailable' : 'Microphone Access Required',
+        header,
         message,
-        buttons: ['OK']
+        buttons
       });
       await alert.present();
     }
@@ -510,5 +548,11 @@ export class TunerPage {
 
   formatCents(cents: number): string {
     return this.tunerService.formatCents(cents);
+  }
+
+  private openSettings(): void {
+    if (Capacitor.getPlatform() === 'ios') {
+      window.location.assign('app-settings:');
+    }
   }
 }

@@ -1,13 +1,12 @@
 // src/app/core/services/tuner.service.ts
 import { Injectable, signal, computed, inject, effect, OnDestroy } from '@angular/core';
-import * as Tone from 'tone';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/tuner.config';
 
 /**
  * TunerService - Audio-based instrument tuner
- * Uses Tone.js for audio input and autocorrelation for pitch detection
+ * Uses native WebAudio input and autocorrelation for pitch detection
  */
 @Injectable({
   providedIn: 'root'
@@ -15,14 +14,12 @@ import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/t
 export class TunerService implements OnDestroy {
   private instrumentService = inject(InstrumentService);
 
-  // Tone.js Audio
+  // Audio input
   private audioContext?: AudioContext;
-  private analyser?: Tone.Analyser;
-  private userMedia?: Tone.UserMedia;
+  private nativeStream?: MediaStream;
+  private nativeSource?: MediaStreamAudioSourceNode;
+  private nativeAnalyser?: AnalyserNode;
   private animationId?: number;
-  private highPassFilter?: Tone.Filter;
-  private lowPassFilter?: Tone.Filter;
-  private inputGain?: Tone.Gain;
   private audioBuffer?: Float32Array<ArrayBuffer>;
 
   // Configuration
@@ -240,27 +237,9 @@ export class TunerService implements OnDestroy {
     }
 
     try {
-      await Tone.start();
-      this.audioContext = Tone.getContext().rawContext as AudioContext;
-
-      // Request microphone access via Tone.js
-      this.userMedia = new Tone.UserMedia();
-      await this.userMedia.open();
-
-      // Input gain to boost low-level iOS mic signals
-      this.inputGain = new Tone.Gain(2.0);
-
-      // Filter chain to reduce noise and improve low-string detection
-      this.highPassFilter = new Tone.Filter(55, 'highpass');
-      this.lowPassFilter = new Tone.Filter(1200, 'lowpass');
-
-      this.analyser = new Tone.Analyser('waveform', this.BUFFER_SIZE);
-      this.analyser.smoothing = 0.8; // More averaging for steadier readings
-
-      this.userMedia.connect(this.inputGain);
-      this.inputGain.connect(this.highPassFilter);
-      this.highPassFilter.connect(this.lowPassFilter);
-      this.lowPassFilter.connect(this.analyser);
+      await this.ensureMicrophonePermission();
+      this.audioContext = new AudioContext();
+      await this.setupNativeInput();
 
       // Initialize buffers
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
@@ -271,8 +250,12 @@ export class TunerService implements OnDestroy {
       this.detectPitch();
 
     } catch (error) {
-      console.error('Failed to start tuner:', error);
-      throw new Error('Microphone access denied or unavailable');
+      const normalized = this.normalizeError(
+        error,
+        'Microphone access denied or unavailable'
+      );
+      console.error('Failed to start tuner:', normalized.message, error);
+      throw normalized;
     }
   }
 
@@ -285,30 +268,19 @@ export class TunerService implements OnDestroy {
       this.animationId = undefined;
     }
 
-    if (this.userMedia) {
-      this.userMedia.close();
-      this.userMedia.dispose();
-      this.userMedia = undefined;
+    if (this.nativeStream) {
+      this.nativeStream.getTracks().forEach(track => track.stop());
+      this.nativeStream = undefined;
     }
 
-    if (this.highPassFilter) {
-      this.highPassFilter.dispose();
-      this.highPassFilter = undefined;
+    if (this.nativeSource) {
+      this.nativeSource.disconnect();
+      this.nativeSource = undefined;
     }
 
-    if (this.lowPassFilter) {
-      this.lowPassFilter.dispose();
-      this.lowPassFilter = undefined;
-    }
-
-    if (this.inputGain) {
-      this.inputGain.dispose();
-      this.inputGain = undefined;
-    }
-
-    if (this.analyser) {
-      this.analyser.dispose();
-      this.analyser = undefined;
+    if (this.nativeAnalyser) {
+      this.nativeAnalyser.disconnect();
+      this.nativeAnalyser = undefined;
     }
 
     this.audioContext = undefined;
@@ -327,6 +299,66 @@ export class TunerService implements OnDestroy {
     }));
   }
 
+  private async ensureMicrophonePermission(): Promise<void> {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error('Microphone access unavailable: missing getUserMedia');
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+    } catch (error) {
+      const normalized = this.normalizeError(
+        error,
+        'Microphone access failed: UnknownError'
+      );
+      throw new Error(normalized.message);
+    }
+  }
+
+  private async setupNativeInput(): Promise<void> {
+    if (!this.audioContext) {
+      throw new Error('Native input failed: missing audio context');
+    }
+
+    try {
+      this.nativeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.nativeSource = this.audioContext.createMediaStreamSource(this.nativeStream);
+      this.nativeAnalyser = this.audioContext.createAnalyser();
+      this.nativeAnalyser.fftSize = this.BUFFER_SIZE;
+      this.nativeAnalyser.smoothingTimeConstant = 0.8;
+      this.nativeSource.connect(this.nativeAnalyser);
+    } catch (error) {
+      const normalized = this.normalizeError(error, 'Native input failed');
+      throw new Error(`Native input failed: ${normalized.message}`);
+    }
+  }
+
+  private normalizeError(error: unknown, fallbackMessage: string): Error {
+    if (error instanceof Error) {
+      return error;
+    }
+    if (typeof error === 'string') {
+      return new Error(error);
+    }
+    if (error && typeof error === 'object') {
+      const possibleMessage = (error as { message?: string }).message;
+      const possibleName = (error as { name?: string }).name;
+      if (possibleMessage) {
+        return new Error(possibleMessage);
+      }
+      if (possibleName) {
+        return new Error(`Microphone access failed: ${possibleName}`);
+      }
+      try {
+        return new Error(JSON.stringify(error));
+      } catch {
+        return new Error(fallbackMessage);
+      }
+    }
+    return new Error(fallbackMessage);
+  }
+
   private handleVisibilityChange(): void {
     if (!this.isListening() || !this.audioContext) return;
     if (document.visibilityState !== 'visible') return;
@@ -340,18 +372,12 @@ export class TunerService implements OnDestroy {
    * Main pitch detection loop using autocorrelation
    */
   private detectPitch(): void {
-    if (!this.isListening() || !this.analyser || !this.audioContext || !this.audioBuffer) {
+    if (!this.isListening() || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser) {
       return;
     }
 
     // Get audio data
-    const waveform = this.analyser.getValue() as Float32Array;
-    if (waveform?.length === this.audioBuffer.length) {
-      this.audioBuffer.set(waveform);
-    } else if (waveform?.length) {
-      const len = Math.min(waveform.length, this.audioBuffer.length);
-      this.audioBuffer.set(waveform.subarray(0, len));
-    }
+    this.nativeAnalyser.getFloatTimeDomainData(this.audioBuffer);
 
     // Check for silence using RMS (do not early-return; iOS often reports low levels)
     const rms = this.calculateRMS(this.audioBuffer);
