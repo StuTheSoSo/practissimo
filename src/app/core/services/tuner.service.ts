@@ -16,21 +16,26 @@ export class TunerService implements OnDestroy {
 
   // Audio input
   private audioContext?: AudioContext;
+  private playbackContext?: AudioContext; // FIX: Separate context for playback
   private nativeStream?: MediaStream;
   private nativeSource?: MediaStreamAudioSourceNode;
   private nativeAnalyser?: AnalyserNode;
   private animationId?: number;
   private audioBuffer?: Float32Array<ArrayBuffer>;
+  private activeOscillators: Set<OscillatorNode> = new Set(); // FIX: Track active oscillators
 
   // Configuration
   private customA4Frequency = signal<number>(440); // Configurable tuning reference
   private readonly MIN_CLARITY = 0.9; // Base confidence threshold (0-1)
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.12; // For stable readings
+  private readonly ADAPTIVE_SMOOTHING_FACTOR = 0.25; // For rapid changes
   private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
+  private readonly VERY_LOW_RMS = 0.00005; // Very low threshold for iOS
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
   private readonly HISTORY_SIZE = 7;
   private readonly TUNING_HISTORY_SIZE = 30; // Keep last 30 readings for trends
+  private readonly DEBUG_MODE = false; // FIX: Debug flag instead of hardcoded logs
 
   // State
   private tunerState = signal<TunerState>({
@@ -71,55 +76,22 @@ export class TunerService implements OnDestroy {
     return getTuningsForInstrument(instrument);
   });
 
+  // FIX: Simplified closestString - removed octave correction logic (now in detection pipeline)
   readonly closestString = computed<StringInfo | undefined>(() => {
     const tuning = this.currentTuning();
     const frequency = this.state().currentFrequency;
 
     if (!tuning || !tuning.strings.length || frequency === 0) return undefined;
 
-    // First, check if detected frequency might be a harmonic (octave error)
-    const possibleFundamental = frequency / 2;
-    const possibleSecondHarmonic = frequency / 3;
-    
-    // Find closest string considering potential octave errors
+    // Find closest string to detected frequency
     let bestMatch = tuning.strings[0];
     let bestDiff = Math.abs(frequency - bestMatch.frequency);
     
     for (const string of tuning.strings) {
-      // Check fundamental frequency
-      const directDiff = Math.abs(frequency - string.frequency);
-      
-      // Check if detected frequency is an octave (2x) of the target
-      const octaveDiff = Math.abs(possibleFundamental - string.frequency);
-      
-      // Check if detected frequency is 3rd harmonic (3x) of the target
-      const thirdHarmonicDiff = Math.abs(possibleSecondHarmonic - string.frequency);
-      
-      // Use the smallest difference
-      const minDiff = Math.min(directDiff, octaveDiff, thirdHarmonicDiff);
-      
-      if (minDiff < bestDiff) {
-        bestDiff = minDiff;
+      const diff = Math.abs(frequency - string.frequency);
+      if (diff < bestDiff) {
+        bestDiff = diff;
         bestMatch = string;
-      }
-    }
-    
-    // Additional validation: if the best match is still far off, it might be a harmonic issue
-    // For high strings (>250 Hz), be more tolerant of octave detection
-    const tolerance = bestMatch.frequency > 250 ? 50 : 30; // Hz
-    
-    if (bestDiff > tolerance) {
-      // Likely detecting a harmonic - try to find the actual fundamental
-      const fundamentalCandidate = frequency / 2;
-      const closestToFundamental = tuning.strings.reduce((closest, string) => {
-        const currentDiff = Math.abs(fundamentalCandidate - closest.frequency);
-        const newDiff = Math.abs(fundamentalCandidate - string.frequency);
-        return newDiff < currentDiff ? string : closest;
-      }, tuning.strings[0]);
-      
-      const fundamentalDiff = Math.abs(fundamentalCandidate - closestToFundamental.frequency);
-      if (fundamentalDiff < tolerance) {
-        return closestToFundamental;
       }
     }
     
@@ -187,6 +159,13 @@ export class TunerService implements OnDestroy {
   ngOnDestroy(): void {
     document.removeEventListener('visibilitychange', this.visibilityHandler);
     this.stop();
+    this.stopAllOscillators(); // FIX: Stop any playing oscillators
+    
+    // FIX: Clean up playback context
+    if (this.playbackContext) {
+      this.playbackContext.close();
+      this.playbackContext = undefined;
+    }
   }
 
   /**
@@ -263,6 +242,7 @@ export class TunerService implements OnDestroy {
    * Stop listening
    */
   stop(): void {
+    // FIX: Cancel animation frame FIRST to prevent race condition
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = undefined;
@@ -283,7 +263,12 @@ export class TunerService implements OnDestroy {
       this.nativeAnalyser = undefined;
     }
 
-    this.audioContext = undefined;
+    // FIX: Close audio context instead of just setting to undefined
+    if (this.audioContext) {
+      this.audioContext.close();
+      this.audioContext = undefined;
+    }
+
     this.audioBuffer = undefined;
     this.normalizedBuffer = undefined;
     this.smoothedFrequency = 0;
@@ -359,12 +344,19 @@ export class TunerService implements OnDestroy {
     return new Error(fallbackMessage);
   }
 
-  private handleVisibilityChange(): void {
+  // FIX: Added async and error handling
+  private async handleVisibilityChange(): Promise<void> {
     if (!this.isListening() || !this.audioContext) return;
     if (document.visibilityState !== 'visible') return;
 
     if (this.audioContext.state === 'suspended') {
-      void this.audioContext.resume();
+      try {
+        await this.audioContext.resume();
+      } catch (error) {
+        console.error('Failed to resume AudioContext:', error);
+        // Optionally restart the tuner
+        this.stop();
+      }
     }
   }
 
@@ -372,6 +364,7 @@ export class TunerService implements OnDestroy {
    * Main pitch detection loop using autocorrelation
    */
   private detectPitch(): void {
+    // FIX: Check at the start to prevent race condition
     if (!this.isListening() || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser) {
       return;
     }
@@ -379,8 +372,15 @@ export class TunerService implements OnDestroy {
     // Get audio data
     this.nativeAnalyser.getFloatTimeDomainData(this.audioBuffer);
 
-    // Check for silence using RMS (do not early-return; iOS often reports low levels)
+    // FIX: Use RMS check with very low threshold for iOS
     const rms = this.calculateRMS(this.audioBuffer);
+    if (rms < this.VERY_LOW_RMS) {
+      // Very quiet - reset state but continue listening
+      if (this.isListening()) {
+        this.animationId = requestAnimationFrame(() => this.detectPitch());
+      }
+      return;
+    }
 
     const autoResult = this.autoCorrelate(this.audioBuffer, this.audioContext.sampleRate);
     const preferAuto = !!autoResult && autoResult.frequency < this.LOW_STRING_FREQUENCY;
@@ -388,8 +388,14 @@ export class TunerService implements OnDestroy {
     if (preferAuto && autoResult) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
       if (autoResult.clarity >= autoMinClarity * 0.7) {
-        this.updateTunerState(autoResult.frequency, autoResult.clarity);
-        this.animationId = requestAnimationFrame(() => this.detectPitch());
+        // FIX: Apply octave correction in detection pipeline
+        const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
+        this.updateTunerState(correctedFrequency, autoResult.clarity);
+        
+        // FIX: Only schedule next frame if still listening
+        if (this.isListening()) {
+          this.animationId = requestAnimationFrame(() => this.detectPitch());
+        }
         return;
       }
     }
@@ -398,13 +404,16 @@ export class TunerService implements OnDestroy {
     if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
       if (autoResult.clarity >= autoMinClarity * 0.7) {
+        // FIX: Apply octave correction in detection pipeline
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
         this.updateTunerState(correctedFrequency, autoResult.clarity);
       }
     }
 
-    // Continue loop
-    this.animationId = requestAnimationFrame(() => this.detectPitch());
+    // FIX: Only schedule next frame if still listening
+    if (this.isListening()) {
+      this.animationId = requestAnimationFrame(() => this.detectPitch());
+    }
   }
 
   /**
@@ -420,7 +429,6 @@ export class TunerService implements OnDestroy {
     
     // Check if half the frequency (octave below) matches a string better
     const halfFreq = frequency / 2;
-    const thirdFreq = frequency / 3;
     
     // Find closest string to detected frequency
     const directMatch = tuning.strings.reduce((closest, string) => {
@@ -442,7 +450,9 @@ export class TunerService implements OnDestroy {
     // If half frequency is much closer to a string, we're likely detecting the octave
     // Use a threshold: if octave match is more than 2x better, use it
     if (octaveDiff < directDiff * 0.4 && octaveDiff < 15) {
-      console.log(`Octave correction: ${frequency.toFixed(1)}Hz -> ${halfFreq.toFixed(1)}Hz (detected harmonic)`);
+      if (this.DEBUG_MODE) {
+        console.log(`Octave correction: ${frequency.toFixed(1)}Hz -> ${halfFreq.toFixed(1)}Hz (detected harmonic)`);
+      }
       return halfFreq;
     }
     
@@ -500,6 +510,7 @@ export class TunerService implements OnDestroy {
     return this.MIN_CLARITY;
   }
 
+  // FIX: Adaptive smoothing based on rate of change
   private applyFrequencySmoothing(frequency: number): number {
     if (frequency <= 0) return this.smoothedFrequency;
 
@@ -523,9 +534,14 @@ export class TunerService implements OnDestroy {
         ? this.smoothedFrequency + Math.sign(delta) * maxStep
         : median;
 
+    // FIX: Adaptive smoothing - use higher factor for rapid changes
+    const smoothingFactor = Math.abs(delta) > 20 
+      ? this.ADAPTIVE_SMOOTHING_FACTOR 
+      : this.SMOOTHING_FACTOR;
+
     this.smoothedFrequency =
-      (this.smoothedFrequency * (1 - this.SMOOTHING_FACTOR)) +
-      (limited * this.SMOOTHING_FACTOR);
+      (this.smoothedFrequency * (1 - smoothingFactor)) +
+      (limited * smoothingFactor);
 
     return this.smoothedFrequency;
   }
@@ -602,6 +618,7 @@ export class TunerService implements OnDestroy {
 
   /**
    * Convert frequency to note information
+   * FIX: Corrected note index calculation for negative values and proper octave handling
    */
   private frequencyToNote(frequency: number): NoteInfo {
     const A4 = this.customA4Frequency(); // Use configurable A4 frequency
@@ -613,24 +630,15 @@ export class TunerService implements OnDestroy {
     // Calculate cents (deviation from nearest note)
     const cents = Math.round((noteNum - roundedNote) * 100);
 
-    // Calculate octave
-    const octaveFromA4 = Math.floor((roundedNote + 9) / 12);
-    const octave = 4 + octaveFromA4;
-    
-    // Find the note index
-    // Check if NOTE_NAMES starts with 'A' or 'C'
-    // Most configs start with A: ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#']
-    // Some start with C: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    
+    // FIX: Proper note index calculation with correct negative modulo handling
     let noteIndex: number;
     if (NOTE_NAMES[0] === 'A') {
       // Array starts with A, so A4 is at index 0
-      noteIndex = roundedNote % 12;
-      if (noteIndex < 0) noteIndex += 12;
+      noteIndex = ((roundedNote % 12) + 12) % 12;
     } else {
-      // Array starts with C, so A4 is at index 9
-      noteIndex = ((roundedNote % 12) + 9) % 12;
-      if (noteIndex < 0) noteIndex += 12;
+      // Array starts with C, so A4 is 9 semitones above C4
+      // For C-based array: C=0, C#=1, ..., A=9, A#=10, B=11
+      noteIndex = ((roundedNote + 9) % 12 + 12) % 12;
     }
 
     // Validate note index
@@ -642,12 +650,19 @@ export class TunerService implements OnDestroy {
 
     const note = NOTE_NAMES[noteIndex];
     
-    // Debug logging to help diagnose issues
-    if (frequency > 300 && frequency < 350) { // High E range
-      console.log(`High E debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
-    }
-    if (frequency > 190 && frequency < 205) { // G string range
-      console.log(`G string debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
+    // FIX: Robust octave calculation
+    // Calculate how many octaves away from A4 we are
+    // Add 120 to handle negative numbers correctly, then subtract offset
+    const octave = Math.floor((roundedNote + 9 + 120) / 12) + 4 - 10;
+
+    // FIX: Debug logging only when DEBUG_MODE is true
+    if (this.DEBUG_MODE) {
+      if (frequency > 300 && frequency < 350) { // High E range
+        console.log(`High E debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
+      }
+      if (frequency > 190 && frequency < 205) { // G string range
+        console.log(`G string debug: freq=${frequency.toFixed(1)}Hz, semitones=${roundedNote}, noteIndex=${noteIndex}, note=${note}${octave}, NOTE_NAMES[0]=${NOTE_NAMES[0]}`);
+      }
     }
 
     return {
@@ -660,11 +675,14 @@ export class TunerService implements OnDestroy {
 
   /**
    * Set tuning preset
+   * FIX: Added error logging for missing tuning
    */
   setTuning(tuningId: string): void {
     const tuning = TUNING_PRESETS.find(t => t.id === tuningId);
     if (tuning) {
       this.selectedTuning.set(tuning);
+    } else {
+      console.warn(`Tuning preset not found: ${tuningId}`);
     }
   }
 
@@ -677,34 +695,54 @@ export class TunerService implements OnDestroy {
     if (noteIndex === -1) return 0;
 
     // A4 = configured frequency, calculate relative to that
-    const a4Index = 9; // A is at index 9
+    const a4Index = NOTE_NAMES[0] === 'A' ? 0 : 9; // A is at index 0 or 9
     const semitoneOffset = (octave - 4) * 12 + (noteIndex - a4Index);
 
     return A4 * Math.pow(2, semitoneOffset / 12);
   }
 
   /**
+   * Stop all active oscillators
+   * FIX: New method to clean up oscillators
+   */
+  private stopAllOscillators(): void {
+    this.activeOscillators.forEach(osc => {
+      try {
+        osc.stop();
+        osc.disconnect();
+      } catch (e) {
+        // Oscillator might already be stopped
+      }
+    });
+    this.activeOscillators.clear();
+  }
+
+  /**
    * Play reference tone with harmonics for realistic instrument sound
+   * FIX: Separate playback context, track oscillators for cleanup
    */
   playReferenceTone(stringInfo: StringInfo, duration: number = 1000): void {
     try {
-      // Create or reuse audio context for playback
-      if (!this.audioContext || this.audioContext.state === 'closed') {
-        this.audioContext = new AudioContext();
+      // FIX: Use separate playback context
+      if (!this.playbackContext || this.playbackContext.state === 'closed') {
+        this.playbackContext = new AudioContext();
       }
 
-      const currentTime = this.audioContext.currentTime;
+      const currentTime = this.playbackContext.currentTime;
       const endTime = currentTime + duration / 1000;
 
       // Master gain node
-      const masterGain = this.audioContext.createGain();
+      const masterGain = this.playbackContext.createGain();
       masterGain.gain.value = 0.3;
 
       const instrument = this.instrumentService.currentInstrument();
 
       // Create fundamental frequency
-      const fundamental = this.audioContext.createOscillator();
-      const fundamentalGain = this.audioContext.createGain();
+      const fundamental = this.playbackContext.createOscillator();
+      const fundamentalGain = this.playbackContext.createGain();
+
+      // FIX: Track oscillator for cleanup
+      this.activeOscillators.add(fundamental);
 
       // Configure based on instrument type
       switch (instrument) {
@@ -724,8 +762,9 @@ export class TunerService implements OnDestroy {
           this.addHarmonic(stringInfo.frequency * 5, 0.1, 'sine', masterGain, endTime);  // Major third
 
           // Add slight chorus/detune effect for realism
-          const detune = this.audioContext.createOscillator();
-          const detuneGain = this.audioContext.createGain();
+          const detune = this.playbackContext.createOscillator();
+          const detuneGain = this.playbackContext.createGain();
+          this.activeOscillators.add(detune);
           detune.type = 'triangle';
           detune.frequency.value = stringInfo.frequency;
           detune.detune.value = 3; // Slightly sharp
@@ -803,11 +842,16 @@ export class TunerService implements OnDestroy {
       }
 
       // Connect master gain to output
-      masterGain.connect(this.audioContext.destination);
+      masterGain.connect(this.playbackContext.destination);
 
       // Start fundamental
       fundamental.start(currentTime);
       fundamental.stop(endTime);
+
+      // FIX: Remove from active set when stopped
+      fundamental.onended = () => {
+        this.activeOscillators.delete(fundamental);
+      };
 
     } catch (error) {
       console.error('Failed to play reference tone:', error);
@@ -817,6 +861,7 @@ export class TunerService implements OnDestroy {
 
   /**
    * Helper method to add harmonic overtones
+   * FIX: Track oscillators for cleanup
    */
   private addHarmonic(
     frequency: number,
@@ -825,11 +870,14 @@ export class TunerService implements OnDestroy {
     destination: GainNode,
     endTime: number
   ): void {
-    if (!this.audioContext) return;
+    if (!this.playbackContext) return;
 
-    const currentTime = this.audioContext.currentTime;
-    const oscillator = this.audioContext.createOscillator();
-    const gain = this.audioContext.createGain();
+    const currentTime = this.playbackContext.currentTime;
+    const oscillator = this.playbackContext.createOscillator();
+    const gain = this.playbackContext.createGain();
+
+    // FIX: Track oscillator for cleanup
+    this.activeOscillators.add(oscillator);
 
     oscillator.type = type;
     oscillator.frequency.value = frequency;
@@ -840,6 +888,11 @@ export class TunerService implements OnDestroy {
 
     oscillator.start(currentTime);
     oscillator.stop(endTime);
+
+    // FIX: Remove from active set when stopped
+    oscillator.onended = () => {
+      this.activeOscillators.delete(oscillator);
+    };
   }
 
   /**
