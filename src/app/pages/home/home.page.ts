@@ -98,16 +98,17 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
         <!-- Pro Upgrade Card -->
         <ion-card class="pro-upgrade-card">
           <ion-card-content>
+            <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
             <div class="pro-upgrade-header">
               <ion-icon name="sparkles" color="warning"></ion-icon>
               <div>
-                <h3>Upgrade to Pro</h3>
+                <h3>Unlock Your Full Practice Power</h3>
                 <p>Full chord library, favorites, and advanced filters.</p>
               </div>
             </div>
             <div class="pro-upgrade-footer">
               <span class="pro-upgrade-price">From $0.99/month</span>
-              <ion-button size="small" (click)="openPaywall()">
+              <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
                 Go Pro
               </ion-button>
             </div>
@@ -284,9 +285,33 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
     }
 
     .pro-upgrade-card {
+      position: relative;
+      overflow: hidden;
       background: linear-gradient(135deg, #0d1b2a, #152238);
       color: #f8f9ff;
       border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .pro-upgrade-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
+      transform: translateX(-60%);
+      animation: pro-upgrade-shimmer 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .pro-upgrade-kicker {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
     }
 
     .pro-upgrade-header {
@@ -297,7 +322,7 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
 
     .pro-upgrade-header h3 {
       margin: 0 0 0.2rem 0;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
 
     .pro-upgrade-header p {
@@ -316,6 +341,28 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
     .pro-upgrade-price {
       font-weight: 700;
       color: #ffd166;
+    }
+
+    .pro-upgrade-cta {
+      --background: linear-gradient(135deg, #ffd166, #ff8fab);
+      --color: #1b1b1b;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 20px rgba(255, 142, 112, 0.35);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    @keyframes pro-upgrade-shimmer {
+      0% {
+        transform: translateX(-60%);
+      }
+      50% {
+        transform: translateX(0%);
+      }
+      100% {
+        transform: translateX(60%);
+      }
     }
 
     .quick-actions {
