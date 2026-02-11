@@ -27,6 +27,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
 import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
+import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 
 @Component({
   selector: 'app-settings',
@@ -130,10 +131,12 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
             } @else {
               <div class="pro-state">
                 <p>Get the full chord library, save favorites, and unlock advanced filters.</p>
+                <p class="pro-price">From $0.99/month or $9.99/year.</p>
                 <ul class="pro-features">
                   <li>Intermediate + advanced chords</li>
                   <li>Saved chords and quick access</li>
                   <li>Full difficulty filters</li>
+                  <li>New features at least monthly</li>
                 </ul>
               </div>
             }
@@ -142,6 +145,11 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
               <ion-button expand="block" class="pro-cta" (click)="upgradeToPro()" [disabled]="isPro()">
                 Upgrade to Pro
               </ion-button>
+              @if (isPro() && managementUrl()) {
+                <ion-button expand="block" fill="outline" class="pro-restore" (click)="manageSubscription()">
+                  Manage Subscription
+                </ion-button>
+              }
               <ion-button expand="block" fill="outline" class="pro-restore" (click)="restorePurchases()">
                 Restore Purchases
               </ion-button>
@@ -253,6 +261,12 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
       color: rgba(255, 255, 255, 0.85);
     }
 
+    .pro-price {
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 0.25rem;
+    }
+
     .pro-features {
       margin: 0;
       padding: 0;
@@ -337,6 +351,7 @@ export class SettingsPage {
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
   isPro = this.revenueCat.isPro;
+  managementUrl = this.revenueCat.managementUrl;
 
   constructor() {
     addIcons({ chatbubbleEllipses, bug, bulb, heart });
@@ -392,42 +407,13 @@ export class SettingsPage {
 
   async upgradeToPro() {
     if (this.isPro()) return;
-
-    const alert = await this.alertController.create({
-      header: 'Go Pro',
-      message: 'Unlock the full chord library, favorites, and advanced filters.',
-      buttons: [
-        { text: 'Not now', role: 'cancel' },
-        {
-          text: 'Upgrade',
-          handler: () => {
-            void this.purchasePro();
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: PaywallModalComponent,
+      componentProps: {
+        reason: 'Unlock the full chord library, favorites, and advanced filters.'
+      }
     });
-
-    await alert.present();
-  }
-
-  private async purchasePro() {
-    try {
-      await this.revenueCat.purchasePro();
-      const success = await this.alertController.create({
-        header: 'Unlocked!',
-        message: 'Thanks for upgrading. Pro features are now enabled.',
-        buttons: ['OK']
-      });
-      await success.present();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Purchase failed. Please try again.';
-      const failure = await this.alertController.create({
-        header: 'Purchase Failed',
-        message,
-        buttons: ['OK']
-      });
-      await failure.present();
-    }
+    await modal.present();
   }
 
   async restorePurchases() {
@@ -447,6 +433,13 @@ export class SettingsPage {
         buttons: ['OK']
       });
       await failure.present();
+    }
+  }
+
+  manageSubscription() {
+    const url = this.managementUrl();
+    if (url) {
+      window.open(url, '_blank');
     }
   }
 }

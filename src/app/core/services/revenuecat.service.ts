@@ -28,6 +28,10 @@ export class RevenueCatService {
   });
 
   readonly currentOffering = computed<PurchasesOffering | null>(() => this.offerings()?.current ?? null);
+  readonly availablePackages = computed<PurchasesPackage[]>(
+    () => this.currentOffering()?.availablePackages ?? []
+  );
+  readonly managementUrl = computed<string | null>(() => this.customerInfo()?.managementURL ?? null);
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -78,6 +82,17 @@ export class RevenueCatService {
     this.customerInfo.set(result.customerInfo);
   }
 
+  async purchasePackage(packageId: string): Promise<void> {
+    await this.ensureInitialized();
+    const offering = await this.getOrFetchCurrentOffering();
+    const aPackage = offering?.availablePackages.find(pkg => pkg.identifier === packageId);
+    if (!aPackage) {
+      throw new Error('Selected package not available');
+    }
+    const result = await Purchases.purchasePackage({ aPackage });
+    this.customerInfo.set(result.customerInfo);
+  }
+
   async restorePurchases(): Promise<void> {
     await this.ensureInitialized();
     const result = await Purchases.restorePurchases();
@@ -88,6 +103,12 @@ export class RevenueCatService {
     const offering = await this.getOrFetchCurrentOffering();
     const aPackage = offering?.availablePackages?.[0];
     return aPackage?.product?.priceString ?? null;
+  }
+
+  async getAvailablePackages(): Promise<PurchasesPackage[]> {
+    await this.ensureInitialized();
+    const offering = await this.getOrFetchCurrentOffering();
+    return offering?.availablePackages ?? [];
   }
 
   private async ensureInitialized(): Promise<void> {

@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   revenuecat: {
-    iosApiKey: '',
+    iosApiKey: 'appl_uVkvBFJbNrIUqdEQKOCdsuAozoP',
     androidApiKey: '',
     entitlementId: 'pro'
   }

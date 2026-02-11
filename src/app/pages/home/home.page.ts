@@ -34,12 +34,14 @@ import {
   calendar,
   chevronForward,
   musicalNotes,
-  musicalNote
+  musicalNote,
+  sparkles
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
 import { FeedbackModalComponent } from 'src/app/shared/components/feedback.component';
+import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.component';
 
 @Component({
   selector: 'app-home',
@@ -90,6 +92,25 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
               <span>{{ levelInfo().progressPercent }}%</span>
             </div>
             <ion-progress-bar [value]="levelInfo().progressPercent / 100"></ion-progress-bar>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Pro Upgrade Card -->
+        <ion-card class="pro-upgrade-card">
+          <ion-card-content>
+            <div class="pro-upgrade-header">
+              <ion-icon name="sparkles" color="warning"></ion-icon>
+              <div>
+                <h3>Upgrade to Pro</h3>
+                <p>Full chord library, favorites, and advanced filters.</p>
+              </div>
+            </div>
+            <div class="pro-upgrade-footer">
+              <span class="pro-upgrade-price">From $0.99/month</span>
+              <ion-button size="small" (click)="openPaywall()">
+                Go Pro
+              </ion-button>
+            </div>
           </ion-card-content>
         </ion-card>
 
@@ -262,6 +283,41 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
       font-weight: 500;
     }
 
+    .pro-upgrade-card {
+      background: linear-gradient(135deg, #0d1b2a, #152238);
+      color: #f8f9ff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .pro-upgrade-header {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+
+    .pro-upgrade-header h3 {
+      margin: 0 0 0.2rem 0;
+      font-size: 1.1rem;
+    }
+
+    .pro-upgrade-header p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.9rem;
+    }
+
+    .pro-upgrade-footer {
+      margin-top: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pro-upgrade-price {
+      font-weight: 700;
+      color: #ffd166;
+    }
+
     .quick-actions {
       margin: 1rem 0;
     }
@@ -343,7 +399,7 @@ export class HomePage {
   });
 
   constructor() {
-    addIcons({ flame, trophy, star, play, settings, calendar, chevronForward, musicalNotes, musicalNote });
+    addIcons({ flame, trophy, star, play, settings, calendar, chevronForward, musicalNotes, musicalNote, sparkles });
   }
 
   startPractice() {
@@ -391,6 +447,16 @@ export class HomePage {
       component: FeedbackModalComponent,
       componentProps: {
         initialType: type
+      }
+    });
+    await modal.present();
+  }
+
+  async openPaywall() {
+    const modal = await this.modalController.create({
+      component: PaywallModalComponent,
+      componentProps: {
+        reason: 'Unlock the full chord library, favorites, and advanced filters.'
       }
     });
     await modal.present();

@@ -34,7 +34,8 @@ import { GuitarChordDiagramComponent } from '../../shared/components/guitar-chor
 import { PianoChordDiagramComponent } from '../../shared/components/piano-chord-diagram.component';
 import { Chord, ChordCategory, GuitarChordPosition, PianoChordPosition } from '../../core/models/chord.model';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
-import { AlertController } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular/standalone';
+import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 
 @Component({
   selector: 'app-chord-charts',
@@ -227,10 +228,12 @@ import { AlertController } from '@ionic/angular/standalone';
               <div class="pro-kicker">PracticeQuest Pro</div>
               <h3>Unlock {{ lockedCount() }} more chords</h3>
               <p>Full library access, saved favorites, and advanced filters.</p>
+              <p class="pro-price">From $0.99/month or $9.99/year.</p>
               <ul class="pro-features">
                 <li>Intermediate + advanced chord charts</li>
                 <li>Save chords for quick access</li>
                 <li>Complete difficulty filters</li>
+                <li>New features at least monthly</li>
               </ul>
               <ion-button expand="block" class="pro-cta-button" (click)="showPaywall('Unlock the full chord library.')">
                 Upgrade to Pro
@@ -385,6 +388,12 @@ import { AlertController } from '@ionic/angular/standalone';
       color: rgba(255, 255, 255, 0.8);
     }
 
+    .pro-cta .pro-price {
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 0.75rem 0;
+    }
+
     .pro-features {
       margin: 0 0 1rem 0;
       padding: 0;
@@ -460,7 +469,7 @@ export class ChordChartsPage {
   chordService = inject(ChordService);
   private instrumentService = inject(InstrumentService);
   private revenueCat = inject(RevenueCatService);
-  private alertController = inject(AlertController);
+  private modalController = inject(ModalController);
 
   currentInstrument = this.instrumentService.currentDisplayName;
 
@@ -600,49 +609,13 @@ export class ChordChartsPage {
   }
 
   async showPaywall(reason?: string) {
-    const price = await this.revenueCat.getPrimaryPriceString();
-    const messageParts = [
-      reason || 'Unlock the full chord library and advanced filters.',
-      'Pro includes intermediate and advanced chords, saved favorites, and full filters.'
-    ];
-    if (price) {
-      messageParts.push(`Plans start at ${price}.`);
-    }
-
-    const alert = await this.alertController.create({
-      header: 'Go Pro',
-      message: messageParts.join('\n\n'),
-      buttons: [
-        { text: 'Not now', role: 'cancel' },
-        {
-          text: 'Upgrade',
-          handler: () => {
-            void this.purchasePro();
-          }
-        }
-      ]
+    const modal = await this.modalController.create({
+      component: PaywallModalComponent,
+      componentProps: {
+        reason: reason || 'Unlock the full chord library and advanced filters.'
+      }
     });
-
-    await alert.present();
+    await modal.present();
   }
 
-  private async purchasePro() {
-    try {
-      await this.revenueCat.purchasePro();
-      const success = await this.alertController.create({
-        header: 'Unlocked!',
-        message: 'Thanks for upgrading. Pro features are now enabled.',
-        buttons: ['OK']
-      });
-      await success.present();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Purchase failed. Please try again.';
-      const failure = await this.alertController.create({
-        header: 'Purchase Failed',
-        message,
-        buttons: ['OK']
-      });
-      await failure.present();
-    }
-  }
 }
