@@ -35,7 +35,10 @@ import {
   chevronForward,
   musicalNotes,
   musicalNote,
-  sparkles
+  sparkles,
+  chatbubbleEllipses,
+  bug,
+  bulb
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
@@ -428,7 +431,7 @@ export class HomePage {
   longestStreak = this.gamificationService.longestStreak;
   level = this.gamificationService.level;
   levelInfo = this.gamificationService.levelInfo;
-  showTuner = false;
+  showTuner = true;
 
   todaysQuests = this.questService.currentInstrumentQuests;
   activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);
@@ -446,7 +449,21 @@ export class HomePage {
   });
 
   constructor() {
-    addIcons({ flame, trophy, star, play, settings, calendar, chevronForward, musicalNotes, musicalNote, sparkles });
+    addIcons({
+      flame,
+      trophy,
+      star,
+      play,
+      settings,
+      calendar,
+      chevronForward,
+      musicalNotes,
+      musicalNote,
+      sparkles,
+      chatbubbleEllipses,
+      bug,
+      bulb
+    });
   }
 
   startPractice() {

@@ -3,6 +3,10 @@ export const environment = {
   revenuecat: {
     iosApiKey: 'appl_uVkvBFJbNrIUqdEQKOCdsuAozoP',
     androidApiKey: '',
-    entitlementId: 'pro'
+    entitlementId: 'pro',
+    productIds: {
+      proMonthly: 'pro_monthly',
+      proYearly: 'pro_yearly'
+    }
   }
 };

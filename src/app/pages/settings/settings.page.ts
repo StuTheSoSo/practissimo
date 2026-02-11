@@ -99,7 +99,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
             <ion-card-title>About</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p>PracticeQuest v1.1.0</p>
+            <p>PracticeQuest v1.2.0</p>
             <p>A gamified practice tracker for musicians</p>
             <p>The only magic I've ever found is "The more you practice, the better you get."</p>
             <br>
