@@ -30,9 +30,16 @@ export class TunerService implements OnDestroy {
   private readonly BUFFER_SIZE = 16384; // Larger buffer improves low-frequency accuracy
   private readonly SMOOTHING_FACTOR = 0.12; // For stable readings
   private readonly ADAPTIVE_SMOOTHING_FACTOR = 0.25; // For rapid changes
-  private readonly MIN_RMS = 0.0005; // Silence threshold (lower for iOS mic levels)
-  private readonly VERY_LOW_RMS = 0.00005; // Very low threshold for iOS
+  private readonly MIN_RMS = 0.0012; // Silence threshold after normalization
+  private readonly VERY_LOW_RMS = 0.00018; // Startup/base gate for ambient noise
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
+  private readonly IN_TUNE_TOLERANCE_CENTS = 8; // Less twitchy "in tune" target
+  private readonly CENTS_DEAD_ZONE = 3; // Treat tiny drift as centered
+  private readonly CENTS_SMOOTHING_FACTOR = 0.22; // Smooth cents UI updates
+  private readonly STARTUP_STABILIZATION_MS = 1200;
+  private readonly NOTE_LOCK_FRAMES_STARTUP = 5;
+  private readonly NOTE_LOCK_FRAMES_STEADY = 2;
+  private readonly NOISE_SAMPLE_WINDOW = 40;
   private readonly HISTORY_SIZE = 7;
   private readonly TUNING_HISTORY_SIZE = 30; // Keep last 30 readings for trends
   private readonly DEBUG_MODE = false; // FIX: Debug flag instead of hardcoded logs
@@ -49,8 +56,14 @@ export class TunerService implements OnDestroy {
 
   private selectedTuning = signal<TuningPreset | null>(null);
   private smoothedFrequency = 0;
+  private smoothedCents = 0;
   private frequencyHistory: number[] = [];
   private tuningHistory: number[] = []; // Track cents over time for trends
+  private sessionStartTime = 0;
+  private rmsNoiseSamples: number[] = [];
+  private candidateNoteKey = '';
+  private candidateNoteFrames = 0;
+  private acceptedNoteKey = '';
   private readonly visibilityHandler = () => this.handleVisibilityChange();
 
   // Performance optimization: reuse normalized buffer
@@ -63,10 +76,10 @@ export class TunerService implements OnDestroy {
 
   // Computed signals
   readonly isListening = computed(() => this.state().isListening);
-  readonly isInTune = computed(() => Math.abs(this.state().cents) <= 5);
+  readonly isInTune = computed(() => Math.abs(this.state().cents) <= this.IN_TUNE_TOLERANCE_CENTS);
   readonly tuningStatus = computed(() => {
     const cents = this.state().cents;
-    if (Math.abs(cents) <= 5) return 'in-tune';
+    if (Math.abs(cents) <= this.IN_TUNE_TOLERANCE_CENTS) return 'in-tune';
     if (cents < 0) return 'flat';
     return 'sharp';
   });
@@ -223,6 +236,11 @@ export class TunerService implements OnDestroy {
       // Initialize buffers
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
       this.normalizedBuffer = new Float32Array(this.BUFFER_SIZE); // Reusable buffer
+      this.sessionStartTime = performance.now();
+      this.rmsNoiseSamples = [];
+      this.candidateNoteKey = '';
+      this.candidateNoteFrames = 0;
+      this.acceptedNoteKey = '';
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -272,7 +290,13 @@ export class TunerService implements OnDestroy {
     this.audioBuffer = undefined;
     this.normalizedBuffer = undefined;
     this.smoothedFrequency = 0;
+    this.smoothedCents = 0;
     this.frequencyHistory = [];
+    this.sessionStartTime = 0;
+    this.rmsNoiseSamples = [];
+    this.candidateNoteKey = '';
+    this.candidateNoteFrames = 0;
+    this.acceptedNoteKey = '';
 
     this.tunerState.update(state => ({
       ...state,
@@ -311,7 +335,7 @@ export class TunerService implements OnDestroy {
       this.nativeSource = this.audioContext.createMediaStreamSource(this.nativeStream);
       this.nativeAnalyser = this.audioContext.createAnalyser();
       this.nativeAnalyser.fftSize = this.BUFFER_SIZE;
-      this.nativeAnalyser.smoothingTimeConstant = 0.8;
+      this.nativeAnalyser.smoothingTimeConstant = 0.9;
       this.nativeSource.connect(this.nativeAnalyser);
     } catch (error) {
       const normalized = this.normalizeError(error, 'Native input failed');
@@ -374,7 +398,8 @@ export class TunerService implements OnDestroy {
 
     // FIX: Use RMS check with very low threshold for iOS
     const rms = this.calculateRMS(this.audioBuffer);
-    if (rms < this.VERY_LOW_RMS) {
+    this.collectNoiseSample(rms);
+    if (rms < this.getAdaptiveMinRms()) {
       // Very quiet - reset state but continue listening
       if (this.isListening()) {
         this.animationId = requestAnimationFrame(() => this.detectPitch());
@@ -476,9 +501,19 @@ export class TunerService implements OnDestroy {
   private updateTunerState(frequency: number, clarity: number): void {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
     const noteInfo = this.frequencyToNote(stableFrequency);
+    const stableNote = this.applyNoteStabilization(noteInfo);
+    if (!stableNote) {
+      this.tunerState.update(state => ({
+        ...state,
+        currentFrequency: stableFrequency,
+        clarity
+      }));
+      return;
+    }
+    const stableCents = this.applyCentsStabilization(noteInfo.cents);
 
     // Update tuning history for trend analysis
-    this.tuningHistory.push(noteInfo.cents);
+    this.tuningHistory.push(stableCents);
     if (this.tuningHistory.length > this.TUNING_HISTORY_SIZE) {
       this.tuningHistory.shift();
     }
@@ -486,9 +521,9 @@ export class TunerService implements OnDestroy {
     this.tunerState.update(state => ({
       ...state,
       currentFrequency: stableFrequency,
-      detectedNote: noteInfo.note,
-      detectedOctave: noteInfo.octave,
-      cents: noteInfo.cents,
+      detectedNote: stableNote.note,
+      detectedOctave: stableNote.octave,
+      cents: stableCents,
       clarity
     }));
   }
@@ -544,6 +579,76 @@ export class TunerService implements OnDestroy {
       (limited * smoothingFactor);
 
     return this.smoothedFrequency;
+  }
+
+  private applyCentsStabilization(cents: number): number {
+    if (this.smoothedCents === 0) {
+      this.smoothedCents = cents;
+    } else {
+      this.smoothedCents =
+        (this.smoothedCents * (1 - this.CENTS_SMOOTHING_FACTOR)) +
+        (cents * this.CENTS_SMOOTHING_FACTOR);
+    }
+
+    const rounded = Math.round(this.smoothedCents);
+    if (Math.abs(rounded) <= this.CENTS_DEAD_ZONE) {
+      return 0;
+    }
+    return rounded;
+  }
+
+  private applyNoteStabilization(noteInfo: NoteInfo): NoteInfo | null {
+    const now = performance.now();
+    const noteKey = `${noteInfo.note}${noteInfo.octave}`;
+    if (!noteKey) return null;
+
+    if (noteKey === this.candidateNoteKey) {
+      this.candidateNoteFrames += 1;
+    } else {
+      this.candidateNoteKey = noteKey;
+      this.candidateNoteFrames = 1;
+    }
+
+    const inStartup = now - this.sessionStartTime < this.STARTUP_STABILIZATION_MS;
+    const requiredFrames = inStartup ? this.NOTE_LOCK_FRAMES_STARTUP : this.NOTE_LOCK_FRAMES_STEADY;
+
+    if (!this.acceptedNoteKey) {
+      if (this.candidateNoteFrames < requiredFrames) return null;
+      this.acceptedNoteKey = noteKey;
+      return noteInfo;
+    }
+
+    if (noteKey === this.acceptedNoteKey) {
+      return noteInfo;
+    }
+
+    if (this.candidateNoteFrames < requiredFrames) {
+      return null;
+    }
+
+    this.acceptedNoteKey = noteKey;
+    return noteInfo;
+  }
+
+  private collectNoiseSample(rms: number): void {
+    const elapsed = performance.now() - this.sessionStartTime;
+    if (elapsed > this.STARTUP_STABILIZATION_MS * 2) return;
+
+    this.rmsNoiseSamples.push(rms);
+    if (this.rmsNoiseSamples.length > this.NOISE_SAMPLE_WINDOW) {
+      this.rmsNoiseSamples.shift();
+    }
+  }
+
+  private getAdaptiveMinRms(): number {
+    if (this.rmsNoiseSamples.length < 8) {
+      return this.VERY_LOW_RMS;
+    }
+
+    const sorted = [...this.rmsNoiseSamples].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    const adaptive = median * 2.2;
+    return Math.max(this.VERY_LOW_RMS, Math.min(this.MIN_RMS, adaptive));
   }
 
   /**
