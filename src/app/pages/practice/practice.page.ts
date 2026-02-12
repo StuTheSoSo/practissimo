@@ -1,5 +1,5 @@
 // src/app/pages/practice/practice.page.ts
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -96,8 +96,6 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
             Start Practice
           </ion-button>
 
-          <!-- Metronome (Setup Phase) -->
-          <app-metronome></app-metronome>
         }
 
         <!-- Practice Phase -->
@@ -141,10 +139,10 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
               }
             </ion-card-content>
           </ion-card>
-
-          <!-- Metronome (Practice Phase) -->
-          <app-metronome></app-metronome>
         }
+
+        <!-- Persistent Metronome -->
+        <app-metronome></app-metronome>
       </div>
     </ion-content>
   `,
@@ -248,6 +246,18 @@ export class PracticePage {
 
   constructor() {
     addIcons({ play, pause, stop, checkmark });
+
+    effect(() => {
+      const availableCategories = this.categories();
+      if (availableCategories.length === 0) return;
+
+      const techniqueCategory = availableCategories.find(c => c === 'Technique');
+      const defaultCategory = techniqueCategory ?? availableCategories[0];
+
+      if (!this.selectedCategory || !availableCategories.includes(this.selectedCategory)) {
+        this.selectedCategory = defaultCategory;
+      }
+    });
   }
 
   onCategoryChange(event: any) {
