@@ -97,7 +97,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             </ion-col>
           </ion-row>
           <ion-row>
-            <ion-col [size]="showTuner ? '6' : '12'">
+            <ion-col [size]="supportsTuner() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
                 <ion-icon name="trophy" slot="start"></ion-icon>
                 Quests
@@ -106,7 +106,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 }
               </ion-button>
             </ion-col>
-            @if (showTuner) {
+            @if (supportsTuner()) {
               <ion-col size="6">
                 <ion-button expand="block" fill="outline" (click)="goToTuner()">
                   <ion-icon name="musical-note" slot="start"></ion-icon>
@@ -473,7 +473,6 @@ export class HomePage {
   longestStreak = this.gamificationService.longestStreak;
   level = this.gamificationService.level;
   levelInfo = this.gamificationService.levelInfo;
-  showTuner = true;
 
   todaysQuests = this.questService.currentInstrumentQuests;
   activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);
