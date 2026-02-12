@@ -40,6 +40,9 @@ export class TunerService implements OnDestroy {
   private readonly NOTE_LOCK_FRAMES_STARTUP = 5;
   private readonly NOTE_LOCK_FRAMES_STEADY = 2;
   private readonly NOISE_SAMPLE_WINDOW = 40;
+  private readonly STRING_SWITCH_HZ_MARGIN = 12;
+  private readonly STRING_SWITCH_FRAMES = 3;
+  private readonly UI_UPDATE_INTERVAL_MS = 40; // ~25 FPS UI updates
   private readonly HISTORY_SIZE = 7;
   private readonly TUNING_HISTORY_SIZE = 30; // Keep last 30 readings for trends
   private readonly DEBUG_MODE = false; // FIX: Debug flag instead of hardcoded logs
@@ -64,6 +67,10 @@ export class TunerService implements OnDestroy {
   private candidateNoteKey = '';
   private candidateNoteFrames = 0;
   private acceptedNoteKey = '';
+  private lockedString: StringInfo | null = null;
+  private switchCandidateString: StringInfo | null = null;
+  private switchCandidateFrames = 0;
+  private lastUiUpdateAt = 0;
   private readonly visibilityHandler = () => this.handleVisibilityChange();
 
   // Performance optimization: reuse normalized buffer
@@ -91,6 +98,9 @@ export class TunerService implements OnDestroy {
 
   // FIX: Simplified closestString - removed octave correction logic (now in detection pipeline)
   readonly closestString = computed<StringInfo | undefined>(() => {
+    const locked = this.state().targetNote;
+    if (locked) return locked;
+
     const tuning = this.currentTuning();
     const frequency = this.state().currentFrequency;
 
@@ -241,6 +251,10 @@ export class TunerService implements OnDestroy {
       this.candidateNoteKey = '';
       this.candidateNoteFrames = 0;
       this.acceptedNoteKey = '';
+      this.lockedString = null;
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
+      this.lastUiUpdateAt = 0;
 
       // Start detection loop
       this.tunerState.update(state => ({ ...state, isListening: true }));
@@ -297,6 +311,10 @@ export class TunerService implements OnDestroy {
     this.candidateNoteKey = '';
     this.candidateNoteFrames = 0;
     this.acceptedNoteKey = '';
+    this.lockedString = null;
+    this.switchCandidateString = null;
+    this.switchCandidateFrames = 0;
+    this.lastUiUpdateAt = 0;
 
     this.tunerState.update(state => ({
       ...state,
@@ -412,7 +430,7 @@ export class TunerService implements OnDestroy {
 
     if (preferAuto && autoResult) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
-      if (autoResult.clarity >= autoMinClarity * 0.7) {
+      if (autoResult.clarity >= autoMinClarity) {
         // FIX: Apply octave correction in detection pipeline
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
         this.updateTunerState(correctedFrequency, autoResult.clarity);
@@ -428,7 +446,7 @@ export class TunerService implements OnDestroy {
     // Autocorrelation result
     if (autoResult && autoResult.frequency >= 30 && autoResult.frequency <= 4000) {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
-      if (autoResult.clarity >= autoMinClarity * 0.7) {
+      if (autoResult.clarity >= autoMinClarity) {
         // FIX: Apply octave correction in detection pipeline
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
         this.updateTunerState(correctedFrequency, autoResult.clarity);
@@ -500,12 +518,20 @@ export class TunerService implements OnDestroy {
    */
   private updateTunerState(frequency: number, clarity: number): void {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
+    const targetNote = this.getStableTargetString(stableFrequency);
     const noteInfo = this.frequencyToNote(stableFrequency);
     const stableNote = this.applyNoteStabilization(noteInfo);
+    const now = performance.now();
+    if (this.lastUiUpdateAt !== 0 && now - this.lastUiUpdateAt < this.UI_UPDATE_INTERVAL_MS) {
+      return;
+    }
+    this.lastUiUpdateAt = now;
+
     if (!stableNote) {
       this.tunerState.update(state => ({
         ...state,
         currentFrequency: stableFrequency,
+        targetNote,
         clarity
       }));
       return;
@@ -524,8 +550,64 @@ export class TunerService implements OnDestroy {
       detectedNote: stableNote.note,
       detectedOctave: stableNote.octave,
       cents: stableCents,
+      targetNote,
       clarity
     }));
+  }
+
+  private getStableTargetString(frequency: number): StringInfo | undefined {
+    const tuning = this.selectedTuning();
+    if (!tuning || tuning.strings.length === 0 || frequency <= 0) {
+      this.lockedString = null;
+      return undefined;
+    }
+
+    const nearest = tuning.strings.reduce((closest, string) => {
+      const currentDiff = Math.abs(frequency - closest.frequency);
+      const newDiff = Math.abs(frequency - string.frequency);
+      return newDiff < currentDiff ? string : closest;
+    }, tuning.strings[0]);
+
+    if (!this.lockedString) {
+      this.lockedString = nearest;
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
+      return this.lockedString;
+    }
+
+    if (nearest.stringNumber === this.lockedString.stringNumber) {
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
+      return this.lockedString;
+    }
+
+    const lockedDiff = Math.abs(frequency - this.lockedString.frequency);
+    const nearestDiff = Math.abs(frequency - nearest.frequency);
+    const shouldSwitch = nearestDiff + this.STRING_SWITCH_HZ_MARGIN < lockedDiff;
+
+    if (!shouldSwitch) {
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
+      return this.lockedString;
+    }
+
+    if (
+      this.switchCandidateString &&
+      this.switchCandidateString.stringNumber === nearest.stringNumber
+    ) {
+      this.switchCandidateFrames += 1;
+    } else {
+      this.switchCandidateString = nearest;
+      this.switchCandidateFrames = 1;
+    }
+
+    if (this.switchCandidateFrames >= this.STRING_SWITCH_FRAMES) {
+      this.lockedString = nearest;
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
+    }
+
+    return this.lockedString;
   }
 
   /**
@@ -786,6 +868,9 @@ export class TunerService implements OnDestroy {
     const tuning = TUNING_PRESETS.find(t => t.id === tuningId);
     if (tuning) {
       this.selectedTuning.set(tuning);
+      this.lockedString = null;
+      this.switchCandidateString = null;
+      this.switchCandidateFrames = 0;
     } else {
       console.warn(`Tuning preset not found: ${tuningId}`);
     }
