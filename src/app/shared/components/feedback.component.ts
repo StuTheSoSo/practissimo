@@ -1,5 +1,5 @@
 // src/app/shared/components/feedback.component.ts
-import { Component, inject } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -173,7 +173,9 @@ export class FeedbackButtonComponent {
     IonTextarea
   ]
 })
-export class FeedbackModalComponent {
+export class FeedbackModalComponent implements OnInit {
+  @Input() initialType: 'bug' | 'feature' | 'improvement' | 'question' | 'other' | '' = '';
+
   private modalController = inject(ModalController);
   private alertController = inject(AlertController);
 
@@ -183,6 +185,10 @@ export class FeedbackModalComponent {
 
   constructor() {
     addIcons({ close, send });
+  }
+
+  ngOnInit(): void {
+    this.feedbackType = this.initialType || '';
   }
 
   canSubmit(): boolean {
