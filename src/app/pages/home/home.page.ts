@@ -46,6 +46,7 @@ import { QuestService } from '../../core/services/quest.service';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { FeedbackModalComponent } from 'src/app/shared/components/feedback.component';
 import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.component';
+import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
 @Component({
   selector: 'app-home',
@@ -96,6 +97,28 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
               <span>{{ levelInfo().progressPercent }}%</span>
             </div>
             <ion-progress-bar [value]="levelInfo().progressPercent / 100"></ion-progress-bar>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Weekly Target Card -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Weekly Target</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="weekly-target-meta">
+              <span>{{ weekRangeLabel() }}</span>
+              <span>{{ weeklyProgressPercent() }}%</span>
+            </div>
+            <ion-progress-bar [value]="weeklyProgressPercent() / 100"></ion-progress-bar>
+            <p class="weekly-target-detail">
+              {{ weeklyMinutesCompleted() }} / {{ weeklyTargetMinutes() }} minutes
+              @if (weeklyTargetCompleted()) {
+                <strong> complete</strong>
+              } @else {
+                <span> ({{ weeklyMinutesRemaining() }} min left)</span>
+              }
+            </p>
           </ion-card-content>
         </ion-card>
 
@@ -290,6 +313,19 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
       font-weight: 500;
     }
 
+    .weekly-target-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--ion-color-medium-shade);
+    }
+
+    .weekly-target-detail {
+      margin: 0.75rem 0 0;
+      font-size: 0.95rem;
+    }
+
     .pro-upgrade-card {
       position: relative;
       overflow: hidden;
@@ -427,6 +463,7 @@ export class HomePage {
   private questService = inject(QuestService);
   private revenueCat = inject(RevenueCatService);
   private modalController = inject(ModalController);
+  private weeklyTargetService = inject(WeeklyTargetService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   supportsTuner = this.instrumentService.supportsTuner;
@@ -440,6 +477,12 @@ export class HomePage {
   todaysQuests = this.questService.currentInstrumentQuests;
   activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);
   isPro = this.revenueCat.isPro;
+  weekRangeLabel = this.weeklyTargetService.weekRangeLabel;
+  weeklyTargetMinutes = this.weeklyTargetService.targetMinutes;
+  weeklyMinutesCompleted = this.weeklyTargetService.minutesCompleted;
+  weeklyMinutesRemaining = this.weeklyTargetService.remainingMinutes;
+  weeklyProgressPercent = this.weeklyTargetService.progressPercent;
+  weeklyTargetCompleted = this.weeklyTargetService.isCompleted;
 
   streakMessage = computed(() => {
     const status = this.gamificationService.getStreakStatus();

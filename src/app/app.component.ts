@@ -7,6 +7,7 @@ import { PracticeService } from './core/services/practice.service';
 import { QuestService } from './core/services/quest.service';
 import { AchievementService } from './core/services/achievement.service';
 import { RevenueCatService } from './core/services/revenuecat.service';
+import { WeeklyTargetService } from './core/services/weekly-target.service';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit {
   private practiceService = inject(PracticeService);
   private questService = inject(QuestService);
   private achievementService = inject(AchievementService);
+  private weeklyTargetService = inject(WeeklyTargetService);
   private revenueCatService = inject(RevenueCatService);
 
   async ngOnInit() {
@@ -38,6 +40,7 @@ export class AppComponent implements OnInit {
       this.practiceService.initialize(),
       this.questService.initialize(),
       this.achievementService.initialize(),
+      this.weeklyTargetService.initialize(),
       this.revenueCatService.initialize()
     ]);
 

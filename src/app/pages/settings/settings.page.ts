@@ -28,6 +28,7 @@ import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
+import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
 @Component({
   selector: 'app-settings',
@@ -61,6 +62,19 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
             </ion-button>
           </ion-card-content>
         </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Weekly Target</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Current target: <strong>{{ weeklyTargetMinutes() }} minutes/week</strong></p>
+            <ion-button expand="block" fill="outline" (click)="setWeeklyTarget()">
+              Set Weekly Target
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+
 
         <!-- Feedback Section -->
         <ion-card>
@@ -110,6 +124,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
           </ion-card-content>
         </ion-card>
 
+        
         <ion-card class="pro-card">
           <ion-card-header>
             <ion-card-title>
@@ -353,11 +368,13 @@ export class SettingsPage {
   private modalController = inject(ModalController);
   private instrumentService = inject(InstrumentService);
   private revenueCat = inject(RevenueCatService);
+  private weeklyTargetService = inject(WeeklyTargetService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
   isPro = this.revenueCat.isPro;
   managementUrl = this.revenueCat.managementUrl;
+  weeklyTargetMinutes = this.weeklyTargetService.targetMinutes;
 
   constructor() {
     addIcons({ chatbubbleEllipses, bug, bulb, heart });
@@ -447,5 +464,51 @@ export class SettingsPage {
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  async setWeeklyTarget() {
+    const alert = await this.alertController.create({
+      header: 'Weekly Target',
+      message: 'Set your practice target in minutes per week.',
+      inputs: [
+        {
+          name: 'minutes',
+          type: 'number',
+          value: this.weeklyTargetMinutes().toString(),
+          min: 10
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Save',
+          handler: (data: { minutes?: string }) => {
+            const parsed = Number(data.minutes);
+            if (!Number.isFinite(parsed) || parsed < 10) {
+              void this.showTargetValidationError();
+              return false;
+            }
+
+            this.weeklyTargetService.setTargetMinutes(parsed);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async showTargetValidationError() {
+    const alert = await this.alertController.create({
+      header: 'Invalid Target',
+      message: 'Please enter at least 10 minutes.',
+      buttons: ['OK']
+    });
+
+    await alert.present();
   }
 }
