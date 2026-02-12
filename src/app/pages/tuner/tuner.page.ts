@@ -1,5 +1,5 @@
 // src/app/pages/tuner/tuner.page.ts
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -20,7 +20,8 @@ import {
   IonItem,
   IonBadge,
   IonList,
-  AlertController
+  AlertController,
+  IonSpinner
 } from '@ionic/angular/standalone';
 import { Capacitor } from '@capacitor/core';
 import { addIcons } from 'ionicons';
@@ -74,6 +75,12 @@ import { InstrumentService } from '../../core/services/instrument.service';
           <ion-card-content>
             <!-- Detected Note -->
             <div class="note-display">
+              @if (showSetupIndicator()) {
+                <div class="setup-indicator">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Listening... lock-on in progress</span>
+                </div>
+              }
               <div class="note-name" [class.in-tune]="isInTune()">
                 {{ detectedNote() || '-' }}
                 @if (detectedOctave() > 0) {
@@ -237,6 +244,24 @@ import { InstrumentService } from '../../core/services/instrument.service';
     .note-display {
       text-align: center;
       margin: 2rem 0;
+    }
+
+    .setup-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      margin-bottom: 0.9rem;
+      border-radius: 999px;
+      background: rgba(56, 128, 255, 0.1);
+      color: var(--ion-color-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .setup-indicator ion-spinner {
+      width: 16px;
+      height: 16px;
     }
 
     .note-name {
@@ -436,10 +461,11 @@ import { InstrumentService } from '../../core/services/instrument.service';
     IonLabel,
     IonItem,
     IonBadge,
-    IonList
+    IonList,
+    IonSpinner
   ]
 })
-export class TunerPage {
+export class TunerPage implements OnDestroy {
   private tunerService = inject(TunerService);
   private instrumentService = inject(InstrumentService);
   private alertController = inject(AlertController);
@@ -461,6 +487,11 @@ export class TunerPage {
   currentFrequency = computed(() => this.state().currentFrequency);
   cents = computed(() => this.state().cents);
   clarity = computed(() => this.state().clarity);
+  private isSettingUp = signal(false);
+  showSetupIndicator = computed(() =>
+    this.isListening() && (this.isSettingUp() || !this.detectedNote())
+  );
+  private setupTimerId: number | null = null;
 
   // Needle position (0-100%)
   needlePosition = computed(() => {
@@ -475,8 +506,11 @@ export class TunerPage {
 
   async startTuner() {
     try {
+      this.isSettingUp.set(true);
       await this.tunerService.start();
+      this.scheduleSetupIndicatorClear();
     } catch (error) {
+      this.isSettingUp.set(false);
       const errorMessage = error instanceof Error ? error.message : '';
       const isUnavailable = errorMessage.includes('not available');
       let header = 'Microphone Access Required';
@@ -529,6 +563,8 @@ export class TunerPage {
   }
 
   stopTuner() {
+    this.clearSetupTimer();
+    this.isSettingUp.set(false);
     this.tunerService.stop();
   }
 
@@ -554,5 +590,24 @@ export class TunerPage {
     if (Capacitor.getPlatform() === 'ios') {
       window.location.assign('app-settings:');
     }
+  }
+
+  private scheduleSetupIndicatorClear(): void {
+    this.clearSetupTimer();
+    this.setupTimerId = window.setTimeout(() => {
+      this.isSettingUp.set(false);
+      this.setupTimerId = null;
+    }, 1400);
+  }
+
+  private clearSetupTimer(): void {
+    if (this.setupTimerId !== null) {
+      window.clearTimeout(this.setupTimerId);
+      this.setupTimerId = null;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearSetupTimer();
   }
 }
