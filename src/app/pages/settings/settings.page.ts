@@ -114,7 +114,11 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
           <ion-card-header>
             <ion-card-title>
               <span class="pro-kicker">PracticeQuest Pro</span>
-              <span class="pro-title">Unlock Your Full Practice Power</span>
+              @if (isPro()) {
+                <span class="pro-title">Pro Is Active</span>
+              } @else {
+                <span class="pro-title">Unlock Your Full Practice Power</span>
+              }
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
@@ -142,9 +146,11 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
             }
 
             <div class="pro-actions">
-              <ion-button expand="block" class="pro-cta" (click)="upgradeToPro()" [disabled]="isPro()">
-                Upgrade to Pro
-              </ion-button>
+              @if (!isPro()) {
+                <ion-button expand="block" class="pro-cta" (click)="upgradeToPro()">
+                  Upgrade to Pro
+                </ion-button>
+              }
               @if (isPro() && managementUrl()) {
                 <ion-button expand="block" fill="outline" class="pro-restore" (click)="manageSubscription()">
                   Manage Subscription

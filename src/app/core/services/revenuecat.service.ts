@@ -25,7 +25,19 @@ export class RevenueCatService {
     const info = this.customerInfo();
     if (!info) return false;
     const entitlementId = environment.revenuecat?.entitlementId || DEFAULT_ENTITLEMENT_ID;
-    return Boolean(info.entitlements.active[entitlementId]);
+    const hasActiveEntitlement = Boolean(info.entitlements.active[entitlementId]);
+    if (hasActiveEntitlement) return true;
+
+    // Fallback: treat active subscriptions as Pro if entitlement mapping is misconfigured.
+    const activeSubscriptions = info.activeSubscriptions ?? [];
+    if (activeSubscriptions.length === 0) return false;
+
+    const configuredProductIds = Object.values(environment.revenuecat?.productIds ?? {}).filter(Boolean);
+    if (configuredProductIds.length > 0) {
+      return configuredProductIds.some(productId => activeSubscriptions.includes(productId));
+    }
+
+    return true;
   });
 
   readonly currentOffering = computed<PurchasesOffering | null>(() => this.offerings()?.current ?? null);
