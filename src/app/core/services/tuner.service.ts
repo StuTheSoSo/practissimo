@@ -33,7 +33,7 @@ export class TunerService implements OnDestroy {
   private readonly MIN_RMS = 0.0012; // Silence threshold after normalization
   private readonly VERY_LOW_RMS = 0.00018; // Startup/base gate for ambient noise
   private readonly LOW_STRING_FREQUENCY = 180; // Hz threshold for low strings
-  private readonly IN_TUNE_TOLERANCE_CENTS = 8; // Less twitchy "in tune" target
+  private readonly IN_TUNE_TOLERANCE_CENTS = 15; // Less twitchy "in tune" target
   private readonly CENTS_DEAD_ZONE = 3; // Treat tiny drift as centered
   private readonly CENTS_SMOOTHING_FACTOR = 0.22; // Smooth cents UI updates
   private readonly STARTUP_STABILIZATION_MS = 1200;
