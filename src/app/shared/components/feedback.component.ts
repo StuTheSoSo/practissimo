@@ -231,7 +231,7 @@ App Version: ${feedback.appVersion}
     `);
 
     // Replace with your email
-    const mailtoLink = `mailto:feedback@practissimo.app?subject=${subject}&body=${body}`;
+    const mailtoLink = `mailto:stu.schwartz@gmail.com?subject=${subject}&body=${body}`;
 
     window.location.href = mailtoLink;
 
