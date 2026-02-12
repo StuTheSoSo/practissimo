@@ -31,6 +31,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
 import { AchievementService } from '../../core/services/achievement.service';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { MetronomeComponent } from '../../shared/components/metronome.component';
 
 @Component({
@@ -232,6 +233,7 @@ export class PracticePage {
   private questService = inject(QuestService);
   private achievementService = inject(AchievementService);
   private weeklyTargetService = inject(WeeklyTargetService);
+  private notificationService = inject(NotificationService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   categories = this.instrumentService.currentCategories;
@@ -314,6 +316,7 @@ export class PracticePage {
 
     await this.questService.onPracticeCompleted(session);
     this.weeklyTargetService.onPracticeCompleted(session);
+    await this.notificationService.onPracticeCompleted();
 
     const newAchievements = await this.achievementService.checkAchievements();
 

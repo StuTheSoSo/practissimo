@@ -18,17 +18,19 @@ import {
   IonLabel,
   IonButton,
   IonIcon,
+  IonToggle,
   AlertController,
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleEllipses, bug, bulb, heart } from 'ionicons/icons';
+import { chatbubbleEllipses, bug, bulb, heart, notifications, time } from 'ionicons/icons';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-settings',
@@ -72,6 +74,39 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             <ion-button expand="block" fill="outline" (click)="setWeeklyTarget()">
               Set Weekly Target
             </ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Practice Reminders</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-item lines="none">
+              <ion-icon name="notifications" slot="start"></ion-icon>
+              <ion-label>Enable Daily Reminder</ion-label>
+              <ion-toggle
+                slot="end"
+                [checked]="remindersEnabled()"
+                (ionChange)="onReminderToggle($event)"
+              ></ion-toggle>
+            </ion-item>
+
+            <ion-item lines="none">
+              <ion-icon name="time" slot="start"></ion-icon>
+              <ion-label>
+                <h3>Reminder Time</h3>
+                <p>{{ reminderTimeLabel() }}</p>
+              </ion-label>
+              <ion-button
+                slot="end"
+                fill="outline"
+                size="small"
+                (click)="setReminderTime()"
+              >
+                Change
+              </ion-button>
+            </ion-item>
           </ion-card-content>
         </ion-card>
 
@@ -359,7 +394,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     IonItem,
     IonLabel,
     IonButton,
-    IonIcon
+    IonIcon,
+    IonToggle
   ]
 })
 export class SettingsPage {
@@ -369,15 +405,18 @@ export class SettingsPage {
   private instrumentService = inject(InstrumentService);
   private revenueCat = inject(RevenueCatService);
   private weeklyTargetService = inject(WeeklyTargetService);
+  private notificationService = inject(NotificationService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
   isPro = this.revenueCat.isPro;
   managementUrl = this.revenueCat.managementUrl;
   weeklyTargetMinutes = this.weeklyTargetService.targetMinutes;
+  remindersEnabled = this.notificationService.enabled;
+  reminderTimeLabel = this.notificationService.reminderTimeLabel;
 
   constructor() {
-    addIcons({ chatbubbleEllipses, bug, bulb, heart });
+    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time });
   }
 
   async changeInstrument() {
@@ -507,6 +546,50 @@ export class SettingsPage {
       header: 'Invalid Target',
       message: 'Please enter at least 10 minutes.',
       buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  async onReminderToggle(event: { detail?: { checked?: boolean } }) {
+    const enabled = !!event.detail?.checked;
+    const allowed = await this.notificationService.setEnabled(enabled);
+
+    if (enabled && !allowed) {
+      const alert = await this.alertController.create({
+        header: 'Notifications Disabled',
+        message: 'Notification permission is required for daily reminders.',
+        buttons: ['OK']
+      });
+      await alert.present();
+    }
+  }
+
+  async setReminderTime() {
+    const alert = await this.alertController.create({
+      header: 'Reminder Time',
+      message: 'Choose the daily reminder time.',
+      inputs: [
+        {
+          name: 'time',
+          type: 'time',
+          value: this.notificationService.reminderTime()
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Save',
+          handler: (data: { time?: string }) => {
+            if (!data.time) return false;
+            void this.notificationService.setReminderTime(data.time);
+            return true;
+          }
+        }
+      ]
     });
 
     await alert.present();

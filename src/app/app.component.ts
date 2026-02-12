@@ -8,6 +8,7 @@ import { QuestService } from './core/services/quest.service';
 import { AchievementService } from './core/services/achievement.service';
 import { RevenueCatService } from './core/services/revenuecat.service';
 import { WeeklyTargetService } from './core/services/weekly-target.service';
+import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit {
   private achievementService = inject(AchievementService);
   private weeklyTargetService = inject(WeeklyTargetService);
   private revenueCatService = inject(RevenueCatService);
+  private notificationService = inject(NotificationService);
 
   async ngOnInit() {
     // Initialize storage first
@@ -41,6 +43,7 @@ export class AppComponent implements OnInit {
       this.questService.initialize(),
       this.achievementService.initialize(),
       this.weeklyTargetService.initialize(),
+      this.notificationService.initialize(),
       this.revenueCatService.initialize()
     ]);
 
