@@ -86,6 +86,62 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
+      <!-- Quick Actions -->
+        <ion-grid class="quick-actions">
+          <ion-row>
+            <ion-col size="12">
+             <ion-button expand="block" (click)="startPractice()">
+              <ion-icon name="play" slot="start"></ion-icon>
+              Start Practice
+            </ion-button>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col [size]="showTuner ? '6' : '12'">
+              <ion-button expand="block" fill="outline" (click)="goToQuests()">
+                <ion-icon name="trophy" slot="start"></ion-icon>
+                Quests
+                @if (activeQuestsCount() > 0) {
+                  <ion-badge color="danger">{{ activeQuestsCount() }}</ion-badge>
+                }
+              </ion-button>
+            </ion-col>
+            @if (showTuner) {
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="goToTuner()">
+                  <ion-icon name="musical-note" slot="start"></ion-icon>
+                  Tuner
+                </ion-button>
+              </ion-col>
+            }
+          </ion-row>
+          <ion-row>
+            <ion-col [size]="supportsChords() ? '6' : '12'">
+              <ion-button expand="block" fill="outline" (click)="goToAchievements()">
+                <ion-icon name="star" slot="start"></ion-icon>
+                Achievements
+              </ion-button>
+            </ion-col>
+            @if (supportsChords()) {
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
+                  <ion-icon name="musical-notes" slot="start"></ion-icon>
+                  Chord Charts
+                </ion-button>
+              </ion-col>
+            }
+          </ion-row>
+          <ion-row>
+            <ion-col size="12">
+              <ion-button expand="block" fill="clear" (click)="goToHistory()">
+                <ion-icon name="calendar" slot="start"></ion-icon>
+                View History
+                <ion-icon name="chevron-forward" slot="end"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
         <!-- XP Progress Card -->
         <ion-card>
           <ion-card-header>
@@ -144,62 +200,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card>
         }
 
-        <!-- Quick Actions -->
-        <ion-grid class="quick-actions">
-          <ion-row>
-            <ion-col size="12">
-             <ion-button expand="block" (click)="startPractice()">
-              <ion-icon name="play" slot="start"></ion-icon>
-              Start Practice
-            </ion-button>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col [size]="showTuner ? '6' : '12'">
-              <ion-button expand="block" fill="outline" (click)="goToQuests()">
-                <ion-icon name="trophy" slot="start"></ion-icon>
-                Quests
-                @if (activeQuestsCount() > 0) {
-                  <ion-badge color="danger">{{ activeQuestsCount() }}</ion-badge>
-                }
-              </ion-button>
-            </ion-col>
-            @if (showTuner) {
-              <ion-col size="6">
-                <ion-button expand="block" fill="outline" (click)="goToTuner()">
-                  <ion-icon name="musical-note" slot="start"></ion-icon>
-                  Tuner
-                </ion-button>
-              </ion-col>
-            }
-          </ion-row>
-          <ion-row>
-            <ion-col [size]="supportsChords() ? '6' : '12'">
-              <ion-button expand="block" fill="outline" (click)="goToAchievements()">
-                <ion-icon name="star" slot="start"></ion-icon>
-                Achievements
-              </ion-button>
-            </ion-col>
-            @if (supportsChords()) {
-              <ion-col size="6">
-                <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
-                  <ion-icon name="musical-notes" slot="start"></ion-icon>
-                  Chord Charts
-                </ion-button>
-              </ion-col>
-            }
-          </ion-row>
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="clear" (click)="goToHistory()">
-                <ion-icon name="calendar" slot="start"></ion-icon>
-                View History
-                <ion-icon name="chevron-forward" slot="end"></ion-icon>
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-
+        
         <!-- Today's Quests Preview -->
         @if (todaysQuests().length > 0) {
           <ion-card>
