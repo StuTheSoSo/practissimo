@@ -43,6 +43,7 @@ import {
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
+import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { FeedbackModalComponent } from 'src/app/shared/components/feedback.component';
 import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.component';
 
@@ -99,24 +100,26 @@ import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.c
         </ion-card>
 
         <!-- Pro Upgrade Card -->
-        <ion-card class="pro-upgrade-card">
-          <ion-card-content>
-            <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
-            <div class="pro-upgrade-header">
-              <ion-icon name="sparkles" color="warning"></ion-icon>
-              <div>
-                <h3>Unlock Your Full Practice Power</h3>
-                <p>Full chord library, favorites, and advanced filters.</p>
+        @if (!isPro()) {
+          <ion-card class="pro-upgrade-card">
+            <ion-card-content>
+              <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
+              <div class="pro-upgrade-header">
+                <ion-icon name="sparkles" color="warning"></ion-icon>
+                <div>
+                  <h3>Unlock Your Full Practice Power</h3>
+                  <p>Full chord library, favorites, and advanced filters.</p>
+                </div>
               </div>
-            </div>
-            <div class="pro-upgrade-footer">
-              <span class="pro-upgrade-price">From $0.99/month</span>
-              <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
-                Go Pro
-              </ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
+              <div class="pro-upgrade-footer">
+                <span class="pro-upgrade-price">From $0.99/month</span>
+                <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
+                  Go Pro
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
 
         <!-- Quick Actions -->
         <ion-grid class="quick-actions">
@@ -422,6 +425,7 @@ export class HomePage {
   private gamificationService = inject(GamificationService);
   private instrumentService = inject(InstrumentService);
   private questService = inject(QuestService);
+  private revenueCat = inject(RevenueCatService);
   private modalController = inject(ModalController);
 
   currentInstrument = this.instrumentService.currentDisplayName;
@@ -435,6 +439,7 @@ export class HomePage {
 
   todaysQuests = this.questService.currentInstrumentQuests;
   activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);
+  isPro = this.revenueCat.isPro;
 
   streakMessage = computed(() => {
     const status = this.gamificationService.getStreakStatus();

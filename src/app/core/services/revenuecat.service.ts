@@ -1,5 +1,6 @@
 // src/app/core/services/revenuecat.service.ts
 import { Injectable, signal, computed } from '@angular/core';
+import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import {
   CustomerInfo,
@@ -53,6 +54,13 @@ export class RevenueCatService {
 
     await Purchases.addCustomerInfoUpdateListener(info => {
       this.customerInfo.set(info);
+    });
+
+    // Keep entitlement state fresh when returning to the app (e.g. after App Store flows).
+    await App.addListener('appStateChange', state => {
+      if (!state.isActive) return;
+      void this.refreshCustomerInfo();
+      void this.refreshOfferings();
     });
   }
 
