@@ -18,6 +18,7 @@ const DEFAULT_ENTITLEMENT_ID = 'pro';
 })
 export class RevenueCatService {
   private initialized = false;
+  private initializationError: string | null = null;
   private customerInfo = signal<CustomerInfo | null>(null);
   private offerings = signal<PurchasesOfferings | null>(null);
 
@@ -48,7 +49,9 @@ export class RevenueCatService {
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
-    this.initialized = true;
+    if (this.initializationError) {
+      throw new Error(this.initializationError);
+    }
 
     if (!this.isNativePlatform()) {
       return;
@@ -56,24 +59,38 @@ export class RevenueCatService {
 
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      console.warn('[RevenueCat] Missing API key. Configure environment.revenuecat to enable purchases.');
-      return;
+      const platform = Capacitor.getPlatform();
+      const message = platform === 'android'
+        ? 'Purchases are not configured for Android. Set revenuecat.androidApiKey in src/environments/environment.prod.ts.'
+        : 'Purchases are not configured. Missing RevenueCat API key.';
+      this.initializationError = message;
+      throw new Error(message);
     }
 
-    await Purchases.configure({ apiKey });
-    await this.refreshCustomerInfo();
-    await this.refreshOfferings();
+    try {
+      await Purchases.configure({ apiKey });
+      this.initialized = true;
+      this.initializationError = null;
 
-    await Purchases.addCustomerInfoUpdateListener(info => {
-      this.customerInfo.set(info);
-    });
+      await this.refreshCustomerInfo();
+      await this.refreshOfferings();
 
-    // Keep entitlement state fresh when returning to the app (e.g. after App Store flows).
-    await App.addListener('appStateChange', state => {
-      if (!state.isActive) return;
-      void this.refreshCustomerInfo();
-      void this.refreshOfferings();
-    });
+      await Purchases.addCustomerInfoUpdateListener(info => {
+        this.customerInfo.set(info);
+      });
+
+      // Keep entitlement state fresh when returning to the app (e.g. after App Store flows).
+      await App.addListener('appStateChange', state => {
+        if (!state.isActive) return;
+        void this.refreshCustomerInfo();
+        void this.refreshOfferings();
+      });
+    } catch (error) {
+      const fallback = 'Unable to initialize purchases. Check RevenueCat API keys and store product setup.';
+      const message = error instanceof Error && error.message ? error.message : fallback;
+      this.initializationError = message;
+      throw new Error(message);
+    }
   }
 
   async refreshCustomerInfo(): Promise<CustomerInfo | null> {

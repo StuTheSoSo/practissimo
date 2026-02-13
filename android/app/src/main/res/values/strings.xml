@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PracticeQuest</string>
+    <string name="title_activity_main">PracticeQuest</string>
+    <string name="package_name">com.practissimo.app</string>
+    <string name="custom_url_scheme">com.practissimo.app</string>
+</resources>

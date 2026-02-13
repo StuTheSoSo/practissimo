@@ -68,3 +68,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Android local and signing artifacts
+/android/local.properties
+/android/keystore.properties
+*.jks
+*.keystore
