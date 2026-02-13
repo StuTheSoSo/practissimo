@@ -2,7 +2,7 @@ export const environment = {
   production: true,
   revenuecat: {
     iosApiKey: 'appl_uVkvBFJbNrIUqdEQKOCdsuAozoP',
-    androidApiKey: 'goog_REPLACE_WITH_REVENUECAT_ANDROID_PUBLIC_SDK_KEY',
+    androidApiKey: 'goog_vWKiSbXUDEZCQJNJbnFIDWzEULA',
     entitlementId: 'pro',
     productIds: {
       proMonthly: 'pro_monthly',
