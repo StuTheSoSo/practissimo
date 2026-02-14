@@ -723,23 +723,57 @@ export class TunerService implements OnDestroy {
       if (!this.playbackContext || this.playbackContext.state === 'closed') {
         this.playbackContext = new AudioContext();
       }
+      const playTone = () => {
+        if (!this.playbackContext) return;
 
-      const currentTime = this.playbackContext.currentTime;
-      const endTime = currentTime + duration / 1000;
-      const masterGain = this.playbackContext.createGain();
-      masterGain.gain.value = 0.3;
+        this.stopAllOscillators();
 
-      const instrument = this.instrumentService.currentInstrument();
-      const fundamental = this.playbackContext.createOscillator();
-      const fundamentalGain = this.playbackContext.createGain();
-      this.activeOscillators.add(fundamental);
+        const currentTime = this.playbackContext.currentTime;
+        const attackEnd = currentTime + 0.015;
+        const endTime = currentTime + duration / 1000;
+        const releaseStart = Math.max(currentTime, endTime - 0.08);
+        const instrument = this.instrumentService.currentInstrument();
 
-      // ... (rest of playReferenceTone remains unchanged - omitted for brevity)
+        const masterGain = this.playbackContext.createGain();
+        masterGain.gain.cancelScheduledValues(currentTime);
+        masterGain.gain.setValueAtTime(0.0001, currentTime);
+        masterGain.gain.exponentialRampToValueAtTime(0.25, attackEnd);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+        masterGain.connect(this.playbackContext.destination);
 
-      masterGain.connect(this.playbackContext.destination);
-      fundamental.start(currentTime);
-      fundamental.stop(endTime);
-      fundamental.onended = () => this.activeOscillators.delete(fundamental);
+        const fundamental = this.playbackContext.createOscillator();
+        const fundamentalGain = this.playbackContext.createGain();
+        this.activeOscillators.add(fundamental);
+        fundamental.type = instrument === 'violin' ? 'sawtooth' : 'triangle';
+        fundamental.frequency.setValueAtTime(stringInfo.frequency, currentTime);
+        fundamentalGain.gain.setValueAtTime(1, currentTime);
+        fundamentalGain.gain.setValueAtTime(1, releaseStart);
+        fundamentalGain.gain.linearRampToValueAtTime(0, endTime);
+        fundamental.connect(fundamentalGain);
+        fundamentalGain.connect(masterGain);
+        fundamental.start(currentTime);
+        fundamental.stop(endTime);
+        fundamental.onended = () => this.activeOscillators.delete(fundamental);
+
+        // Add light harmonics for a clearer, less synthetic pitch cue.
+        if (instrument === 'guitar' || instrument === 'bass') {
+          this.addHarmonic(stringInfo.frequency * 2, 0.22, 'sine', masterGain, endTime);
+          this.addHarmonic(stringInfo.frequency * 3, 0.1, 'sine', masterGain, endTime);
+        } else if (instrument === 'violin') {
+          this.addHarmonic(stringInfo.frequency * 2, 0.35, 'triangle', masterGain, endTime);
+          this.addHarmonic(stringInfo.frequency * 3, 0.2, 'triangle', masterGain, endTime);
+          this.addHarmonic(stringInfo.frequency * 4, 0.12, 'triangle', masterGain, endTime);
+        }
+      };
+
+      if (this.playbackContext.state === 'suspended') {
+        void this.playbackContext.resume().then(playTone).catch(error => {
+          console.error('Failed to resume playback AudioContext:', error);
+        });
+        return;
+      }
+
+      playTone();
     } catch (error) {
       console.error('Failed to play reference tone:', error);
       throw new Error('Audio playback unavailable');

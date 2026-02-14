@@ -22,6 +22,25 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    // Compatibility alias for tooling that expects the Java plugin `compileJava` task.
+    // Android projects are variant-based, so map it to the debug Java compile task.
+    afterEvaluate { project ->
+        if (project.tasks.findByName('compileDebugJavaWithJavac') && !project.tasks.findByName('compileJava')) {
+            project.tasks.register("compileJava") {
+                group = "build"
+                description = "Compatibility task alias for Android variant Java compilation"
+                dependsOn "compileDebugJavaWithJavac"
+            }
+        }
+        if (project.tasks.findByName('compileDebugUnitTestJavaWithJavac') && !project.tasks.findByName('testClasses')) {
+            project.tasks.register("testClasses") {
+                group = "verification"
+                description = "Compatibility task alias for Android variant unit test compilation"
+                dependsOn "compileDebugUnitTestJavaWithJavac"
+            }
+        }
+    }
 }
 
 task clean(type: Delete) {

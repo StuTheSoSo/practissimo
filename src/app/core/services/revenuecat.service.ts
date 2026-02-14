@@ -12,6 +12,7 @@ import {
 import { environment } from '../../../environments/environment';
 
 const DEFAULT_ENTITLEMENT_ID = 'pro';
+const REVENUECAT_BYPASS = false;
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ export class RevenueCatService {
   private offerings = signal<PurchasesOfferings | null>(null);
 
   readonly isPro = computed(() => {
+    if (REVENUECAT_BYPASS) return true;
     const info = this.customerInfo();
     if (!info) return false;
     const entitlementId = environment.revenuecat?.entitlementId || DEFAULT_ENTITLEMENT_ID;
@@ -51,6 +53,11 @@ export class RevenueCatService {
     if (this.initialized) return;
     if (this.initializationError) {
       throw new Error(this.initializationError);
+    }
+    if (REVENUECAT_BYPASS) {
+      this.initialized = true;
+      this.initializationError = null;
+      return;
     }
 
     if (!this.isNativePlatform()) {
@@ -94,6 +101,7 @@ export class RevenueCatService {
   }
 
   async refreshCustomerInfo(): Promise<CustomerInfo | null> {
+    if (REVENUECAT_BYPASS) return null;
     if (!this.isNativePlatform()) return null;
     const { customerInfo } = await Purchases.getCustomerInfo();
     this.customerInfo.set(customerInfo);
@@ -101,6 +109,7 @@ export class RevenueCatService {
   }
 
   async refreshOfferings(): Promise<PurchasesOfferings | null> {
+    if (REVENUECAT_BYPASS) return null;
     if (!this.isNativePlatform()) return null;
     const offerings = await Purchases.getOfferings();
     this.offerings.set(offerings);
@@ -108,6 +117,7 @@ export class RevenueCatService {
   }
 
   async purchasePro(): Promise<void> {
+    if (REVENUECAT_BYPASS) return;
     await this.ensureInitialized();
     const offering = await this.getOrFetchCurrentOffering();
     if (!offering || offering.availablePackages.length === 0) {
@@ -120,6 +130,7 @@ export class RevenueCatService {
   }
 
   async purchasePackage(packageId: string): Promise<void> {
+    if (REVENUECAT_BYPASS) return;
     await this.ensureInitialized();
     const offering = await this.getOrFetchCurrentOffering();
     const aPackage = offering?.availablePackages.find(pkg => pkg.identifier === packageId);
@@ -131,24 +142,28 @@ export class RevenueCatService {
   }
 
   async restorePurchases(): Promise<void> {
+    if (REVENUECAT_BYPASS) return;
     await this.ensureInitialized();
     const result = await Purchases.restorePurchases();
     this.customerInfo.set(result.customerInfo);
   }
 
   async getPrimaryPriceString(): Promise<string | null> {
+    if (REVENUECAT_BYPASS) return null;
     const offering = await this.getOrFetchCurrentOffering();
     const aPackage = offering?.availablePackages?.[0];
     return aPackage?.product?.priceString ?? null;
   }
 
   async getAvailablePackages(): Promise<PurchasesPackage[]> {
+    if (REVENUECAT_BYPASS) return [];
     await this.ensureInitialized();
     const offering = await this.getOrFetchCurrentOffering();
     return offering?.availablePackages ?? [];
   }
 
   private async ensureInitialized(): Promise<void> {
+    if (REVENUECAT_BYPASS) return;
     if (!this.initialized) {
       await this.initialize();
     }
