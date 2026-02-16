@@ -4,6 +4,10 @@
 
 export const environment = {
   production: false,
+  appRating: {
+    iosAppStoreId: '',
+    androidPackageName: 'com.practissimo.app'
+  },
   revenuecat: {
     iosApiKey: 'test_jsmKwfOxEWgbIVhwnjpwFpfmaJP',
     androidApiKey: '',
