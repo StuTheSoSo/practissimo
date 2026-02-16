@@ -150,6 +150,37 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
     .practice-container {
       max-width: 600px;
       margin: 0 auto;
+      color: #0f172a;
+    }
+
+    .practice-container ion-card {
+      --color: #0f172a;
+      color: #0f172a;
+    }
+
+    .practice-container ion-item {
+      --color: #1f2937;
+      --background: transparent;
+    }
+
+    .practice-container ion-card-title {
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .practice-container ion-label {
+      color: #1f2937;
+      font-weight: 700;
+    }
+
+    .practice-container ion-label[position='stacked'] {
+      color: #111827;
+      font-weight: 800;
+    }
+
+    .practice-container ion-note {
+      color: #334155;
+      font-weight: 600;
     }
 
     .timer-card {
@@ -165,11 +196,13 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
       font-weight: bold;
       margin: 0;
       font-variant-numeric: tabular-nums;
+      color: #0f172a;
     }
 
     .timer-display p {
       font-size: 1.2rem;
-      color: var(--ion-color-medium);
+      color: #334155;
+      font-weight: 700;
       margin: 0.5rem 0 0 0;
     }
 
@@ -186,16 +219,62 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
       background: var(--ion-color-light);
       border-radius: 8px;
       text-align: left;
+      color: #1f2937;
     }
 
     .session-notes p {
       margin: 0.5rem 0 0 0;
       white-space: pre-wrap;
+      color: #1f2937;
+      font-weight: 600;
     }
 
     ion-item {
       --padding-start: 0;
       --inner-padding-end: 0;
+    }
+
+    ion-select,
+    ion-textarea {
+      --color: #111827;
+      font-weight: 600;
+    }
+
+    ion-select::part(placeholder) {
+      color: #475569;
+      opacity: 1;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .practice-container,
+      .practice-container ion-card {
+        color: #f3f4f6 !important;
+        --color: #f3f4f6;
+      }
+
+      .practice-container ion-card-title,
+      .practice-container ion-label,
+      .practice-container ion-label[position='stacked'],
+      .practice-container ion-note,
+      .timer-display h1,
+      .timer-display p,
+      .session-notes,
+      .session-notes p {
+        color: #e5e7eb !important;
+      }
+
+      .practice-container ion-item {
+        --color: #e5e7eb;
+      }
+
+      ion-select,
+      ion-textarea {
+        --color: #f3f4f6;
+      }
+
+      ion-select::part(placeholder) {
+        color: #cbd5e1;
+      }
     }
   `],
   standalone: true,

@@ -1,5 +1,5 @@
 // src/app/pages/home/home.page.ts
-import { Component, inject, computed } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -13,7 +13,6 @@ import {
   IonCardContent,
   IonButton,
   IonIcon,
-  IonProgressBar,
   IonBadge,
   IonButtons,
   IonGrid,
@@ -62,16 +61,72 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding">
+    <ion-content class="home-content ion-padding">
       <div class="home-container">
-        <!-- Instrument Header -->
-        <div class="instrument-header">
+        <div class="instrument-header reveal reveal-1">
           <h2>{{ currentInstrument() }}</h2>
           <ion-badge color="primary">Level {{ level() }}</ion-badge>
         </div>
 
-        <!-- Streak Card -->
-        <ion-card class="streak-card">
+        <section
+          class="practice-hero reveal reveal-2"
+          [class.state-active]="streakStatus() === 'active'"
+          [class.state-risk]="streakStatus() === 'at_risk'"
+          [class.state-broken]="streakStatus() === 'broken'"
+        >
+          <p class="practice-hero-kicker">{{ streakStatusLabel() }}</p>
+          <h1>{{ streakStatus() === 'active' ? 'Session Complete' : 'Start Practice' }}</h1>
+          <p>{{ practiceHeroMessage() }}</p>
+
+          @if (weeklyTargetCompleted()) {
+            <div class="hero-complete-pill">
+              <ion-icon name="trophy"></ion-icon>
+              Weekly target complete
+            </div>
+          }
+
+          <ion-button
+            class="practice-hero-cta"
+            size="large"
+            [class.pulse-cta]="streakStatus() !== 'active'"
+            (click)="startPractice()"
+          >
+            <ion-icon name="play" slot="start"></ion-icon>
+            {{ primaryCtaLabel() }}
+          </ion-button>
+        </section>
+
+        <section class="stat-chips reveal reveal-3">
+          <div class="stat-chip streak-chip">
+            <ion-icon name="flame"></ion-icon>
+            <div>
+              <span>Streak</span>
+              <strong>{{ currentStreak() }} days</strong>
+            </div>
+          </div>
+          <div class="stat-chip level-chip">
+            <ion-icon name="star"></ion-icon>
+            <div>
+              <span>Level</span>
+              <strong>{{ level() }} ({{ levelProgressDisplay() }}%)</strong>
+            </div>
+          </div>
+          <div class="stat-chip weekly-chip">
+            <ion-icon name="calendar"></ion-icon>
+            <div>
+              <span>Weekly Target</span>
+              <strong>
+                @if (weeklyTargetCompleted()) {
+                  Complete
+                } @else {
+                  {{ weeklyMinutesRemaining() }} min left
+                }
+              </strong>
+            </div>
+          </div>
+        </section>
+
+        <ion-card class="streak-card reveal reveal-4">
           <ion-card-header>
             <div class="streak-header">
               <ion-icon name="flame" color="danger"></ion-icon>
@@ -86,16 +141,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-      <!-- Quick Actions -->
-        <ion-grid class="quick-actions">
-          <ion-row>
-            <ion-col size="12">
-             <ion-button expand="block" (click)="startPractice()">
-              <ion-icon name="play" slot="start"></ion-icon>
-              Start Practice
-            </ion-button>
-            </ion-col>
-          </ion-row>
+        <ion-grid class="quick-actions reveal reveal-5">
           <ion-row>
             <ion-col [size]="supportsTuner() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
@@ -142,31 +188,33 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-row>
         </ion-grid>
 
-        <!-- XP Progress Card -->
-        <ion-card>
+        <ion-card class="level-progress-card reveal reveal-6">
           <ion-card-header>
             <ion-card-title>Level Progress</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="xp-info">
               <span>{{ levelInfo().currentXp }} / {{ levelInfo().xpForNextLevel - levelInfo().xpForCurrentLevel }} XP</span>
-              <span>{{ levelInfo().progressPercent }}%</span>
+              <span>{{ levelProgressDisplay() }}%</span>
             </div>
-            <ion-progress-bar [value]="levelInfo().progressPercent / 100"></ion-progress-bar>
+            <div class="progress-track">
+              <div class="progress-fill level-fill" [style.width.%]="levelProgressAnimated()"></div>
+            </div>
           </ion-card-content>
         </ion-card>
 
-        <!-- Weekly Target Card -->
-        <ion-card>
+        <ion-card class="weekly-target-card reveal reveal-7" [class.complete]="weeklyTargetCompleted()">
           <ion-card-header>
             <ion-card-title>Weekly Target</ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="weekly-target-meta">
               <span>{{ weekRangeLabel() }}</span>
-              <span>{{ weeklyProgressPercent() }}%</span>
+              <span>{{ weeklyProgressDisplay() }}%</span>
             </div>
-            <ion-progress-bar [value]="weeklyProgressPercent() / 100"></ion-progress-bar>
+            <div class="progress-track">
+              <div class="progress-fill weekly-fill" [style.width.%]="weeklyProgressAnimated()"></div>
+            </div>
             <p class="weekly-target-detail">
               {{ weeklyMinutesCompleted() }} / {{ weeklyTargetMinutes() }} minutes
               @if (weeklyTargetCompleted()) {
@@ -178,9 +226,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-        <!-- Pro Upgrade Card -->
         @if (!isPro()) {
-          <ion-card class="pro-upgrade-card">
+          <ion-card class="pro-upgrade-card reveal reveal-8">
             <ion-card-content>
               <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
               <div class="pro-upgrade-header">
@@ -200,75 +247,137 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card>
         }
 
-        
-        <!-- Today's Quests Preview -->
-        @if (todaysQuests().length > 0) {
-          <ion-card>
+        <section class="more-section reveal reveal-9">
+          <ion-button expand="block" fill="clear" (click)="toggleMoreSection()">
+            {{ showMoreSection() ? 'Hide Secondary Sections' : 'See More Tools & Feedback' }}
+            <ion-icon
+              name="chevron-forward"
+              slot="end"
+              [class.more-chevron-open]="showMoreSection()"
+            ></ion-icon>
+          </ion-button>
+        </section>
+
+        @if (showMoreSection()) {
+          @if (todaysQuests().length > 0) {
+            <ion-card class="quests-card reveal reveal-10">
+              <ion-card-header>
+                <ion-card-title>Today's Quests</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-list>
+                  @for (quest of todaysQuests().slice(0, 3); track quest.id) {
+                    <ion-item>
+                      <ion-label>
+                        <h3>{{ quest.title }}</h3>
+                        <p>{{ quest.progress }} / {{ quest.target }}</p>
+                      </ion-label>
+                      <ion-badge [color]="quest.completed ? 'success' : 'medium'" slot="end">
+                        {{ quest.completed ? 'Complete' : quest.xpReward + ' XP' }}
+                      </ion-badge>
+                    </ion-item>
+                  }
+                </ion-list>
+                @if (todaysQuests().length > 3) {
+                  <ion-button expand="block" fill="clear" (click)="goToQuests()">
+                    View All Quests ({{ todaysQuests().length }})
+                  </ion-button>
+                }
+              </ion-card-content>
+            </ion-card>
+          }
+
+          <ion-card class="feedback-card reveal reveal-10">
             <ion-card-header>
-              <ion-card-title>Today's Quests</ion-card-title>
+              <ion-card-title>Help Us Improve</ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <ion-list>
-                @for (quest of todaysQuests().slice(0, 3); track quest.id) {
-                  <ion-item>
-                    <ion-label>
-                      <h3>{{ quest.title }}</h3>
-                      <p>{{ quest.progress }} / {{ quest.target }}</p>
-                    </ion-label>
-                    <ion-badge [color]="quest.completed ? 'success' : 'medium'" slot="end">
-                      {{ quest.completed ? 'Complete' : quest.xpReward + ' XP' }}
-                    </ion-badge>
-                  </ion-item>
-                }
-              </ion-list>
-              @if (todaysQuests().length > 3) {
-                <ion-button expand="block" fill="clear" (click)="goToQuests()">
-                  View All Quests ({{ todaysQuests().length }})
+              <p>Your feedback is invaluable. Report bugs, request features, or share what would improve your practice flow.</p>
+
+              <ion-button expand="block" fill="solid" (click)="openFeedback()">
+                <ion-icon name="chatbubble-ellipses" slot="start"></ion-icon>
+                Send Feedback
+              </ion-button>
+
+              <div class="feedback-links">
+                <ion-button fill="clear" size="small" (click)="openFeedbackWithType('bug')">
+                  <ion-icon name="bug" slot="start"></ion-icon>
+                  Report Bug
                 </ion-button>
-              }
+                <ion-button fill="clear" size="small" (click)="openFeedbackWithType('feature')">
+                  <ion-icon name="bulb" slot="start"></ion-icon>
+                  Request Feature
+                </ion-button>
+              </div>
             </ion-card-content>
           </ion-card>
         }
-
-        <!-- Feedback Section -->
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Help Us Improve</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <p>Your feedback is invaluable! Report bugs, request features, or share your thoughts.</p>
-
-            <!-- Direct feedback button instead of component -->
-            <ion-button
-              expand="block"
-              fill="solid"
-              (click)="openFeedback()"
-            >
-              <ion-icon name="chatbubble-ellipses" slot="start"></ion-icon>
-              Send Feedback
-            </ion-button>
-
-            <!-- Quick Links -->
-            <div class="feedback-links">
-              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('bug')">
-                <ion-icon name="bug" slot="start"></ion-icon>
-                Report Bug
-              </ion-button>
-              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('feature')">
-                <ion-icon name="bulb" slot="start"></ion-icon>
-                Request Feature
-              </ion-button>
-            </div>
-          </ion-card-content>
-        </ion-card>
-
       </div>
     </ion-content>
   `,
   styles: [`
+    .home-content {
+      --padding-top: 0;
+    }
+
     .home-container {
       max-width: 600px;
       margin: 0 auto;
+      padding-bottom: 1rem;
+      color: #0f172a;
+    }
+
+    .home-container ion-card:not(.pro-upgrade-card) {
+      --color: #0f172a;
+      color: #0f172a;
+    }
+
+    .home-container ion-card:not(.pro-upgrade-card) ion-card-title,
+    .home-container ion-card:not(.pro-upgrade-card) ion-label,
+    .home-container ion-card:not(.pro-upgrade-card) p,
+    .home-container ion-card:not(.pro-upgrade-card) span {
+      color: #1f2937;
+    }
+
+    .home-container ion-item {
+      --color: #1f2937;
+    }
+
+    ion-card {
+      border-radius: 18px;
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    ion-card:active {
+      transform: translateY(1px) scale(0.996);
+    }
+
+    .reveal {
+      opacity: 1;
+      transform: translateY(0);
+      animation: reveal-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .reveal-1 { animation-delay: 40ms; }
+    .reveal-2 { animation-delay: 80ms; }
+    .reveal-3 { animation-delay: 120ms; }
+    .reveal-4 { animation-delay: 160ms; }
+    .reveal-5 { animation-delay: 200ms; }
+    .reveal-6 { animation-delay: 240ms; }
+    .reveal-7 { animation-delay: 280ms; }
+    .reveal-8 { animation-delay: 320ms; }
+    .reveal-9 { animation-delay: 360ms; }
+    .reveal-10 { animation-delay: 400ms; }
+
+    @keyframes reveal-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .instrument-header {
@@ -280,10 +389,198 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .instrument-header h2 {
       margin: 0;
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .practice-hero {
+      text-align: center;
+      margin: 0 0 1rem;
+      padding: 1.35rem 1rem 1.5rem;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(var(--ion-color-warning-rgb), 0.45), transparent 45%),
+        linear-gradient(145deg, var(--ion-color-primary), var(--ion-color-secondary));
+      color: var(--ion-color-primary-contrast);
+      box-shadow: 0 14px 28px rgba(var(--ion-color-primary-rgb), 0.28);
+      position: relative;
+      overflow: hidden;
+      background-size: 130% 130%;
+      animation: hero-pan 10s ease-in-out infinite alternate;
+    }
+
+    .practice-hero::before {
+      content: '';
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent 55%);
+      transform: translateY(-20%);
+      pointer-events: none;
+    }
+
+    .practice-hero.state-active {
+      background:
+        radial-gradient(circle at top right, rgba(120, 255, 196, 0.42), transparent 45%),
+        linear-gradient(145deg, #1f8f55, #3ab879);
+      background-size: 130% 130%;
+    }
+
+    .practice-hero.state-risk {
+      background:
+        radial-gradient(circle at top right, rgba(255, 219, 121, 0.42), transparent 45%),
+        linear-gradient(145deg, #b3620f, #dd8f2a);
+      background-size: 130% 130%;
+    }
+
+    .practice-hero.state-broken {
+      background:
+        radial-gradient(circle at top right, rgba(186, 201, 255, 0.35), transparent 45%),
+        linear-gradient(145deg, #3e4f7a, #5d6a93);
+      background-size: 130% 130%;
+    }
+
+    @keyframes hero-pan {
+      from { background-position: 0% 50%; }
+      to { background-position: 100% 50%; }
+    }
+
+    .practice-hero-kicker {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.72rem;
+      opacity: 0.95;
+      font-weight: 700;
+    }
+
+    .practice-hero h1 {
+      margin: 0.3rem 0 0.35rem;
+      font-size: 2rem;
+      line-height: 1.1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .practice-hero p {
+      margin: 0 auto;
+      max-width: 30ch;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 0.98rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .practice-hero-cta {
+      margin-top: 1rem;
+      --background: #ffffff;
+      --color: var(--ion-color-primary);
+      --border-radius: 14px;
+      --padding-top: 0.95rem;
+      --padding-bottom: 0.95rem;
+      --box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      min-width: min(92%, 320px);
+      transition: transform 160ms ease, filter 160ms ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .practice-hero-cta:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.03);
+    }
+
+    .practice-hero-cta:active {
+      transform: translateY(1px);
+      filter: brightness(0.98);
+    }
+
+    .pulse-cta {
+      animation: cta-pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes cta-pulse {
+      0%, 100% {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+      }
+      50% {
+        box-shadow: 0 16px 28px rgba(255, 255, 255, 0.28);
+      }
+    }
+
+    .hero-complete-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.75rem;
+      padding: 0.32rem 0.62rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      position: relative;
+      z-index: 1;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .stat-chips {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin: 0.15rem 0 1rem;
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.72rem 0.78rem;
+      border-radius: 14px;
+      border: 1px solid rgba(20, 20, 20, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(4px);
+    }
+
+    .stat-chip ion-icon {
+      font-size: 1.25rem;
+    }
+
+    .stat-chip span {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #374151;
+      margin-bottom: 0.12rem;
+      font-weight: 700;
+    }
+
+    .stat-chip strong {
+      font-size: 0.95rem;
+      color: #111827;
+      font-weight: 800;
+    }
+
+    .streak-chip ion-icon { color: #f97316; }
+    .level-chip ion-icon { color: #2563eb; }
+    .weekly-chip ion-icon { color: #0ea5a4; }
+
+    @media (min-width: 560px) {
+      .stat-chips {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
     .streak-card {
       background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-secondary-tint));
+      border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+    }
+
+    .streak-card ion-card-title {
+      color: #0f172a;
+      font-weight: 800;
     }
 
     .streak-header {
@@ -299,12 +596,41 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .streak-status {
       font-size: 1.1rem;
       margin: 0.5rem 0;
+      color: #1f2937;
+      font-weight: 700;
     }
 
     .longest-streak {
-      color: var(--ion-color-medium);
+      color: #334155;
       font-size: 0.9rem;
       margin: 0;
+      font-weight: 600;
+    }
+
+    .quick-actions {
+      margin: 1rem 0;
+    }
+
+    .quick-actions ion-button {
+      margin: 0;
+      --border-radius: 12px;
+      min-height: 46px;
+      font-weight: 650;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+
+    .quick-actions ion-button[fill='clear'] {
+      --color: #1f2937;
+      font-weight: 700;
+    }
+
+    .quick-actions ion-button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.02);
+    }
+
+    .quick-actions ion-button:active {
+      transform: translateY(1px);
     }
 
     .xp-info {
@@ -314,17 +640,107 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       font-weight: 500;
     }
 
+    .progress-track {
+      height: 10px;
+      width: 100%;
+      border-radius: 999px;
+      background: rgba(20, 20, 20, 0.1);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width 750ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .level-fill {
+      background: linear-gradient(90deg, #4f86f7, #7bb1ff);
+    }
+
+    .weekly-fill {
+      background: linear-gradient(90deg, #17bebb, #48d6a4);
+    }
+
+    .level-progress-card {
+      border: 1px solid rgba(79, 134, 247, 0.25);
+      background:
+        radial-gradient(circle at 96% 4%, rgba(79, 134, 247, 0.22), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 252, 255, 0.92));
+    }
+
+    .level-progress-card ion-card-title {
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .level-progress-card .xp-info span {
+      color: #1f2937;
+      font-weight: 700;
+    }
+
     .weekly-target-meta {
       display: flex;
       justify-content: space-between;
       margin-bottom: 0.5rem;
       font-weight: 500;
-      color: var(--ion-color-medium-shade);
+      color: #334155;
     }
 
     .weekly-target-detail {
       margin: 0.75rem 0 0;
       font-size: 0.95rem;
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .weekly-target-card {
+      border: 1px solid rgba(23, 190, 187, 0.26);
+      background:
+        radial-gradient(circle at 95% 8%, rgba(23, 190, 187, 0.2), transparent 36%),
+        linear-gradient(180deg, rgba(252, 255, 254, 0.95), rgba(248, 255, 251, 0.95));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .weekly-target-card ion-card-title {
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .weekly-target-card .weekly-target-meta span {
+      color: #334155;
+      font-weight: 700;
+    }
+
+    .weekly-target-card .weekly-target-detail strong {
+      color: #0f766e;
+      font-weight: 800;
+    }
+
+    .weekly-target-card::after {
+      content: '';
+      position: absolute;
+      top: -10%;
+      left: -20%;
+      width: 140%;
+      height: 140%;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 60%, rgba(23, 190, 187, 0.08) 0 2px, transparent 3px),
+        radial-gradient(circle at 42% 34%, rgba(23, 190, 187, 0.09) 0 2px, transparent 3px),
+        radial-gradient(circle at 70% 70%, rgba(23, 190, 187, 0.08) 0 2px, transparent 3px);
+      animation: confetti-float 8s linear infinite;
+      opacity: 0;
+    }
+
+    .weekly-target-card.complete::after {
+      opacity: 1;
+    }
+
+    @keyframes confetti-float {
+      from { transform: translateY(10%); }
+      to { transform: translateY(-10%); }
     }
 
     .pro-upgrade-card {
@@ -352,7 +768,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       font-size: 0.7rem;
       letter-spacing: 0.3em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.65);
+      color: rgba(255, 255, 255, 0.82);
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
@@ -370,7 +786,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .pro-upgrade-header p {
       margin: 0;
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.9);
       font-size: 0.9rem;
     }
 
@@ -408,19 +824,43 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       }
     }
 
-    .quick-actions {
-      margin: 1rem 0;
+    .more-section {
+      margin-top: 0.15rem;
     }
 
-    .quick-actions ion-button {
-      margin: 0;
+    .more-section ion-button {
+      --color: #1f2937;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .more-chevron-open {
+      transform: rotate(90deg);
+      transition: transform 180ms ease;
+    }
+
+    .quests-card {
+      border: 1px solid rgba(120, 120, 120, 0.18);
+    }
+
+    .feedback-card {
+      border: 1px solid rgba(64, 120, 255, 0.2);
+      background:
+        radial-gradient(circle at 95% 8%, rgba(64, 120, 255, 0.12), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(251, 253, 255, 0.96));
+    }
+
+    .feedback-card p,
+    .quests-card ion-label h3,
+    .quests-card ion-label p {
+      color: #1f2937;
     }
 
     .ion-list {
       padding: 0;
     }
 
-        .feedback-links {
+    .feedback-links {
       display: flex;
       gap: 0.5rem;
       margin-top: 0.5rem;
@@ -432,6 +872,67 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       min-width: 140px;
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      .reveal,
+      .pulse-cta,
+      .practice-hero,
+      .weekly-target-card::after {
+        animation: none !important;
+      }
+
+      .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+
+      .progress-fill,
+      ion-card,
+      .practice-hero-cta,
+      .quick-actions ion-button {
+        transition: none !important;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .home-container,
+      .home-container ion-card:not(.pro-upgrade-card) {
+        color: #f3f4f6 !important;
+        --color: #f3f4f6;
+      }
+
+      .home-container ion-card:not(.pro-upgrade-card) ion-card-title,
+      .home-container ion-card:not(.pro-upgrade-card) ion-label,
+      .home-container ion-card:not(.pro-upgrade-card) p,
+      .home-container ion-card:not(.pro-upgrade-card) span,
+      .instrument-header h2,
+      .stat-chip span,
+      .stat-chip strong,
+      .streak-status,
+      .longest-streak,
+      .level-progress-card .xp-info span,
+      .weekly-target-meta,
+      .weekly-target-card .weekly-target-meta span,
+      .weekly-target-detail,
+      .feedback-card p,
+      .quests-card ion-label h3,
+      .quests-card ion-label p {
+        color: #e5e7eb !important;
+      }
+
+      .home-container ion-item {
+        --color: #e5e7eb;
+      }
+
+      .quick-actions ion-button[fill='clear'],
+      .more-section ion-button {
+        --color: #e5e7eb;
+      }
+
+      .stat-chip {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+    }
   `],
   standalone: true,
   imports: [
@@ -446,7 +947,6 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     IonCardContent,
     IonButton,
     IonIcon,
-    IonProgressBar,
     IonBadge,
     IonButtons,
     IonGrid,
@@ -457,7 +957,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     IonLabel
   ]
 })
-export class HomePage {
+export class HomePage implements OnInit {
   private router = inject(Router);
   private gamificationService = inject(GamificationService);
   private instrumentService = inject(InstrumentService);
@@ -475,7 +975,7 @@ export class HomePage {
   levelInfo = this.gamificationService.levelInfo;
 
   todaysQuests = this.questService.currentInstrumentQuests;
-  activeQuestsCount = computed(() => this.todaysQuests().filter(q => !q.completed).length);
+  activeQuestsCount = computed(() => this.todaysQuests().filter((q) => !q.completed).length);
   isPro = this.revenueCat.isPro;
   weekRangeLabel = this.weeklyTargetService.weekRangeLabel;
   weeklyTargetMinutes = this.weeklyTargetService.targetMinutes;
@@ -483,6 +983,35 @@ export class HomePage {
   weeklyMinutesRemaining = this.weeklyTargetService.remainingMinutes;
   weeklyProgressPercent = this.weeklyTargetService.progressPercent;
   weeklyTargetCompleted = this.weeklyTargetService.isCompleted;
+
+  showMoreSection = signal(false);
+  levelProgressAnimated = signal(0);
+  weeklyProgressAnimated = signal(0);
+  levelProgressDisplay = computed(() => Math.round(this.levelProgressAnimated()));
+  weeklyProgressDisplay = computed(() => Math.round(this.weeklyProgressAnimated()));
+
+  streakStatus = computed(() => this.gamificationService.getStreakStatus());
+  primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Start Practice');
+  streakStatusLabel = computed(() => {
+    const status = this.streakStatus();
+    if (status === 'active') return 'On Fire Today';
+    if (status === 'at_risk') return 'Streak At Risk';
+    return 'Fresh Start';
+  });
+
+  practiceHeroMessage = computed(() => {
+    const status = this.streakStatus();
+    if (status === 'active') {
+      if (this.weeklyTargetCompleted()) {
+        return 'Weekly target complete. Keep building consistency with another focused session.';
+      }
+      return `${this.weeklyMinutesRemaining()} minutes left to reach your weekly target.`;
+    }
+    if (status === 'at_risk') {
+      return `Practice now to protect your ${this.currentStreak()} day streak.`;
+    }
+    return 'A short focused session is all it takes to restart momentum.';
+  });
 
   streakMessage = computed(() => {
     const status = this.gamificationService.getStreakStatus();
@@ -492,7 +1021,7 @@ export class HomePage {
       case 'at_risk':
         return "Don't forget to practice today!";
       case 'broken':
-        return "Start a new streak today!";
+        return 'Start a new streak today!';
     }
   });
 
@@ -514,6 +1043,11 @@ export class HomePage {
     });
   }
 
+  ngOnInit() {
+    this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
+    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
+  }
+
   startPractice() {
     this.router.navigate(['/practice']);
   }
@@ -521,10 +1055,6 @@ export class HomePage {
   goToChordCharts() {
     this.router.navigate(['/chord-charts']);
   }
-
-  // goToBackingTracks() {
-  //   this.router.navigate(['/backing-tracks']);
-  // }
 
   goToTuner() {
     this.router.navigate(['/tuner']);
@@ -546,6 +1076,10 @@ export class HomePage {
     this.router.navigate(['/settings']);
   }
 
+  toggleMoreSection() {
+    this.showMoreSection.update((current) => !current);
+  }
+
   async openFeedback() {
     const modal = await this.modalController.create({
       component: FeedbackModalComponent
@@ -554,7 +1088,6 @@ export class HomePage {
   }
 
   async openFeedbackWithType(type: 'bug' | 'feature') {
-    // Open feedback modal - you could pass the type as componentProps if needed
     const modal = await this.modalController.create({
       component: FeedbackModalComponent,
       componentProps: {
@@ -572,5 +1105,24 @@ export class HomePage {
       }
     });
     await modal.present();
+  }
+
+  private animateProgress(target: number, targetSignal: { set: (value: number) => void }) {
+    const start = 0;
+    const end = Math.max(0, Math.min(100, target));
+    const duration = 900;
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      targetSignal.set(start + (end - start) * eased);
+      if (t < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
   }
 }
