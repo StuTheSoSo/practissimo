@@ -13,11 +13,10 @@ import {
   IonItem,
   IonLabel,
   IonSelect,
-  IonSelectOption,
-  IonToggle
+  IonSelectOption
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { play, pause, add, remove, musicalNote } from 'ionicons/icons';
+import { play, pause, add, remove, musicalNote, chevronDown } from 'ionicons/icons';
 import { MetronomeService } from '../../core/services/metronome.service';
 
 @Component({
@@ -25,14 +24,21 @@ import { MetronomeService } from '../../core/services/metronome.service';
   template: `
     <ion-card class="metronome-card">
       <ion-card-header>
-        <div class="metronome-header">
+        <button
+          type="button"
+          class="metronome-header"
+          [class.expanded]="isExpanded"
+          (click)="toggleExpanded()"
+          aria-label="Toggle metronome controls"
+          [attr.aria-expanded]="isExpanded"
+        >
           <ion-icon name="musical-note" color="primary"></ion-icon>
-          <ion-card-title>Metronome</ion-card-title>
-          <ion-toggle
-            [(ngModel)]="isExpanded"
-            class="expand-toggle"
-          ></ion-toggle>
-        </div>
+          <div class="header-copy">
+            <ion-card-title>Metronome</ion-card-title>
+            <span class="header-subtitle">{{ isExpanded ? 'Expanded' : 'Collapsed' }}</span>
+          </div>
+          <ion-icon name="chevron-down" class="expand-chevron" [class.expanded]="isExpanded"></ion-icon>
+        </button>
       </ion-card-header>
 
       @if (isExpanded) {
@@ -147,19 +153,51 @@ import { MetronomeService } from '../../core/services/metronome.service';
     .metronome-header {
       display: flex;
       align-items: center;
+      width: 100%;
       gap: 0.5rem;
+      background: transparent;
+      border: 0;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      color: inherit;
     }
 
     .metronome-header ion-icon {
       font-size: 1.5rem;
     }
 
-    .metronome-header ion-card-title {
+    .header-copy {
       flex: 1;
     }
 
-    .expand-toggle {
+    .metronome-header ion-card-title {
       margin: 0;
+    }
+
+    .header-subtitle {
+      display: block;
+      margin-top: 0.1rem;
+      font-size: 0.78rem;
+      color: var(--ion-color-medium);
+      font-weight: 600;
+    }
+
+    .expand-chevron {
+      font-size: 1.1rem;
+      color: var(--ion-color-medium-shade);
+      transition: transform 180ms ease, color 180ms ease;
+    }
+
+    .expand-chevron.expanded {
+      transform: rotate(180deg);
+      color: var(--ion-color-primary);
+    }
+
+    .metronome-header:focus-visible {
+      outline: 2px solid var(--ion-color-primary);
+      outline-offset: 3px;
+      border-radius: 8px;
     }
 
     .bpm-display {
@@ -276,8 +314,7 @@ import { MetronomeService } from '../../core/services/metronome.service';
     IonItem,
     IonLabel,
     IonSelect,
-    IonSelectOption,
-    IonToggle
+    IonSelectOption
   ]
 })
 export class MetronomeComponent implements OnDestroy {
@@ -290,7 +327,7 @@ export class MetronomeComponent implements OnDestroy {
   beats: number[] = [];
 
   constructor() {
-    addIcons({ play, pause, add, remove, musicalNote });
+    addIcons({ play, pause, add, remove, musicalNote, chevronDown });
     this.updateBeats();
   }
 
@@ -335,6 +372,10 @@ export class MetronomeComponent implements OnDestroy {
 
   tapTempo(): void {
     this.metronome.tapTempo();
+  }
+
+  toggleExpanded(): void {
+    this.isExpanded = !this.isExpanded;
   }
 
   private updateBeats(): void {
