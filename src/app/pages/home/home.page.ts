@@ -227,24 +227,24 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
         </ion-card>
 
         @if (!isPro()) {
-          <ion-card class="pro-upgrade-card reveal reveal-8">
-            <ion-card-content>
-              <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
-              <div class="pro-upgrade-header">
-                <ion-icon name="sparkles" color="warning"></ion-icon>
-                <div>
-                  <h3>Unlock Your Full Practice Power</h3>
-                  <p>Full chord library, favorites, and advanced filters.</p>
-                </div>
-              </div>
-              <div class="pro-upgrade-footer">
-                <span class="pro-upgrade-price">From $0.99/month</span>
-                <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
-                  Go Pro
-                </ion-button>
-              </div>
-            </ion-card-content>
-          </ion-card>
+          // <ion-card class="pro-upgrade-card reveal reveal-8">
+          //   <ion-card-content>
+          //     <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
+          //     <div class="pro-upgrade-header">
+          //       <ion-icon name="sparkles" color="warning"></ion-icon>
+          //       <div>
+          //         <h3>Unlock Your Full Practice Power</h3>
+          //         <p>Full chord library, favorites, and advanced filters.</p>
+          //       </div>
+          //     </div>
+          //     <div class="pro-upgrade-footer">
+          //       <span class="pro-upgrade-price">From $0.99/month</span>
+          //       <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
+          //         Go Pro
+          //       </ion-button>
+          //     </div>
+          //   </ion-card-content>
+          // </ion-card>
         }
 
         <section class="more-section reveal reveal-9">
