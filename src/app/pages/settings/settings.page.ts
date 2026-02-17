@@ -46,7 +46,7 @@ import { NotificationService } from '../../core/services/notification.service';
 
     <ion-content class="ion-padding">
       <div class="settings-container">
-        <ion-card>
+        <ion-card class="hero-card instrument-card">
           <ion-card-header>
             <ion-card-title>Current Instrument</ion-card-title>
           </ion-card-header>
@@ -65,7 +65,7 @@ import { NotificationService } from '../../core/services/notification.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card class="hero-card target-card">
           <ion-card-header>
             <ion-card-title>Weekly Target</ion-card-title>
           </ion-card-header>
@@ -77,7 +77,7 @@ import { NotificationService } from '../../core/services/notification.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card class="hero-card reminder-card">
           <ion-card-header>
             <ion-card-title>Practice Reminders</ion-card-title>
           </ion-card-header>
@@ -112,7 +112,7 @@ import { NotificationService } from '../../core/services/notification.service';
 
 
         <!-- Feedback Section -->
-        <ion-card>
+        <ion-card class="hero-card feedback-card">
           <ion-card-header>
             <ion-card-title>Help Us Improve</ion-card-title>
           </ion-card-header>
@@ -143,7 +143,7 @@ import { NotificationService } from '../../core/services/notification.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-card>
+        <ion-card class="hero-card about-card">
           <ion-card-header>
             <ion-card-title>About</ion-card-title>
           </ion-card-header>
@@ -229,6 +229,72 @@ import { NotificationService } from '../../core/services/notification.service';
     .settings-container {
       max-width: 600px;
       margin: 0 auto;
+    }
+
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      box-shadow: 0 18px 32px rgba(10, 18, 34, 0.28);
+      backdrop-filter: blur(2px);
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 45%, rgba(255, 255, 255, 0.06));
+    }
+
+    .instrument-card {
+      background:
+        radial-gradient(550px 220px at -8% -35%, rgba(255, 206, 86, 0.28), transparent 60%),
+        linear-gradient(135deg, #18233a, #21334f);
+    }
+
+    .target-card {
+      background:
+        radial-gradient(600px 200px at 105% -30%, rgba(96, 165, 250, 0.28), transparent 55%),
+        linear-gradient(135deg, #10243a, #133251);
+    }
+
+    .reminder-card {
+      background:
+        radial-gradient(560px 240px at 0% 120%, rgba(94, 234, 212, 0.24), transparent 60%),
+        linear-gradient(135deg, #12303a, #15424c);
+    }
+
+    .feedback-card {
+      background:
+        radial-gradient(620px 260px at 110% 10%, rgba(244, 114, 182, 0.24), transparent 58%),
+        linear-gradient(135deg, #2a1b3d, #3b2454);
+    }
+
+    .about-card {
+      background:
+        radial-gradient(620px 240px at -5% 0%, rgba(167, 139, 250, 0.22), transparent 58%),
+        linear-gradient(135deg, #24203b, #2f2851);
+    }
+
+    .hero-card ion-card-title,
+    .hero-card h2,
+    .hero-card h3,
+    .hero-card p,
+    .hero-card ion-label {
+      color: #f6f8ff;
+    }
+
+    .hero-card ion-item {
+      --background: transparent;
+      --color: #f6f8ff;
+      --border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .hero-card ion-button[fill='outline'] {
+      --border-color: rgba(255, 255, 255, 0.45);
+      --color: #ffffff;
     }
 
     ion-list {
