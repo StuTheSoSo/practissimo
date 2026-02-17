@@ -50,7 +50,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
           <h2>{{ currentInstrument() }}</h2>
         </div>
 
-        <ion-card>
+        <ion-card class="selection-card">
           <ion-card-content>
             <ion-item lines="none">
               <ion-label position="stacked">Tuning</ion-label>
@@ -75,12 +75,10 @@ import { InstrumentService } from '../../core/services/instrument.service';
           <ion-card-content>
             <!-- Detected Note -->
             <div class="note-display">
-              @if (showSetupIndicator()) {
-                <div class="setup-indicator">
-                  <ion-spinner name="crescent"></ion-spinner>
-                  <span>Listening... lock-on in progress</span>
-                </div>
-              }
+              <div class="setup-indicator" [class.visible]="showSetupIndicator()">
+                <ion-spinner name="crescent"></ion-spinner>
+                <span>Listening... lock-on in progress</span>
+              </div>
               <div class="note-name" [class.in-tune]="isInTune()">
                 {{ detectedNote() || '-' }}
                 @if (detectedOctave() > 0) {
@@ -148,6 +146,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
         <div class="control-buttons">
           @if (!isListening()) {
             <ion-button
+              class="start-button"
               expand="block"
               size="large"
               color="success"
@@ -158,6 +157,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
             </ion-button>
           } @else {
             <ion-button
+              class="stop-button"
               expand="block"
               size="large"
               color="danger"
@@ -171,7 +171,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
 
         <!-- String Guide -->
         @if (currentTuning()) {
-          <ion-card>
+          <ion-card class="string-guide-card">
             <ion-card-header>
               <ion-card-title>String Guide</ion-card-title>
             </ion-card-header>
@@ -179,6 +179,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
               <ion-list>
                 @for (string of currentTuning()!.strings; track string.stringNumber) {
                   <ion-item
+                    class="string-item-button"
                     [class.active-string]="isActiveString(string)"
                     button
                     (click)="playReferenceTone(string)"
@@ -199,7 +200,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
         }
 
         <!-- Instructions -->
-        <ion-card>
+        <ion-card class="instructions-card">
           <ion-card-content>
             <div class="instructions">
               <strong>How to use:</strong>
@@ -222,6 +223,18 @@ import { InstrumentService } from '../../core/services/instrument.service';
       margin: 0 auto;
     }
 
+    .tuner-container ion-card {
+      border-radius: 18px;
+      border: 1px solid rgba(131, 161, 220, 0.26);
+      box-shadow: 0 10px 22px rgba(63, 84, 131, 0.12);
+    }
+
+    .selection-card {
+      background:
+        radial-gradient(circle at 95% 8%, rgba(169, 194, 255, 0.22), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(246, 251, 255, 0.97));
+    }
+
     .instrument-header {
       display: flex;
       align-items: center;
@@ -239,6 +252,10 @@ import { InstrumentService } from '../../core/services/instrument.service';
 
     .tuner-display {
       margin: 2rem 0;
+      background:
+        radial-gradient(circle at 5% 2%, rgba(186, 247, 229, 0.3), transparent 34%),
+        radial-gradient(circle at 95% 10%, rgba(165, 189, 255, 0.24), transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 255, 0.98));
     }
 
     .note-display {
@@ -257,6 +274,9 @@ import { InstrumentService } from '../../core/services/instrument.service';
       color: var(--ion-color-primary);
       font-weight: 600;
       font-size: 0.9rem;
+      min-height: 32px;
+      opacity: 0;
+      visibility: hidden;
     }
 
     .setup-indicator ion-spinner {
@@ -264,11 +284,16 @@ import { InstrumentService } from '../../core/services/instrument.service';
       height: 16px;
     }
 
+    .setup-indicator.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
     .note-name {
       font-size: 6rem;
       font-weight: bold;
       line-height: 1;
-      color: var(--ion-color-medium);
+      color: #3a4b66;
       transition: color 0.3s ease;
     }
 
@@ -283,8 +308,9 @@ import { InstrumentService } from '../../core/services/instrument.service';
 
     .frequency {
       font-size: 1.2rem;
-      color: var(--ion-color-medium);
+      color: #4a5f80;
       margin-top: 0.5rem;
+      font-weight: 700;
     }
 
     .cents-meter {
@@ -296,7 +322,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       justify-content: space-between;
       margin-bottom: 0.5rem;
       font-weight: bold;
-      color: var(--ion-color-medium);
+      color: #4a5f80;
     }
 
     .meter-track {
@@ -304,15 +330,16 @@ import { InstrumentService } from '../../core/services/instrument.service';
       height: 40px;
       background: linear-gradient(
         to right,
-        #ff4444 0%,
-        #ffaa44 25%,
-        #44ff44 45%,
-        #44ff44 55%,
-        #ffaa44 75%,
-        #ff4444 100%
+        #f58a8a 0%,
+        #ffd28f 25%,
+        #89ddb0 45%,
+        #89ddb0 55%,
+        #ffd28f 75%,
+        #f58a8a 100%
       );
       border-radius: 20px;
       overflow: hidden;
+      border: 1px solid rgba(80, 99, 139, 0.16);
     }
 
     .meter-center {
@@ -321,7 +348,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       top: 0;
       bottom: 0;
       width: 3px;
-      background: #333;
+      background: rgba(24, 36, 63, 0.7);
       transform: translateX(-50%);
     }
 
@@ -330,7 +357,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       top: 50%;
       width: 4px;
       height: 50px;
-      background: #000;
+      background: #1e2d4b;
       transform: translate(-50%, -50%);
       transition: left 0.1s ease-out;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -346,7 +373,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       height: 0;
       border-left: 8px solid transparent;
       border-right: 8px solid transparent;
-      border-top: 12px solid #000;
+      border-top: 12px solid #1e2d4b;
     }
 
     .meter-needle.in-tune {
@@ -363,7 +390,8 @@ import { InstrumentService } from '../../core/services/instrument.service';
       justify-content: space-between;
       margin-top: 0.5rem;
       font-size: 0.9rem;
-      color: var(--ion-color-medium);
+      color: #4a5f80;
+      font-weight: 700;
     }
 
     .meter-ticks .center {
@@ -384,6 +412,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       font-size: 1.2rem;
       font-weight: bold;
       transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.35);
     }
 
     .status-badge.in-tune {
@@ -413,18 +442,96 @@ import { InstrumentService } from '../../core/services/instrument.service';
       margin: 2rem 0;
     }
 
+    .control-buttons ion-button {
+      --border-radius: 14px;
+      min-height: 50px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .start-button {
+      --background: linear-gradient(135deg, #67c9ab, #44b68d);
+      --box-shadow: 0 10px 18px rgba(68, 182, 141, 0.35);
+    }
+
+    .stop-button {
+      --background: linear-gradient(135deg, #f08d8d, #dd6666);
+      --box-shadow: 0 10px 18px rgba(221, 102, 102, 0.35);
+    }
+
     .active-string {
-      background: var(--ion-color-primary-tint);
+      background: rgba(98, 154, 255, 0.14);
+      border-radius: 12px;
+    }
+
+    .string-guide-card ion-item {
+      --padding-top: 0.45rem;
+      --padding-bottom: 0.45rem;
+      --inner-padding-end: 0.25rem;
+      border-radius: 12px;
+      margin-bottom: 0.35rem;
+    }
+
+    .string-item-button {
+      --background: rgba(255, 255, 255, 0.72);
+      --inner-border-width: 0;
+      border: 1px solid rgba(128, 152, 203, 0.34);
+      box-shadow: 0 6px 12px rgba(76, 101, 153, 0.12);
+      transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    }
+
+    .string-item-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 8px rgba(76, 101, 153, 0.16);
+    }
+
+    .string-item-button:hover {
+      --background: rgba(255, 255, 255, 0.92);
+    }
+
+    .string-guide-card ion-label h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1e2f4b;
+    }
+
+    .string-guide-card ion-label p {
+      margin: 0.2rem 0 0;
+      font-size: 0.9rem;
+      color: #425777;
+      font-weight: 600;
+    }
+
+    .string-guide-card ion-badge {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .string-guide-card ion-icon[name='volume-high'] {
+      color: #5f78a2;
+    }
+
+    .string-guide-card {
+      background:
+        radial-gradient(circle at 95% 12%, rgba(190, 205, 255, 0.2), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(246, 250, 255, 0.97));
+    }
+
+    .instructions-card {
+      background:
+        radial-gradient(circle at 6% 12%, rgba(255, 215, 163, 0.22), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(255, 248, 238, 0.97));
     }
 
     .instructions {
-      color: var(--ion-color-medium);
+      color: #3b4d6c;
     }
 
     .instructions strong {
       display: block;
       margin-bottom: 0.5rem;
-      color: var(--ion-color-dark);
+      color: #1f2e4a;
     }
 
     .instructions ol {
@@ -439,6 +546,75 @@ import { InstrumentService } from '../../core/services/instrument.service';
     ion-item {
       --padding-start: 0;
       --inner-padding-end: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .selection-card,
+      .string-guide-card {
+        background:
+          radial-gradient(circle at 95% 10%, rgba(140, 165, 255, 0.2), transparent 40%),
+          linear-gradient(180deg, rgba(22, 33, 60, 0.96), rgba(17, 28, 54, 0.96));
+      }
+
+      .tuner-display {
+        background:
+          radial-gradient(circle at 5% 2%, rgba(106, 201, 173, 0.2), transparent 36%),
+          radial-gradient(circle at 95% 10%, rgba(129, 155, 248, 0.2), transparent 42%),
+          linear-gradient(180deg, rgba(16, 29, 55, 0.96), rgba(13, 25, 49, 0.96));
+      }
+
+      .instructions-card {
+        background:
+          radial-gradient(circle at 6% 12%, rgba(228, 178, 114, 0.22), transparent 40%),
+          linear-gradient(180deg, rgba(53, 35, 14, 0.95), rgba(41, 28, 12, 0.95));
+      }
+
+      .note-name,
+      .frequency,
+      .meter-labels,
+      .meter-ticks,
+      .instructions,
+      .instructions strong {
+        color: #eaf0ff !important;
+      }
+
+      .string-guide-card ion-label h3 {
+        color: #f4f8ff;
+      }
+
+      .string-guide-card ion-label p {
+        color: #d8e3ff;
+      }
+
+      .string-guide-card ion-icon[name='volume-high'] {
+        color: #c9d8ff;
+      }
+
+      .string-item-button {
+        --background: rgba(28, 40, 70, 0.88);
+        border-color: rgba(128, 157, 222, 0.42);
+        box-shadow: 0 8px 14px rgba(0, 0, 0, 0.24);
+      }
+
+      .string-item-button:hover {
+        --background: rgba(36, 49, 82, 0.96);
+      }
+
+      .active-string {
+        background: rgba(123, 168, 255, 0.22);
+      }
+
+      .meter-center {
+        background: rgba(235, 243, 255, 0.7);
+      }
+
+      .meter-needle {
+        background: #f8fafc;
+      }
+
+      .meter-needle::before {
+        border-top-color: #f8fafc;
+      }
     }
   `],
   standalone: true,

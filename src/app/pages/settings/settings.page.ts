@@ -236,10 +236,10 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     .hero-card {
       position: relative;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.55);
       border-radius: 18px;
-      box-shadow: 0 18px 32px rgba(10, 18, 34, 0.28);
-      backdrop-filter: blur(2px);
+      box-shadow: 0 12px 22px rgba(37, 44, 76, 0.16);
+      backdrop-filter: blur(3px);
     }
 
     .hero-card::before {
@@ -247,37 +247,37 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 45%, rgba(255, 255, 255, 0.06));
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 48%, rgba(255, 255, 255, 0.28));
     }
 
     .instrument-card {
       background:
-        radial-gradient(550px 220px at -8% -35%, rgba(255, 206, 86, 0.28), transparent 60%),
-        linear-gradient(135deg, #18233a, #21334f);
+        radial-gradient(560px 240px at -6% -32%, rgba(255, 207, 139, 0.55), transparent 62%),
+        linear-gradient(135deg, #fff5e6, #fdeed5);
     }
 
     .target-card {
       background:
-        radial-gradient(600px 200px at 105% -30%, rgba(96, 165, 250, 0.28), transparent 55%),
-        linear-gradient(135deg, #10243a, #133251);
+        radial-gradient(600px 200px at 108% -30%, rgba(145, 197, 255, 0.5), transparent 56%),
+        linear-gradient(135deg, #eff7ff, #e6f2ff);
     }
 
     .reminder-card {
       background:
-        radial-gradient(560px 240px at 0% 120%, rgba(94, 234, 212, 0.24), transparent 60%),
-        linear-gradient(135deg, #12303a, #15424c);
+        radial-gradient(560px 240px at 0% 120%, rgba(136, 232, 215, 0.45), transparent 62%),
+        linear-gradient(135deg, #ecfbf5, #dbf5ee);
     }
 
     .feedback-card {
       background:
-        radial-gradient(620px 260px at 110% 10%, rgba(244, 114, 182, 0.24), transparent 58%),
-        linear-gradient(135deg, #2a1b3d, #3b2454);
+        radial-gradient(620px 260px at 110% 10%, rgba(245, 168, 209, 0.45), transparent 60%),
+        linear-gradient(135deg, #fff0f8, #fbe8f3);
     }
 
     .about-card {
       background:
-        radial-gradient(620px 240px at -5% 0%, rgba(167, 139, 250, 0.22), transparent 58%),
-        linear-gradient(135deg, #24203b, #2f2851);
+        radial-gradient(620px 240px at -5% 0%, rgba(189, 174, 255, 0.4), transparent 60%),
+        linear-gradient(135deg, #f5f0ff, #ece5ff);
     }
 
     .hero-card ion-card-title,
@@ -285,18 +285,18 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     .hero-card h3,
     .hero-card p,
     .hero-card ion-label {
-      color: #f6f8ff;
+      color: #1e2a44;
     }
 
     .hero-card ion-item {
       --background: transparent;
-      --color: #f6f8ff;
-      --border-color: rgba(255, 255, 255, 0.15);
+      --color: #1e2a44;
+      --border-color: rgba(30, 42, 68, 0.14);
     }
 
     .hero-card ion-button[fill='outline'] {
-      --border-color: rgba(255, 255, 255, 0.45);
-      --color: #ffffff;
+      --border-color: rgba(30, 42, 68, 0.28);
+      --color: #1e2a44;
     }
 
     ion-list {

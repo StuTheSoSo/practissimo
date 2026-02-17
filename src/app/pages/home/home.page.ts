@@ -401,10 +401,10 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       padding: 1.35rem 1rem 1.5rem;
       border-radius: 18px;
       background:
-        radial-gradient(circle at top right, rgba(var(--ion-color-warning-rgb), 0.45), transparent 45%),
-        linear-gradient(145deg, var(--ion-color-primary), var(--ion-color-secondary));
+        radial-gradient(circle at top right, rgba(255, 221, 167, 0.55), transparent 46%),
+        linear-gradient(145deg, #5d86f3, #71b4ff);
       color: var(--ion-color-primary-contrast);
-      box-shadow: 0 14px 28px rgba(var(--ion-color-primary-rgb), 0.28);
+      box-shadow: 0 12px 22px rgba(64, 115, 210, 0.22);
       position: relative;
       overflow: hidden;
       background-size: 130% 130%;
@@ -422,22 +422,22 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .practice-hero.state-active {
       background:
-        radial-gradient(circle at top right, rgba(120, 255, 196, 0.42), transparent 45%),
-        linear-gradient(145deg, #1f8f55, #3ab879);
+        radial-gradient(circle at top right, rgba(178, 255, 214, 0.48), transparent 46%),
+        linear-gradient(145deg, #2f9f72, #4ac798);
       background-size: 130% 130%;
     }
 
     .practice-hero.state-risk {
       background:
-        radial-gradient(circle at top right, rgba(255, 219, 121, 0.42), transparent 45%),
-        linear-gradient(145deg, #b3620f, #dd8f2a);
+        radial-gradient(circle at top right, rgba(255, 232, 165, 0.5), transparent 46%),
+        linear-gradient(145deg, #cc7c2d, #e8a347);
       background-size: 130% 130%;
     }
 
     .practice-hero.state-broken {
       background:
-        radial-gradient(circle at top right, rgba(186, 201, 255, 0.35), transparent 45%),
-        linear-gradient(145deg, #3e4f7a, #5d6a93);
+        radial-gradient(circle at top right, rgba(201, 212, 255, 0.45), transparent 46%),
+        linear-gradient(145deg, #6075a7, #7a90bf);
       background-size: 130% 130%;
     }
 
@@ -540,8 +540,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       gap: 0.65rem;
       padding: 0.72rem 0.78rem;
       border-radius: 14px;
-      border: 1px solid rgba(20, 20, 20, 0.08);
-      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(149, 175, 228, 0.24);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 250, 255, 0.9));
       backdrop-filter: blur(4px);
     }
 
@@ -576,8 +576,9 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .streak-card {
-      background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-secondary-tint));
-      border: 1px solid rgba(var(--ion-color-primary-rgb), 0.2);
+      background: linear-gradient(135deg, #fdf5df, #f7ebd8);
+      border: 1px solid rgba(224, 188, 110, 0.28);
+      box-shadow: 0 8px 18px rgba(161, 121, 52, 0.12);
     }
 
     .streak-card ion-card-title {
@@ -665,10 +666,11 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .level-progress-card {
-      border: 1px solid rgba(79, 134, 247, 0.25);
+      border: 1px solid rgba(125, 164, 238, 0.32);
       background:
-        radial-gradient(circle at 96% 4%, rgba(79, 134, 247, 0.22), transparent 38%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 252, 255, 0.92));
+        radial-gradient(circle at 96% 4%, rgba(128, 170, 248, 0.28), transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 255, 0.96));
+      box-shadow: 0 8px 18px rgba(108, 142, 209, 0.14);
     }
 
     .level-progress-card ion-card-title {
@@ -697,12 +699,13 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .weekly-target-card {
-      border: 1px solid rgba(23, 190, 187, 0.26);
+      border: 1px solid rgba(77, 198, 178, 0.3);
       background:
-        radial-gradient(circle at 95% 8%, rgba(23, 190, 187, 0.2), transparent 36%),
-        linear-gradient(180deg, rgba(252, 255, 254, 0.95), rgba(248, 255, 251, 0.95));
+        radial-gradient(circle at 95% 8%, rgba(119, 219, 206, 0.24), transparent 38%),
+        linear-gradient(180deg, rgba(250, 255, 253, 0.96), rgba(241, 252, 248, 0.96));
       position: relative;
       overflow: hidden;
+      box-shadow: 0 8px 18px rgba(84, 168, 150, 0.13);
     }
 
     .weekly-target-card ion-card-title {
@@ -846,10 +849,10 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .feedback-card {
-      border: 1px solid rgba(64, 120, 255, 0.2);
+      border: 1px solid rgba(146, 166, 230, 0.32);
       background:
-        radial-gradient(circle at 95% 8%, rgba(64, 120, 255, 0.12), transparent 34%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(251, 253, 255, 0.96));
+        radial-gradient(circle at 95% 8%, rgba(173, 189, 255, 0.2), transparent 36%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(247, 250, 255, 0.97));
     }
 
     .feedback-card p,
@@ -896,6 +899,19 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     @media (prefers-color-scheme: dark) {
+      .streak-card {
+        border-color: rgba(245, 199, 98, 0.35);
+        background: linear-gradient(135deg, rgba(74, 46, 12, 0.96), rgba(96, 63, 20, 0.96));
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+      }
+
+      .feedback-card {
+        border-color: rgba(147, 166, 255, 0.38);
+        background:
+          radial-gradient(circle at 95% 8%, rgba(143, 166, 255, 0.24), transparent 38%),
+          linear-gradient(180deg, rgba(24, 31, 58, 0.96), rgba(18, 27, 52, 0.96));
+      }
+
       .level-progress-card {
         border-color: rgba(96, 165, 250, 0.35);
         background:
@@ -925,6 +941,14 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
       .weekly-target-card .weekly-target-detail strong {
         color: #5eead4 !important;
+      }
+
+      .streak-card ion-card-title,
+      .streak-status,
+      .longest-streak,
+      .feedback-card ion-card-title,
+      .feedback-card p {
+        color: #f8fafc !important;
       }
 
       .home-container,

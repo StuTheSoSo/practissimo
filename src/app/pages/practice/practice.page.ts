@@ -50,7 +50,7 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
       <div class="practice-container">
         <!-- Setup Phase -->
         @if (!timerState().isRunning) {
-          <ion-card>
+          <ion-card class="setup-card">
             <ion-card-header>
               <ion-card-title>Setup Your Session</ion-card-title>
             </ion-card-header>
@@ -88,6 +88,7 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
           </ion-card>
 
           <ion-button
+            class="start-session-button"
             expand="block"
             size="large"
             (click)="startSession()"
@@ -156,6 +157,15 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
     .practice-container ion-card {
       --color: #0f172a;
       color: #0f172a;
+      border-radius: 18px;
+      border: 1px solid rgba(131, 161, 220, 0.28);
+      box-shadow: 0 10px 22px rgba(62, 85, 135, 0.12);
+    }
+
+    .setup-card {
+      background:
+        radial-gradient(circle at 95% 8%, rgba(173, 190, 255, 0.25), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(245, 250, 255, 0.97));
     }
 
     .practice-container ion-item {
@@ -185,6 +195,10 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
 
     .timer-card {
       text-align: center;
+      background:
+        radial-gradient(circle at 8% 0%, rgba(186, 247, 229, 0.32), transparent 35%),
+        radial-gradient(circle at 95% 10%, rgba(173, 190, 255, 0.24), transparent 40%),
+        linear-gradient(180deg, rgba(254, 255, 255, 0.98), rgba(246, 251, 255, 0.98));
     }
 
     .timer-display {
@@ -192,11 +206,12 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
     }
 
     .timer-display h1 {
-      font-size: 4rem;
+      font-size: 3.8rem;
       font-weight: bold;
       margin: 0;
       font-variant-numeric: tabular-nums;
-      color: #0f172a;
+      color: #122343;
+      letter-spacing: 0.02em;
     }
 
     .timer-display p {
@@ -209,15 +224,32 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
     .timer-controls {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.85rem;
       margin-top: 2rem;
+    }
+
+    .timer-controls ion-button {
+      --border-radius: 14px;
+      font-weight: 700;
+      min-height: 48px;
+    }
+
+    .start-session-button {
+      --background: linear-gradient(135deg, #ffcf74, #ffb25f);
+      --color: #2a1b00;
+      --border-radius: 14px;
+      --box-shadow: 0 10px 20px rgba(214, 145, 57, 0.32);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      margin-top: 0.4rem;
     }
 
     .session-notes {
       margin-top: 2rem;
       padding: 1rem;
-      background: var(--ion-color-light);
-      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(148, 165, 205, 0.24);
+      border-radius: 12px;
       text-align: left;
       color: #1f2937;
     }
@@ -240,12 +272,34 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
       font-weight: 600;
     }
 
+    ion-textarea::part(native) {
+      line-height: 1.45;
+    }
+
     ion-select::part(placeholder) {
       color: #475569;
       opacity: 1;
     }
 
     @media (prefers-color-scheme: dark) {
+      .setup-card {
+        background:
+          radial-gradient(circle at 95% 8%, rgba(130, 156, 255, 0.22), transparent 40%),
+          linear-gradient(180deg, rgba(22, 32, 59, 0.96), rgba(17, 28, 54, 0.96));
+      }
+
+      .timer-card {
+        background:
+          radial-gradient(circle at 8% 0%, rgba(103, 201, 171, 0.22), transparent 38%),
+          radial-gradient(circle at 95% 10%, rgba(128, 153, 247, 0.2), transparent 42%),
+          linear-gradient(180deg, rgba(16, 28, 54, 0.96), rgba(14, 25, 49, 0.96));
+      }
+
+      .start-session-button {
+        --background: linear-gradient(135deg, #f4c45d, #e8a849);
+        --color: #201300;
+      }
+
       .practice-container,
       .practice-container ion-card {
         color: #f3f4f6 !important;
