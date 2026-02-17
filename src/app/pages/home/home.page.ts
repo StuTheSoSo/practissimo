@@ -227,24 +227,24 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
         </ion-card>
 
         @if (!isPro()) {
-          // <ion-card class="pro-upgrade-card reveal reveal-8">
-          //   <ion-card-content>
-          //     <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
-          //     <div class="pro-upgrade-header">
-          //       <ion-icon name="sparkles" color="warning"></ion-icon>
-          //       <div>
-          //         <h3>Unlock Your Full Practice Power</h3>
-          //         <p>Full chord library, favorites, and advanced filters.</p>
-          //       </div>
-          //     </div>
-          //     <div class="pro-upgrade-footer">
-          //       <span class="pro-upgrade-price">From $0.99/month</span>
-          //       <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
-          //         Go Pro
-          //       </ion-button>
-          //     </div>
-          //   </ion-card-content>
-          // </ion-card>
+          <ion-card class="pro-upgrade-card reveal reveal-8">
+            <ion-card-content>
+              <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
+              <div class="pro-upgrade-header">
+                <ion-icon name="sparkles" color="warning"></ion-icon>
+                <div>
+                  <h3>Unlock Your Full Practice Power</h3>
+                  <p>Full chord library, favorites, and advanced filters.</p>
+                </div>
+              </div>
+              <div class="pro-upgrade-footer">
+                <span class="pro-upgrade-price">From $0.99/month</span>
+                <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
+                  Go Pro
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
         }
 
         <section class="more-section reveal reveal-9">
@@ -894,6 +894,37 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     @media (prefers-color-scheme: dark) {
+      .level-progress-card {
+        border-color: rgba(96, 165, 250, 0.35);
+        background:
+          radial-gradient(circle at 96% 4%, rgba(96, 165, 250, 0.24), transparent 40%),
+          linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
+      }
+
+      .weekly-target-card {
+        border-color: rgba(45, 212, 191, 0.34);
+        background:
+          radial-gradient(circle at 95% 8%, rgba(45, 212, 191, 0.2), transparent 38%),
+          linear-gradient(180deg, rgba(6, 41, 46, 0.95), rgba(8, 47, 56, 0.95));
+      }
+
+      .level-progress-card ion-card-title,
+      .level-progress-card .xp-info span,
+      .weekly-target-card ion-card-title,
+      .weekly-target-card .weekly-target-meta span,
+      .weekly-target-card .weekly-target-detail,
+      .weekly-target-meta {
+        color: #f8fafc !important;
+      }
+
+      .progress-track {
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .weekly-target-card .weekly-target-detail strong {
+        color: #5eead4 !important;
+      }
+
       .home-container,
       .home-container ion-card:not(.pro-upgrade-card) {
         color: #f3f4f6 !important;

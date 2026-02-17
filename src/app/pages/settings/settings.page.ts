@@ -207,14 +207,14 @@ import { NotificationService } from '../../core/services/notification.service';
 
             <div class="pro-actions">
               @if (!isPro()) {
-                // <ion-button expand="block" class="pro-cta" (click)="upgradeToPro()">
-                //   Upgrade to Pro
-                // </ion-button>
+                <ion-button expand="block" class="pro-cta" (click)="upgradeToPro()">
+                  Upgrade to Pro
+                </ion-button>
               }
               @if (isPro() && managementUrl()) {
-                // <ion-button expand="block" fill="outline" class="pro-restore" (click)="manageSubscription()">
-                //   Manage Subscription
-                // </ion-button>
+                <ion-button expand="block" fill="outline" class="pro-restore" (click)="manageSubscription()">
+                  Manage Subscription
+                </ion-button>
               }
               <ion-button expand="block" fill="outline" class="pro-restore" (click)="restorePurchases()">
                 Restore Purchases
