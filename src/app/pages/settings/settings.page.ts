@@ -23,7 +23,7 @@ import {
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleEllipses, bug, bulb, heart, notifications, time } from 'ionicons/icons';
+import { chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark } from 'ionicons/icons';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
@@ -151,6 +151,16 @@ import { NotificationService } from '../../core/services/notification.service';
             <p>PracticeQuest v1.2.0</p>
             <p>A gamified practice tracker for musicians</p>
             <p>The only magic I've ever found is "The more you practice, the better you get."</p>
+            <ion-list>
+              <ion-item button detail="true" (click)="openTermsOfUse()">
+                <ion-icon name="document-text" slot="start"></ion-icon>
+                <ion-label>Terms of Use (EULA)</ion-label>
+              </ion-item>
+              <ion-item button detail="true" (click)="openPrivacyPolicy()">
+                <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+                <ion-label>Privacy Policy</ion-label>
+              </ion-item>
+            </ion-list>
             <br>
             <p class="made-with-love">
               <ion-icon name="heart" color="danger"></ion-icon>
@@ -399,6 +409,9 @@ import { NotificationService } from '../../core/services/notification.service';
   ]
 })
 export class SettingsPage {
+  private readonly APPLE_STANDARD_EULA_URL =
+    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+
   private router = inject(Router);
   private alertController = inject(AlertController);
   private modalController = inject(ModalController);
@@ -416,7 +429,7 @@ export class SettingsPage {
   reminderTimeLabel = this.notificationService.reminderTimeLabel;
 
   constructor() {
-    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time });
+    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark });
   }
 
   async changeInstrument() {
@@ -503,6 +516,14 @@ export class SettingsPage {
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  openTermsOfUse() {
+    window.open(this.APPLE_STANDARD_EULA_URL, '_blank');
+  }
+
+  openPrivacyPolicy() {
+    this.router.navigate(['/privacy-policy']);
   }
 
   async setWeeklyTarget() {

@@ -1,6 +1,7 @@
 // src/app/shared/components/paywall-modal.component.ts
-import { Component, Input, inject, signal, effect } from '@angular/core';
+import { Component, Input, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonButton,
   IonCard,
@@ -77,6 +78,30 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
                   </ion-item>
                 }
               </ion-list>
+            }
+
+            @if (selectedPackage(); as selected) {
+              <div class="subscription-disclosure">
+                <h3>Auto-Renewing Subscription Details</h3>
+                <p><strong>Title:</strong> {{ subscriptionTitle(selected) }}</p>
+                <p><strong>Length:</strong> {{ subscriptionLength(selected) }}</p>
+                <p><strong>Price:</strong> {{ selected.product.priceString }}</p>
+                @if (pricePerUnit(selected); as unitPrice) {
+                  <p><strong>Price per unit:</strong> {{ unitPrice }}</p>
+                }
+                <p class="renew-note">
+                  Subscription renews automatically unless canceled at least 24 hours before the end of the current
+                  period.
+                </p>
+                <div class="legal-links">
+                  <ion-button fill="clear" size="small" (click)="openPrivacyPolicy()">
+                    Privacy Policy
+                  </ion-button>
+                  <ion-button fill="clear" size="small" (click)="openTermsOfUse()">
+                    Terms of Use (EULA)
+                  </ion-button>
+                </div>
+              </div>
             }
 
             <div class="paywall-actions">
@@ -217,6 +242,43 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
       gap: 0.75rem;
     }
 
+    .subscription-disclosure {
+      margin: 1rem 0 1.25rem;
+      padding: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      background: rgba(8, 14, 24, 0.55);
+    }
+
+    .subscription-disclosure h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      color: #ffffff;
+    }
+
+    .subscription-disclosure p {
+      margin: 0.35rem 0;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .renew-note {
+      margin-top: 0.5rem;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .legal-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.45rem;
+    }
+
+    .legal-links ion-button {
+      --color: #ffd166;
+      margin: 0;
+    }
+
     .paywall-cta {
       --background: linear-gradient(135deg, #ffd166, #ff8fab);
       --color: #1b1b1b;
@@ -256,9 +318,12 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
 })
 export class PaywallModalComponent {
   @Input() reason = '';
+  private readonly APPLE_STANDARD_EULA_URL =
+    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
   private modalController = inject(ModalController);
   private alertController = inject(AlertController);
+  private router = inject(Router);
   private revenueCat = inject(RevenueCatService);
 
   isPro = this.revenueCat.isPro;
@@ -266,6 +331,9 @@ export class PaywallModalComponent {
   managementUrl = this.revenueCat.managementUrl;
 
   selectedPackageId = signal<string | null>(null);
+  selectedPackage = computed(() =>
+    this.packages().find(pkg => pkg.identifier === this.selectedPackageId()) ?? this.packages()[0] ?? null
+  );
 
   constructor() {
     addIcons({ close, sparkles, checkmarkCircle });
@@ -376,5 +444,72 @@ export class PaywallModalComponent {
       default:
         return 'Premium access';
     }
+  }
+
+  subscriptionTitle(pkg: any): string {
+    return pkg.product?.title || this.packageTitle(pkg);
+  }
+
+  subscriptionLength(pkg: any): string {
+    const period = pkg.product?.subscriptionPeriod as string | null;
+    if (period) {
+      const match = /^P(\d+)([DWMY])$/.exec(period);
+      if (match) {
+        const amount = Number(match[1]);
+        const unit = match[2] === 'D'
+          ? 'day'
+          : match[2] === 'W'
+            ? 'week'
+            : match[2] === 'M'
+              ? 'month'
+              : 'year';
+        return `${amount} ${unit}${amount === 1 ? '' : 's'}`;
+      }
+    }
+
+    switch (pkg.packageType) {
+      case 'ANNUAL':
+        return '1 year';
+      case 'SIX_MONTH':
+        return '6 months';
+      case 'THREE_MONTH':
+        return '3 months';
+      case 'TWO_MONTH':
+        return '2 months';
+      case 'MONTHLY':
+        return '1 month';
+      case 'WEEKLY':
+        return '1 week';
+      default:
+        return 'Not specified';
+    }
+  }
+
+  pricePerUnit(pkg: any): string | null {
+    const product = pkg.product;
+    if (!product) return null;
+
+    if (product.subscriptionPeriod !== 'P1M' && product.pricePerMonthString) {
+      return `${product.pricePerMonthString} per month (approx.)`;
+    }
+
+    if (product.subscriptionPeriod !== 'P1W' && product.pricePerWeekString) {
+      return `${product.pricePerWeekString} per week (approx.)`;
+    }
+
+    if (product.subscriptionPeriod !== 'P1Y' && product.pricePerYearString) {
+      return `${product.pricePerYearString} per year (approx.)`;
+    }
+
+    return null;
+  }
+
+  async openPrivacyPolicy() {
+    await this.modalController.dismiss();
+    await this.router.navigate(['/privacy-policy']);
+  }
+
+  openTermsOfUse() {
+    window.open(this.APPLE_STANDARD_EULA_URL, '_blank');
   }
 }
