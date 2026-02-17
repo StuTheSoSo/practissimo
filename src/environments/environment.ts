@@ -8,6 +8,11 @@ export const environment = {
     iosAppStoreId: '',
     androidPackageName: 'com.practissimo.app'
   },
+  legalLinks: {
+    iosTermsUrl: 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+    androidTermsUrl: '',
+    privacyPolicyUrl: ''
+  },
   revenuecat: {
     iosApiKey: 'test_jsmKwfOxEWgbIVhwnjpwFpfmaJP',
     androidApiKey: '',

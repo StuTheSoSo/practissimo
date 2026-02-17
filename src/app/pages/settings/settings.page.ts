@@ -31,6 +31,7 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { LegalLinksService } from '../../core/services/legal-links.service';
 
 @Component({
   selector: 'app-settings',
@@ -475,9 +476,6 @@ import { NotificationService } from '../../core/services/notification.service';
   ]
 })
 export class SettingsPage {
-  private readonly APPLE_STANDARD_EULA_URL =
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
-
   private router = inject(Router);
   private alertController = inject(AlertController);
   private modalController = inject(ModalController);
@@ -485,6 +483,7 @@ export class SettingsPage {
   private revenueCat = inject(RevenueCatService);
   private weeklyTargetService = inject(WeeklyTargetService);
   private notificationService = inject(NotificationService);
+  private legalLinksService = inject(LegalLinksService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
@@ -585,11 +584,11 @@ export class SettingsPage {
   }
 
   openTermsOfUse() {
-    window.open(this.APPLE_STANDARD_EULA_URL, '_blank');
+    void this.legalLinksService.openTermsOfUse();
   }
 
   openPrivacyPolicy() {
-    this.router.navigate(['/privacy-policy']);
+    void this.legalLinksService.openPrivacyPolicy();
   }
 
   async setWeeklyTarget() {

@@ -48,6 +48,10 @@ const routes: Routes = [
   {
     path: 'privacy-policy',
     loadComponent: () => import('./app/pages/privacy-policy/privacy-policy.page').then(m => m.PrivacyPolicyPage)
+  },
+  {
+    path: 'terms-of-use-android',
+    loadComponent: () => import('./app/pages/terms-of-use-android/terms-of-use-android.page').then(m => m.TermsOfUseAndroidPage)
   }
 ];
 

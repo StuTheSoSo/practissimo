@@ -1,7 +1,6 @@
 // src/app/shared/components/paywall-modal.component.ts
 import { Component, Input, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import {
   IonButton,
   IonCard,
@@ -19,6 +18,7 @@ import {
 import { addIcons } from 'ionicons';
 import { close, sparkles, checkmarkCircle } from 'ionicons/icons';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
+import { LegalLinksService } from '../../core/services/legal-links.service';
 
 @Component({
   selector: 'app-paywall-modal',
@@ -318,13 +318,11 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
 })
 export class PaywallModalComponent {
   @Input() reason = '';
-  private readonly APPLE_STANDARD_EULA_URL =
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
   private modalController = inject(ModalController);
   private alertController = inject(AlertController);
-  private router = inject(Router);
   private revenueCat = inject(RevenueCatService);
+  private legalLinksService = inject(LegalLinksService);
 
   isPro = this.revenueCat.isPro;
   packages = this.revenueCat.availablePackages;
@@ -506,10 +504,10 @@ export class PaywallModalComponent {
 
   async openPrivacyPolicy() {
     await this.modalController.dismiss();
-    await this.router.navigate(['/privacy-policy']);
+    await this.legalLinksService.openPrivacyPolicy();
   }
 
-  openTermsOfUse() {
-    window.open(this.APPLE_STANDARD_EULA_URL, '_blank');
+  async openTermsOfUse() {
+    await this.legalLinksService.openTermsOfUse();
   }
 }
