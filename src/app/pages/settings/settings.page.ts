@@ -149,7 +149,7 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
             <ion-card-title>About</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p>PracticeQuest v1.2.0</p>
+            <p>PracticeQuest v1.3.0</p>
             <p>A gamified practice tracker for musicians</p>
             <p>The only magic I've ever found is "The more you practice, the better you get."</p>
             <ion-list>
@@ -297,6 +297,20 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     .hero-card ion-button[fill='outline'] {
       --border-color: rgba(30, 42, 68, 0.28);
       --color: #1e2a44;
+    }
+
+    .about-card ion-item {
+      --background: rgba(255, 255, 255, 0.72);
+      --color: #13213d;
+      --detail-icon-color: #2a3c64;
+      border: 1px solid rgba(42, 60, 100, 0.16);
+      border-radius: 12px;
+      margin-bottom: 0.45rem;
+    }
+
+    .about-card ion-item ion-label,
+    .about-card ion-item ion-icon {
+      color: #13213d !important;
     }
 
     ion-list {
@@ -452,6 +466,20 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
       }
       100% {
         transform: translateX(60%);
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .about-card ion-item {
+        --background: rgba(31, 44, 76, 0.86);
+        --color: #eff4ff;
+        --detail-icon-color: #dbe6ff;
+        border-color: rgba(190, 207, 255, 0.3);
+      }
+
+      .about-card ion-item ion-label,
+      .about-card ion-item ion-icon {
+        color: #eff4ff !important;
       }
     }
   `],
