@@ -226,6 +226,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
+        <!--
         @if (!isPro()) {
           <ion-card class="pro-upgrade-card reveal reveal-8">
             <ion-card-content>
@@ -246,6 +247,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             </ion-card-content>
           </ion-card>
         }
+        -->
 
         <section class="more-section reveal reveal-9">
           <ion-button expand="block" fill="clear" (click)="toggleMoreSection()">
