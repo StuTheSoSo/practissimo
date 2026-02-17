@@ -57,10 +57,11 @@ export const CHORD_LIBRARY: Chord[] = [
           strings: 6,
           frets: 4,
           baseFret: 2,
-          fingering: [2, 4, 4, 3, 2, 2],
-          fingers: [1, 3, 4, 2, 1, 1],
+          fingering: ['x', 2, 4, 4, 4, 2],
+          fingers: [null, 1, 3, 3, 3, 1],
           barres: [
-            { fret: 2, fromString: 0, toString: 5, finger: 1 }
+            { fret: 2, fromString: 1, toString: 5, finger: 1 },
+            { fret: 4, fromString: 2, toString: 4, finger: 3 }
           ]
         } as GuitarChordPosition
       }
@@ -2448,8 +2449,8 @@ export const CHORD_LIBRARY: Chord[] = [
           strings: 6,
           frets: 4,
           baseFret: 7,
-          fingering: [1, 2, 1, 'o', 1, 2],
-          fingers: [1, 2, 1, null, 3, 4],
+          fingering: [7, 9, 7, 8, 7, 7],
+          fingers: [1, 3, 1, 2, 1, 1],
           barres: [
             { fret: 7, fromString: 0, toString: 5, finger: 1 }
           ]
@@ -3792,18 +3793,61 @@ export const CHORD_LIBRARY: Chord[] = [
 },
 ];
 
+function variationSignature(variation: Chord['variations'][number]): string {
+  const positions = JSON.stringify(variation.positions);
+  return `${variation.id}::${variation.name}::${positions}`;
+}
+
+function dedupeChordLibrary(chords: Chord[]): Chord[] {
+  const byId = new Map<string, Chord>();
+
+  for (const chord of chords) {
+    const existing = byId.get(chord.id);
+
+    if (!existing) {
+      byId.set(chord.id, {
+        ...chord,
+        commonIn: chord.commonIn ? [...chord.commonIn] : chord.commonIn,
+        variations: chord.variations ? [...chord.variations] : []
+      });
+      continue;
+    }
+
+    // Merge usage metadata without duplicates.
+    const mergedCommonIn = new Set<string>([
+      ...(existing.commonIn ?? []),
+      ...(chord.commonIn ?? [])
+    ]);
+    existing.commonIn = mergedCommonIn.size > 0 ? Array.from(mergedCommonIn) : existing.commonIn;
+
+    // Merge unique variations by id+shape signature.
+    const seen = new Set(existing.variations.map(v => variationSignature(v)));
+    for (const variation of chord.variations) {
+      const signature = variationSignature(variation);
+      if (!seen.has(signature)) {
+        existing.variations.push(variation);
+        seen.add(signature);
+      }
+    }
+  }
+
+  return Array.from(byId.values());
+}
+
+export const CHORD_LIBRARY_DEDUPED: Chord[] = dedupeChordLibrary(CHORD_LIBRARY);
+
 /**
  * Get chords for specific instrument
  */
 export function getChordsForInstrument(instrument: string): Chord[] {
-  return CHORD_LIBRARY.filter(chord => chord.instrument === instrument);
+  return CHORD_LIBRARY_DEDUPED.filter(chord => chord.instrument === instrument);
 }
 
 /**
  * Get chords by category
  */
 export function getChordsByCategory(instrument: string, category: string): Chord[] {
-  return CHORD_LIBRARY.filter(
+  return CHORD_LIBRARY_DEDUPED.filter(
     chord => chord.instrument === instrument && chord.category === category
   );
 }
@@ -3812,7 +3856,7 @@ export function getChordsByCategory(instrument: string, category: string): Chord
  * Get chords by difficulty
  */
 export function getChordsByDifficulty(instrument: string, difficulty: string): Chord[] {
-  return CHORD_LIBRARY.filter(
+  return CHORD_LIBRARY_DEDUPED.filter(
     chord => chord.instrument === instrument && chord.difficulty === difficulty
   );
 }
@@ -3822,7 +3866,7 @@ export function getChordsByDifficulty(instrument: string, difficulty: string): C
  */
 export function searchChords(instrument: string, query: string): Chord[] {
   const lowerQuery = query.toLowerCase();
-  return CHORD_LIBRARY.filter(
+  return CHORD_LIBRARY_DEDUPED.filter(
     chord =>
       chord.instrument === instrument &&
       (chord.name.toLowerCase().includes(lowerQuery) ||

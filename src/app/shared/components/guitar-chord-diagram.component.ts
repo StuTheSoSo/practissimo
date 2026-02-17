@@ -16,9 +16,13 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
         <div class="chord-name">{{ chordName }}</div>
       }
 
+      @if (position.baseFret > 1) {
+        <div class="fret-badge">{{ position.baseFret }} fret</div>
+      }
+
       <!-- SVG Diagram -->
       <svg
-        [attr.width]="width + 50"
+        [attr.width]="width"
         [attr.height]="height"
         [attr.viewBox]="'0 0 ' + width + ' ' + height"
         class="diagram-svg"
@@ -32,17 +36,6 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
             height="6"
             fill="#333"
           />
-        }
-
-        <!-- Fret number indicator (if not open position) -->
-        @if (position.baseFret > 1) {
-          <text
-            [attr.x]="marginLeft - 15"
-            [attr.y]="marginTop + stringSpacing"
-            class="fret-number"
-          >
-            {{ position.baseFret }}fr
-          </text>
         }
 
         <!-- Frets (horizontal lines) -->
@@ -136,12 +129,13 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
             stroke-linecap="round"
           />
         }
+
       </svg>
 
       <!-- String labels (E A D G B e) -->
       <div class="string-labels">
         @for (label of stringLabels; track label.index) {
-          <span [style.left.px]="marginLeft + (label.index * stringSpacing) - 5">
+          <span [style.left.px]="marginLeft + (label.index * stringSpacing)">
             {{ label.name }}
           </span>
         }
@@ -156,6 +150,7 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
       border-radius: 8px;
       padding: 1rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
     }
 
     .chord-name {
@@ -170,10 +165,18 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
       margin: 0 auto;
     }
 
-    .fret-number {
-      font-size: 12px;
-      fill: #666;
-      text-anchor: end;
+    .fret-badge {
+      position: absolute;
+      top: 0.9rem;
+      left: 0.7rem;
+      padding: 0.14rem 0.4rem;
+      border-radius: 999px;
+      background: rgba(28, 43, 72, 0.9);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      z-index: 2;
     }
 
     .finger-number {
@@ -191,6 +194,7 @@ import { GuitarChordPosition } from '../../core/models/chord.model';
 
     .string-labels span {
       position: absolute;
+      transform: translateX(-50%);
       font-size: 11px;
       color: #999;
       font-weight: bold;
@@ -208,7 +212,7 @@ export class GuitarChordDiagramComponent implements OnInit {
   width = 150;
   height = 200;
   marginTop = 30;
-  marginLeft = 25;
+  marginLeft = 40;
   fretboardWidth = 100;
   stringSpacing = 20;
   fretHeight = 35;
@@ -228,9 +232,9 @@ export class GuitarChordDiagramComponent implements OnInit {
 
   private calculateDimensions() {
     const sizes = {
-      small: { width: 120, height: 160, fretHeight: 28, stringSpacing: 16 },
-      medium: { width: 150, height: 200, fretHeight: 35, stringSpacing: 20 },
-      large: { width: 200, height: 260, fretHeight: 45, stringSpacing: 26 }
+      small: { width: 145, height: 160, fretHeight: 28, stringSpacing: 16, marginLeft: 36 },
+      medium: { width: 175, height: 200, fretHeight: 35, stringSpacing: 20, marginLeft: 44 },
+      large: { width: 235, height: 260, fretHeight: 45, stringSpacing: 26, marginLeft: 56 }
     };
 
     const dimensions = sizes[this.size];
@@ -238,6 +242,7 @@ export class GuitarChordDiagramComponent implements OnInit {
     this.height = dimensions.height;
     this.fretHeight = dimensions.fretHeight;
     this.stringSpacing = dimensions.stringSpacing;
+    this.marginLeft = dimensions.marginLeft;
     this.fretboardWidth = this.stringSpacing * (this.position.strings - 1);
   }
 

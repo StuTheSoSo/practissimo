@@ -299,6 +299,23 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
       --color: #1e2a44;
     }
 
+    .instrument-card ion-item {
+      --background: rgba(255, 255, 255, 0.7);
+      --color: #13213d;
+      border: 1px solid rgba(42, 60, 100, 0.16);
+      border-radius: 12px;
+    }
+
+    .instrument-card ion-label h2 {
+      color: #13213d !important;
+      font-weight: 800;
+    }
+
+    .instrument-card ion-label p {
+      color: #2e436a !important;
+      font-weight: 600;
+    }
+
     .about-card ion-item {
       --background: rgba(255, 255, 255, 0.72);
       --color: #13213d;
@@ -470,6 +487,20 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     }
 
     @media (prefers-color-scheme: dark) {
+      .instrument-card ion-item {
+        --background: rgba(31, 44, 76, 0.86);
+        --color: #eff4ff;
+        border-color: rgba(190, 207, 255, 0.3);
+      }
+
+      .instrument-card ion-label h2 {
+        color: #f3f7ff !important;
+      }
+
+      .instrument-card ion-label p {
+        color: #dbe6ff !important;
+      }
+
       .about-card ion-item {
         --background: rgba(31, 44, 76, 0.86);
         --color: #eff4ff;
