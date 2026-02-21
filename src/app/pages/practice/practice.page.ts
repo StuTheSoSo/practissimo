@@ -1,5 +1,5 @@
 // src/app/pages/practice/practice.page.ts
-import { Component, effect, inject } from '@angular/core';
+import { Component, effect, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -32,6 +32,7 @@ import { QuestService } from '../../core/services/quest.service';
 import { AchievementService } from '../../core/services/achievement.service';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { MetronomeService } from '../../core/services/metronome.service';
 import { MetronomeComponent } from '../../shared/components/metronome.component';
 
 @Component({
@@ -356,7 +357,7 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
     MetronomeComponent
   ]
 })
-export class PracticePage {
+export class PracticePage implements OnDestroy {
   private router = inject(Router);
   private alertController = inject(AlertController);
   private practiceService = inject(PracticeService);
@@ -365,6 +366,7 @@ export class PracticePage {
   private achievementService = inject(AchievementService);
   private weeklyTargetService = inject(WeeklyTargetService);
   private notificationService = inject(NotificationService);
+  private metronomeService = inject(MetronomeService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   categories = this.instrumentService.currentCategories;
@@ -473,5 +475,13 @@ export class PracticePage {
     await alert.onDidDismiss();
 
     this.router.navigate(['/home']);
+  }
+
+  ionViewWillLeave(): void {
+    this.metronomeService.resetToDefaults();
+  }
+
+  ngOnDestroy(): void {
+    this.metronomeService.resetToDefaults();
   }
 }

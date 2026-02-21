@@ -9,6 +9,9 @@ import { Injectable, signal, computed } from '@angular/core';
   providedIn: 'root'
 })
 export class MetronomeService {
+  private readonly defaultBpm = 120;
+  private readonly defaultBeatsPerBar = 4;
+  private readonly defaultVolume = 1.0;
   private audioContext: AudioContext | null = null;
   private nextNoteTime = 0;
   private scheduleAheadTime = 0.1; // How far ahead to schedule audio (sec)
@@ -19,9 +22,9 @@ export class MetronomeService {
 
   // State signals
   private isPlayingSignal = signal<boolean>(false);
-  private bpmSignal = signal<number>(120);
-  private beatsPerBarSignal = signal<number>(4);
-  private volumeSignal = signal<number>(1.0);
+  private bpmSignal = signal<number>(this.defaultBpm);
+  private beatsPerBarSignal = signal<number>(this.defaultBeatsPerBar);
+  private volumeSignal = signal<number>(this.defaultVolume);
   private readonly maxVolume = 2.0;
 
   // Public readonly signals
@@ -118,6 +121,18 @@ export class MetronomeService {
       this.timerID = null;
     }
     this.currentBeatInBar = 0;
+  }
+
+  /**
+   * Stop playback and restore default metronome settings.
+   */
+  resetToDefaults(): void {
+    this.stop();
+    this.bpmSignal.set(this.defaultBpm);
+    this.beatsPerBarSignal.set(this.defaultBeatsPerBar);
+    this.volumeSignal.set(this.defaultVolume);
+    this.lastTapTime = null;
+    this.tapTimes = [];
   }
 
   /**
