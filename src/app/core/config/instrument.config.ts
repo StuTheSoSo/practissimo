@@ -45,6 +45,14 @@ export const INSTRUMENT_CONFIG: Record<Instrument, InstrumentConfig> = {
     categories: ['Scales', 'Études', 'Repertoire', 'Technique', 'Sight Reading'],
     supportsTuner: true,
     supportsChords: false
+  },
+  vocals: {
+    id: 'vocals',
+    displayName: 'Vocals',
+    icon: 'mic',
+    categories: ['Warmups', 'Breathing', 'Scales', 'Songs', 'Ear Training'],
+    supportsTuner: false,
+    supportsChords: false
   }
 };
 

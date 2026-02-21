@@ -1,4 +1,4 @@
-﻿export type Instrument = 'guitar' | 'bass' | 'piano' | 'drums' | 'violin';
+﻿export type Instrument = 'guitar' | 'bass' | 'piano' | 'drums' | 'violin' | 'vocals';
 
 export interface InstrumentConfig {
   id: Instrument;

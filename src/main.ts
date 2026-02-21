@@ -30,6 +30,10 @@ const routes: Routes = [
     loadComponent: () => import('./app/pages/tuner/tuner.page').then(m => m.TunerPage)
   },
   {
+    path: 'pitch-finder',
+    loadComponent: () => import('./app/pages/pitch-finder/pitch-finder.page').then(m => m.PitchFinderPage)
+  },
+  {
     path: 'quests',
     loadComponent: () => import('./app/pages/quests/quests.page').then(m => m.QuestsPage)
   },

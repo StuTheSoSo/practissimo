@@ -143,7 +143,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
         <ion-grid class="quick-actions reveal reveal-5">
           <ion-row>
-            <ion-col [size]="supportsTuner() ? '6' : '12'">
+            <ion-col [size]="showPitchFinderAction() || supportsTuner() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
                 <ion-icon name="trophy" slot="start"></ion-icon>
                 Quests
@@ -152,7 +152,14 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 }
               </ion-button>
             </ion-col>
-            @if (supportsTuner()) {
+            @if (showPitchFinderAction()) {
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="goToPitchFinder()">
+                  <ion-icon name="musical-note" slot="start"></ion-icon>
+                  Pitch Finder
+                </ion-button>
+              </ion-col>
+            } @else if (supportsTuner()) {
               <ion-col size="6">
                 <ion-button expand="block" fill="outline" (click)="goToTuner()">
                   <ion-icon name="musical-note" slot="start"></ion-icon>
@@ -1023,6 +1030,7 @@ export class HomePage implements OnInit {
   private modalController = inject(ModalController);
   private weeklyTargetService = inject(WeeklyTargetService);
 
+  currentInstrumentId = this.instrumentService.currentInstrument;
   currentInstrument = this.instrumentService.currentDisplayName;
   supportsTuner = this.instrumentService.supportsTuner;
   supportsChords = this.instrumentService.supportsChords;
@@ -1046,6 +1054,7 @@ export class HomePage implements OnInit {
   weeklyProgressAnimated = signal(0);
   levelProgressDisplay = computed(() => Math.round(this.levelProgressAnimated()));
   weeklyProgressDisplay = computed(() => Math.round(this.weeklyProgressAnimated()));
+  showPitchFinderAction = computed(() => this.currentInstrumentId() === 'vocals');
 
   streakStatus = computed(() => this.gamificationService.getStreakStatus());
   primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Start Practice');
@@ -1115,6 +1124,10 @@ export class HomePage implements OnInit {
 
   goToTuner() {
     this.router.navigate(['/tuner']);
+  }
+
+  goToPitchFinder() {
+    this.router.navigate(['/pitch-finder']);
   }
 
   goToQuests() {

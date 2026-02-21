@@ -18,7 +18,7 @@ import {
   IonCol
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline } from 'ionicons/icons';
+import { musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline, mic } from 'ionicons/icons';
 import { Instrument } from '../../core/models/instrument.model';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { GamificationService } from '../../core/services/gamification.service';
@@ -197,7 +197,7 @@ export class OnboardingPage {
   selectedInstrument = signal<Instrument | null>(null);
 
   constructor() {
-    addIcons({ musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline });
+    addIcons({ musicalNotes, musicalNote, listOutline, disc, musicalNotesOutline, mic });
     this.checkOnboardingStatus();
   }
 
