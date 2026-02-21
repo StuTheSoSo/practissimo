@@ -136,8 +136,8 @@ export class GamificationService {
     let newLongestStreak: number;
 
     if (daysDiff === 0) {
-      // Same day - maintain streak
-      newCurrentStreak = currentStreak;
+      // Same day - keep streak, but first ever session should start at 1.
+      newCurrentStreak = currentStreak > 0 ? currentStreak : 1;
     } else if (daysDiff === 1) {
       // Next day - increment streak
       newCurrentStreak = currentStreak + 1;
@@ -211,6 +211,11 @@ export class GamificationService {
    * Get streak status for today
    */
   getStreakStatus(): 'active' | 'at_risk' | 'broken' {
+    // New users with no completed sessions should not be considered active.
+    if (this.currentStreak() === 0) {
+      return 'broken';
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
