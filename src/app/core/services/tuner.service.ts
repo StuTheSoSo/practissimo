@@ -40,12 +40,20 @@ export class TunerService implements OnDestroy {
   private readonly STARTUP_STABILIZATION_MS = 1200;
   private readonly NOTE_LOCK_FRAMES_STARTUP = 5;
   private readonly NOTE_LOCK_FRAMES_STEADY = 2;
+  private readonly NOTE_SWITCH_HOLD_FRAMES_STARTUP = 8;
+  private readonly NOTE_SWITCH_HOLD_FRAMES_STEADY = 5;
   private readonly NOISE_SAMPLE_WINDOW = 40;
   private readonly STRING_SWITCH_HZ_MARGIN = 12;
   private readonly STRING_SWITCH_FRAMES = 3;
   private readonly UI_UPDATE_INTERVAL_MS = 40;
   private readonly HISTORY_SIZE = 7;
   private readonly TUNING_HISTORY_SIZE = 30;
+  private readonly SOFT_BIAS_SWITCH_CENTS_THRESHOLD = 40;
+  private readonly LOCKED_TARGET_BIAS_CENTS_THRESHOLD = 55;
+  private readonly EXPECTED_NOTE_BONUS_WEIGHT = 1.4;
+  private readonly LOCKED_STRING_BONUS_WEIGHT = 1.2;
+  private readonly CLARITY_BONUS_WEIGHT = 0.1;
+  private readonly FORCE_RAW_IF_FAR_HZ = 45;
   private readonly DEBUG_MODE = true; // ← Set to true during testing high strings
 
   // State
@@ -424,8 +432,9 @@ export class TunerService implements OnDestroy {
   private updateTunerState(frequency: number, clarity: number): void {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
     const targetNote = this.getStableTargetString(stableFrequency);
-    const noteInfo = this.frequencyToNote(stableFrequency);
-    const stableNote = this.applyNoteStabilization(noteInfo);
+    const biasedPitch = this.selectBiasedPitch(stableFrequency, clarity, targetNote);
+    const noteInfo = this.frequencyToNote(biasedPitch.frequency);
+    const stableNote = this.applyNoteStabilization(noteInfo, clarity, targetNote);
     const now = performance.now();
     if (this.lastUiUpdateAt !== 0 && now - this.lastUiUpdateAt < this.UI_UPDATE_INTERVAL_MS) return;
     this.lastUiUpdateAt = now;
@@ -435,7 +444,11 @@ export class TunerService implements OnDestroy {
       return;
     }
 
-    const stableCents = this.applyCentsStabilization(noteInfo.cents);
+    const practicalTarget = targetNote ?? biasedPitch.targetString;
+    const rawCents = practicalTarget
+      ? this.centsFromFrequencyToTarget(stableFrequency, practicalTarget.frequency)
+      : noteInfo.cents;
+    const stableCents = this.applyCentsStabilization(rawCents);
     this.tuningHistory.push(stableCents);
     if (this.tuningHistory.length > this.TUNING_HISTORY_SIZE) this.tuningHistory.shift();
 
@@ -448,6 +461,69 @@ export class TunerService implements OnDestroy {
       targetNote,
       clarity
     }));
+  }
+
+  private centsFromFrequencyToTarget(frequency: number, targetFrequency: number): number {
+    if (frequency <= 0 || targetFrequency <= 0) return 0;
+    return Math.round(1200 * Math.log2(frequency / targetFrequency));
+  }
+
+  private getBestExpectedStringCandidate(frequency: number, clarity: number): StringInfo | null {
+    const tuning = this.selectedTuning();
+    if (!tuning?.strings.length || frequency <= 0) return null;
+
+    let best: StringInfo | null = null;
+    let bestScore = -Infinity;
+
+    for (const expected of tuning.strings) {
+      const centsDistance = Math.abs(this.centsFromFrequencyToTarget(frequency, expected.frequency));
+      const proximity = 1 / (1 + centsDistance);
+      const lockedBonus = this.lockedString?.stringNumber === expected.stringNumber ? this.LOCKED_STRING_BONUS_WEIGHT : 0;
+      const score =
+        (proximity * this.EXPECTED_NOTE_BONUS_WEIGHT) +
+        lockedBonus +
+        (clarity * this.CLARITY_BONUS_WEIGHT);
+
+      if (score > bestScore) {
+        best = expected;
+        bestScore = score;
+      }
+    }
+
+    return best;
+  }
+
+  private selectBiasedPitch(
+    frequency: number,
+    clarity: number,
+    preferredTarget?: StringInfo
+  ): { frequency: number; targetString?: StringInfo; usedBias: boolean } {
+    if (preferredTarget) {
+      const preferredHzDiff = Math.abs(frequency - preferredTarget.frequency);
+      const preferredCentsDiff = Math.abs(this.centsFromFrequencyToTarget(frequency, preferredTarget.frequency));
+      const shouldBiasToPreferred =
+        preferredCentsDiff <= this.LOCKED_TARGET_BIAS_CENTS_THRESHOLD &&
+        preferredHzDiff <= this.FORCE_RAW_IF_FAR_HZ * 1.8;
+
+      if (shouldBiasToPreferred) {
+        return { frequency: preferredTarget.frequency, targetString: preferredTarget, usedBias: true };
+      }
+    }
+
+    const expected = this.getBestExpectedStringCandidate(frequency, clarity);
+    if (!expected) {
+      return { frequency, usedBias: false };
+    }
+
+    const frequencyDiff = Math.abs(frequency - expected.frequency);
+    const centsDiff = Math.abs(this.centsFromFrequencyToTarget(frequency, expected.frequency));
+    const shouldUseRaw = frequencyDiff > this.FORCE_RAW_IF_FAR_HZ || centsDiff > this.SOFT_BIAS_SWITCH_CENTS_THRESHOLD;
+
+    if (shouldUseRaw) {
+      return { frequency, targetString: expected, usedBias: false };
+    }
+
+    return { frequency: expected.frequency, targetString: expected, usedBias: true };
   }
 
   private getStableTargetString(frequency: number): StringInfo | undefined {
@@ -554,7 +630,11 @@ export class TunerService implements OnDestroy {
     return Math.abs(rounded) <= this.CENTS_DEAD_ZONE ? 0 : rounded;
   }
 
-  private applyNoteStabilization(noteInfo: NoteInfo): NoteInfo | null {
+  private applyNoteStabilization(
+    noteInfo: NoteInfo,
+    clarity: number,
+    targetString?: StringInfo
+  ): NoteInfo | null {
     const now = performance.now();
     const noteKey = `${noteInfo.note}${noteInfo.octave}`;
     if (!noteKey) return null;
@@ -567,16 +647,32 @@ export class TunerService implements OnDestroy {
     }
 
     const inStartup = now - this.sessionStartTime < this.STARTUP_STABILIZATION_MS;
-    const requiredFrames = inStartup ? this.NOTE_LOCK_FRAMES_STARTUP : this.NOTE_LOCK_FRAMES_STEADY;
+    const initialRequiredFrames = inStartup ? this.NOTE_LOCK_FRAMES_STARTUP : this.NOTE_LOCK_FRAMES_STEADY;
+    let switchRequiredFrames = inStartup ? this.NOTE_SWITCH_HOLD_FRAMES_STARTUP : this.NOTE_SWITCH_HOLD_FRAMES_STEADY;
+
+    // Adaptive switch: when signal is strong and we are close to expected string pitch,
+    // allow faster switching so the tuner finds the correct string quicker.
+    if (clarity >= 0.9) {
+      switchRequiredFrames = Math.max(2, switchRequiredFrames - 1);
+    }
+    if (targetString) {
+      const noteFrequency = this.noteToFrequency(noteInfo.note, noteInfo.octave);
+      if (noteFrequency > 0) {
+        const centsToTarget = Math.abs(this.centsFromFrequencyToTarget(noteFrequency, targetString.frequency));
+        if (centsToTarget <= 25) {
+          switchRequiredFrames = Math.max(2, switchRequiredFrames - 2);
+        }
+      }
+    }
 
     if (!this.acceptedNoteKey) {
-      if (this.candidateNoteFrames < requiredFrames) return null;
+      if (this.candidateNoteFrames < initialRequiredFrames) return null;
       this.acceptedNoteKey = noteKey;
       return noteInfo;
     }
 
     if (noteKey === this.acceptedNoteKey) return noteInfo;
-    if (this.candidateNoteFrames < requiredFrames) return null;
+    if (this.candidateNoteFrames < switchRequiredFrames) return null;
 
     this.acceptedNoteKey = noteKey;
     return noteInfo;

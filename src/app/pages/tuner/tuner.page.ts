@@ -85,9 +85,9 @@ import { InstrumentService } from '../../core/services/instrument.service';
                   <span class="octave">{{ detectedOctave() }}</span>
                 }
               </div>
-              @if (currentFrequency() > 0) {
-                <div class="frequency">{{ currentFrequency().toFixed(2) }} Hz</div>
-              }
+              <div class="frequency" [class.hidden]="currentFrequency() <= 0">
+                {{ currentFrequency() > 0 ? currentFrequency().toFixed(2) + ' Hz' : '--.-- Hz' }}
+              </div>
             </div>
 
             <!-- Cents Meter -->
@@ -134,11 +134,9 @@ import { InstrumentService } from '../../core/services/instrument.service';
             </div>
 
             <!-- Clarity/Confidence Indicator -->
-            @if (isListening() && clarity() > 0) {
-              <div class="clarity-indicator">
-                <small>Signal: {{ (clarity() * 100).toFixed(0) }}%</small>
-              </div>
-            }
+            <div class="clarity-indicator" [class.hidden]="!(isListening() && clarity() > 0)">
+              <small>Signal: {{ (clarity() * 100).toFixed(0) }}%</small>
+            </div>
           </ion-card-content>
         </ion-card>
 
@@ -311,6 +309,11 @@ import { InstrumentService } from '../../core/services/instrument.service';
       color: #4a5f80;
       margin-top: 0.5rem;
       font-weight: 700;
+      min-height: 1.5rem;
+    }
+
+    .frequency.hidden {
+      visibility: hidden;
     }
 
     .cents-meter {
@@ -402,7 +405,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
     .status-display {
       text-align: center;
       margin: 2rem 0;
-      min-height: 40px;
+      min-height: 56px;
     }
 
     .status-badge {
@@ -436,6 +439,11 @@ import { InstrumentService } from '../../core/services/instrument.service';
       color: var(--ion-color-medium);
       font-size: 0.85rem;
       margin-top: 0.5rem;
+      min-height: 1.2rem;
+    }
+
+    .clarity-indicator.hidden {
+      visibility: hidden;
     }
 
     .control-buttons {
