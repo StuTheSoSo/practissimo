@@ -236,9 +236,9 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     .hero-card {
       position: relative;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--app-card-border);
       border-radius: 18px;
-      box-shadow: 0 12px 22px rgba(37, 44, 76, 0.16);
+      box-shadow: var(--app-card-shadow);
       backdrop-filter: blur(3px);
     }
 
@@ -247,87 +247,90 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 48%, rgba(255, 255, 255, 0.28));
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 48%, rgba(255, 255, 255, 0.22));
     }
 
     .instrument-card {
       background:
-        radial-gradient(560px 240px at -6% -32%, rgba(255, 207, 139, 0.55), transparent 62%),
-        linear-gradient(135deg, #fff5e6, #fdeed5);
+        radial-gradient(560px 240px at -6% -32%, rgba(89, 150, 228, 0.26), transparent 62%),
+        linear-gradient(135deg, #f8fbff, #ecf4ff);
     }
 
     .target-card {
       background:
-        radial-gradient(600px 200px at 108% -30%, rgba(145, 197, 255, 0.5), transparent 56%),
-        linear-gradient(135deg, #eff7ff, #e6f2ff);
+        radial-gradient(600px 200px at 108% -30%, rgba(124, 175, 246, 0.28), transparent 56%),
+        linear-gradient(135deg, #f6fbff, #e8f2ff);
     }
 
     .reminder-card {
       background:
-        radial-gradient(560px 240px at 0% 120%, rgba(136, 232, 215, 0.45), transparent 62%),
-        linear-gradient(135deg, #ecfbf5, #dbf5ee);
+        radial-gradient(560px 240px at 0% 120%, rgba(96, 167, 229, 0.24), transparent 62%),
+        linear-gradient(135deg, #f5faff, #e8f2ff);
     }
 
     .feedback-card {
       background:
-        radial-gradient(620px 260px at 110% 10%, rgba(245, 168, 209, 0.45), transparent 60%),
-        linear-gradient(135deg, #fff0f8, #fbe8f3);
+        radial-gradient(620px 260px at 110% 10%, rgba(82, 141, 225, 0.22), transparent 60%),
+        linear-gradient(135deg, #f4f9ff, #e6f0ff);
     }
 
     .about-card {
       background:
-        radial-gradient(620px 240px at -5% 0%, rgba(189, 174, 255, 0.4), transparent 60%),
-        linear-gradient(135deg, #f5f0ff, #ece5ff);
+        radial-gradient(620px 240px at -5% 0%, rgba(62, 118, 210, 0.24), transparent 60%),
+        linear-gradient(135deg, #f2f8ff, #e3eeff);
     }
 
     .hero-card ion-card-title,
     .hero-card h2,
     .hero-card h3,
-    .hero-card p,
     .hero-card ion-label {
-      color: #1e2a44;
+      color: var(--app-text-primary);
+    }
+
+    .hero-card p {
+      color: var(--app-text-secondary);
     }
 
     .hero-card ion-item {
       --background: transparent;
-      --color: #1e2a44;
-      --border-color: rgba(30, 42, 68, 0.14);
+      --color: var(--app-text-primary);
+      --border-color: rgba(58, 86, 144, 0.2);
     }
 
     .hero-card ion-button[fill='outline'] {
-      --border-color: rgba(30, 42, 68, 0.28);
-      --color: #1e2a44;
+      --border-color: rgba(56, 90, 153, 0.35);
+      --color: var(--app-text-primary);
     }
 
     .instrument-card ion-item {
-      --background: rgba(255, 255, 255, 0.7);
-      --color: #13213d;
-      border: 1px solid rgba(42, 60, 100, 0.16);
+      --background: rgba(255, 255, 255, 0.74);
+      --color: var(--app-text-primary);
+      border: 1px solid rgba(58, 90, 151, 0.2);
       border-radius: 12px;
     }
 
     .instrument-card ion-label h2 {
-      color: #13213d !important;
+      color: var(--app-text-primary) !important;
       font-weight: 800;
     }
 
     .instrument-card ion-label p {
-      color: #2e436a !important;
+      color: var(--app-text-secondary) !important;
       font-weight: 600;
     }
 
     .about-card ion-item {
-      --background: rgba(255, 255, 255, 0.72);
-      --color: #13213d;
-      --detail-icon-color: #2a3c64;
-      border: 1px solid rgba(42, 60, 100, 0.16);
+      --background: rgba(255, 255, 255, 0.74);
+      --color: var(--app-text-primary);
+      --detail-icon-color: var(--app-text-secondary);
+      border: 1px solid rgba(58, 90, 151, 0.2);
       border-radius: 12px;
       margin-bottom: 0.45rem;
     }
 
     .about-card ion-item ion-label,
     .about-card ion-item ion-icon {
-      color: #13213d !important;
+      color: var(--app-text-primary) !important;
     }
 
     ion-list {
@@ -349,7 +352,7 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
 
     .made-with-love {
       text-align: center;
-      color: var(--ion-color-medium);
+      color: var(--app-text-secondary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -487,30 +490,79 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     }
 
     @media (prefers-color-scheme: dark) {
+      .hero-card {
+        border-color: rgba(154, 183, 242, 0.36);
+      }
+
+      .hero-card::before {
+        background: linear-gradient(125deg, rgba(255, 255, 255, 0.1), transparent 52%, rgba(255, 255, 255, 0.04));
+      }
+
+      .instrument-card {
+        background:
+          radial-gradient(620px 260px at -8% -28%, rgba(111, 165, 255, 0.25), transparent 64%),
+          linear-gradient(135deg, #1a2744, #111d35);
+      }
+
+      .target-card {
+        background:
+          radial-gradient(620px 260px at 108% -26%, rgba(132, 176, 255, 0.26), transparent 62%),
+          linear-gradient(135deg, #1a2947, #101e39);
+      }
+
+      .reminder-card {
+        background:
+          radial-gradient(600px 260px at 0% 120%, rgba(97, 158, 238, 0.24), transparent 64%),
+          linear-gradient(135deg, #182743, #0f1d36);
+      }
+
+      .feedback-card {
+        background:
+          radial-gradient(620px 260px at 110% 8%, rgba(103, 156, 241, 0.22), transparent 62%),
+          linear-gradient(135deg, #1a2744, #101b33);
+      }
+
+      .about-card {
+        background:
+          radial-gradient(620px 260px at -6% 2%, rgba(97, 147, 234, 0.26), transparent 62%),
+          linear-gradient(135deg, #172640, #0f1d34);
+      }
+
+      .hero-card ion-item {
+        --background: rgba(20, 34, 60, 0.72);
+        --color: var(--app-text-primary);
+        --border-color: rgba(164, 194, 255, 0.3);
+      }
+
+      .hero-card ion-button[fill='outline'] {
+        --border-color: rgba(170, 200, 255, 0.42);
+        --color: var(--app-text-primary);
+      }
+
       .instrument-card ion-item {
-        --background: rgba(31, 44, 76, 0.86);
-        --color: #eff4ff;
-        border-color: rgba(190, 207, 255, 0.3);
+        --background: rgba(20, 34, 60, 0.78);
+        --color: var(--app-text-primary);
+        border-color: rgba(164, 194, 255, 0.32);
       }
 
       .instrument-card ion-label h2 {
-        color: #f3f7ff !important;
+        color: var(--app-text-primary) !important;
       }
 
       .instrument-card ion-label p {
-        color: #dbe6ff !important;
+        color: var(--app-text-secondary) !important;
       }
 
       .about-card ion-item {
-        --background: rgba(31, 44, 76, 0.86);
-        --color: #eff4ff;
-        --detail-icon-color: #dbe6ff;
-        border-color: rgba(190, 207, 255, 0.3);
+        --background: rgba(20, 34, 60, 0.78);
+        --color: var(--app-text-primary);
+        --detail-icon-color: var(--app-text-secondary);
+        border-color: rgba(164, 194, 255, 0.32);
       }
 
       .about-card ion-item ion-label,
       .about-card ion-item ion-icon {
-        color: #eff4ff !important;
+        color: var(--app-text-primary) !important;
       }
     }
   `],

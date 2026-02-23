@@ -35,7 +35,7 @@ import { MetronomeService } from '../../core/services/metronome.service';
           <ion-icon name="musical-note" color="primary"></ion-icon>
           <div class="header-copy">
             <ion-card-title>Metronome</ion-card-title>
-            <span class="header-subtitle">{{ isExpanded ? 'Expanded' : 'Collapsed' }}</span>
+            <span class="header-subtitle">Click to {{ isExpanded ? 'collapse' : 'expand' }}</span>
           </div>
           <ion-icon name="chevron-down" class="expand-chevron" [class.expanded]="isExpanded"></ion-icon>
         </button>
