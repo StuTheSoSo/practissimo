@@ -7,4 +7,5 @@ export const STORAGE_KEYS = {
   REMINDER_SETTINGS: 'reminder_settings',
   ONBOARDING_COMPLETED: 'onboarding_completed',
   APP_RATING_STATE: 'app_rating_state',
+  CELEBRATED_MILESTONES: 'celebrated_milestones',
 } as const;

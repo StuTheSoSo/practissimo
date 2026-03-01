@@ -41,6 +41,10 @@ export class QuestService {
     return this.activeQuests().filter(q => q.instrument === currentInstrument);
   });
 
+  // Expose gamification data for milestone checking
+  readonly currentStreak = computed(() => this.gamificationService.currentStreak());
+  readonly level = computed(() => this.gamificationService.level());
+
   constructor() {
     // Effect to persist quests
     effect(() => {

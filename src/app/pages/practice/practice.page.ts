@@ -22,10 +22,11 @@ import {
   IonItem,
   IonLabel,
   IonNote,
-  AlertController
+  AlertController,
+  ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { play, pause, stop, checkmark, star } from 'ionicons/icons';
+import { play, pause, stop, checkmark, star, trophy } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
@@ -33,7 +34,9 @@ import { AchievementService } from '../../core/services/achievement.service';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { MetronomeService } from '../../core/services/metronome.service';
+import { MilestoneService } from '../../core/services/milestone.service';
 import { MetronomeComponent } from '../../shared/components/metronome.component';
+import { MilestoneModalComponent } from '../../shared/components/milestone-modal.component';
 
 @Component({
   selector: 'app-practice',
@@ -360,6 +363,7 @@ import { MetronomeComponent } from '../../shared/components/metronome.component'
 export class PracticePage implements OnDestroy {
   private router = inject(Router);
   private alertController = inject(AlertController);
+  private modalController = inject(ModalController);
   private practiceService = inject(PracticeService);
   private instrumentService = inject(InstrumentService);
   private questService = inject(QuestService);
@@ -367,6 +371,7 @@ export class PracticePage implements OnDestroy {
   private weeklyTargetService = inject(WeeklyTargetService);
   private notificationService = inject(NotificationService);
   private metronomeService = inject(MetronomeService);
+  private milestoneService = inject(MilestoneService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   categories = this.instrumentService.currentCategories;
@@ -380,7 +385,7 @@ export class PracticePage implements OnDestroy {
   selectedCategory: string = '';
 
   constructor() {
-    addIcons({ play, pause, stop, checkmark, star });
+    addIcons({ play, pause, stop, checkmark, star, trophy });
 
     effect(() => {
       const availableCategories = this.categories();
@@ -472,6 +477,16 @@ export class PracticePage implements OnDestroy {
 
     const newAchievements = await this.achievementService.checkAchievements();
 
+    // Check for milestones
+    const totalMinutes = this.practiceService.getTotalPracticeTime(this.instrumentService.currentInstrument());
+    const sessionCount = this.practiceService.currentInstrumentSessions().length;
+    const milestone = this.milestoneService.checkMilestones({
+      totalMinutes,
+      sessionCount,
+      currentStreak: this.questService.currentStreak(),
+      level: this.questService.level()
+    });
+
     const alert = await this.alertController.create({
       header: 'Session Complete!',
       message: `You earned ${session.xpEarned} XP!${newAchievements.length > 0 ? ` 🎉 ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''} unlocked!` : ''}`,
@@ -480,6 +495,20 @@ export class PracticePage implements OnDestroy {
 
     await alert.present();
     await alert.onDidDismiss();
+
+    // Show milestone celebration if achieved
+    if (milestone) {
+      await this.milestoneService.celebrateMilestone(milestone.id);
+      const modal = await this.modalController.create({
+        component: MilestoneModalComponent,
+        componentProps: {
+          milestone,
+          instrument: this.currentInstrument()
+        }
+      });
+      await modal.present();
+      await modal.onDidDismiss();
+    }
 
     this.router.navigate(['/home']);
   }
