@@ -26,7 +26,7 @@ import {
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { play, pause, stop, checkmark, star, trophy } from 'ionicons/icons';
+import { play, pause, stop, checkmark, star, trophy, flash } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
@@ -99,6 +99,15 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
           >
             <ion-icon name="play" slot="start"></ion-icon>
             Start Practice
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            (click)="quickLog()"
+          >
+            <ion-icon name="flash" slot="start"></ion-icon>
+            Quick Log Session
           </ion-button>
 
         }
@@ -385,7 +394,7 @@ export class PracticePage implements OnDestroy {
   selectedCategory: string = '';
 
   constructor() {
-    addIcons({ play, pause, stop, checkmark, star, trophy });
+    addIcons({ play, pause, stop, checkmark, star, trophy, flash });
 
     effect(() => {
       const availableCategories = this.categories();
@@ -497,6 +506,97 @@ export class PracticePage implements OnDestroy {
     await alert.onDidDismiss();
 
     // Show milestone celebration if achieved
+    if (milestone) {
+      await this.milestoneService.celebrateMilestone(milestone.id);
+      const modal = await this.modalController.create({
+        component: MilestoneModalComponent,
+        componentProps: {
+          milestone,
+          instrument: this.currentInstrument()
+        }
+      });
+      await modal.present();
+      await modal.onDidDismiss();
+    }
+
+    this.router.navigate(['/home']);
+  }
+
+  async quickLog() {
+    if (!this.selectedCategory) {
+      const alert = await this.alertController.create({
+        header: 'Category Required',
+        message: 'Please select a practice category.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Quick Log Session',
+      message: 'How long did you practice?',
+      inputs: [
+        {
+          name: 'duration',
+          type: 'number',
+          placeholder: 'Minutes',
+          min: 1
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Log',
+          handler: async (data: { duration?: string }) => {
+            const duration = parseInt(data.duration || '0');
+            if (duration < 1) {
+              return false;
+            }
+            await this.logQuickSession(duration);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async logQuickSession(duration: number) {
+    const session = await this.practiceService.quickLogSession(
+      this.selectedCategory,
+      duration,
+      this.sessionNotes() || undefined
+    );
+
+    await this.questService.onPracticeCompleted(session);
+    this.weeklyTargetService.onPracticeCompleted(session);
+    await this.notificationService.onPracticeCompleted();
+
+    const newAchievements = await this.achievementService.checkAchievements();
+
+    const totalMinutes = this.practiceService.getTotalPracticeTime(this.instrumentService.currentInstrument());
+    const sessionCount = this.practiceService.currentInstrumentSessions().length;
+    const milestone = this.milestoneService.checkMilestones({
+      totalMinutes,
+      sessionCount,
+      currentStreak: this.questService.currentStreak(),
+      level: this.questService.level()
+    });
+
+    const alert = await this.alertController.create({
+      header: 'Session Logged!',
+      message: `You earned ${session.xpEarned} XP!${newAchievements.length > 0 ? ` 🎉 ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''} unlocked!` : ''}`,
+      buttons: ['Awesome!']
+    });
+
+    await alert.present();
+    await alert.onDidDismiss();
+
     if (milestone) {
       await this.milestoneService.celebrateMilestone(milestone.id);
       const modal = await this.modalController.create({

@@ -224,6 +224,31 @@ export class PracticeService {
     });
   }
 
+  /**
+   * Quick log a session without timer
+   */
+  async quickLogSession(category: string, duration: number, notes?: string, qualityRating?: number): Promise<PracticeSession> {
+    const instrument = this.instrumentService.currentInstrument();
+    const currentStreak = this.gamificationService.currentStreak();
+    const xpEarned = this.xpService.calculateXpForSession(duration, currentStreak);
+
+    const session: PracticeSession = {
+      id: this.generateSessionId(),
+      instrument,
+      date: new Date().toISOString(),
+      duration,
+      category,
+      notes,
+      xpEarned,
+      qualityRating
+    };
+
+    this.sessions.update(sessions => [...sessions, session]);
+    await this.gamificationService.onPracticeCompleted(session);
+
+    return session;
+  }
+
   getSessionsByInstrument(instrument: string): PracticeSession[] {
     return this.sessions().filter(s => s.instrument === instrument);
   }
