@@ -21,7 +21,7 @@ import {
   IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, time } from 'ionicons/icons';
+import { chevronBack, chevronForward, time, star, starOutline } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
 
@@ -109,12 +109,23 @@ type CalendarDay = {
                   <ion-item>
                     <ion-label>
                       <h3>{{ session.category }}</h3>
-                      <p>{{ formatTime(session.date) }} · {{ session.duration }} min</p>
+                      <p>{{ session.instrument }} · {{ formatTime(session.date) }} · {{ session.duration }} min</p>
                       @if (session.notes) {
                         <p class="notes">{{ session.notes }}</p>
                       }
                     </ion-label>
-                    <ion-badge color="primary" slot="end">{{ session.xpEarned }} XP</ion-badge>
+                    <div slot="end" class="session-meta">
+                      @if (session.qualityRating) {
+                        <div class="rating">
+                          @for (star of [1,2,3,4,5]; track star) {
+                            <ion-icon [name]="star <= session.qualityRating ? 'star' : 'star-outline'" 
+                                     [color]="star <= session.qualityRating ? 'warning' : 'medium'"
+                                     size="small"></ion-icon>
+                          }
+                        </div>
+                      }
+                      <ion-badge color="primary">{{ session.xpEarned }} XP</ion-badge>
+                    </div>
                   </ion-item>
                 }
               </ion-list>
@@ -251,6 +262,22 @@ type CalendarDay = {
     .notes {
       color: var(--ion-color-medium);
     }
+
+    .session-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.25rem;
+    }
+
+    .rating {
+      display: flex;
+      gap: 0.1rem;
+    }
+
+    .rating ion-icon {
+      font-size: 0.9rem;
+    }
   `],
   standalone: true,
   imports: [
@@ -364,7 +391,7 @@ export class HistoryPage {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, time });
+    addIcons({ chevronBack, chevronForward, time, star, starOutline });
 
     effect(() => {
       const sessions = this.sessions();

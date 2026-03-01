@@ -149,7 +149,7 @@ export class PracticeService {
     }));
   }
 
-  async stopTimer(): Promise<PracticeSession> {
+  async stopTimer(qualityRating?: number): Promise<PracticeSession> {
     if (!this.canStop()) {
       return Promise.reject('Cannot stop timer');
     }
@@ -169,7 +169,8 @@ export class PracticeService {
       duration,
       category: category || 'General',
       notes: notes || undefined,
-      xpEarned
+      xpEarned,
+      qualityRating
     };
 
     this.sessions.update(sessions => [...sessions, session]);

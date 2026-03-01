@@ -8,4 +8,5 @@ export interface PracticeSession {
   category: string;
   notes?: string;
   xpEarned: number;
+  qualityRating?: number; // 1-5 stars
 }

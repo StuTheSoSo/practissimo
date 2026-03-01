@@ -25,7 +25,7 @@ import {
   AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { play, pause, stop, checkmark } from 'ionicons/icons';
+import { play, pause, stop, checkmark, star } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { QuestService } from '../../core/services/quest.service';
@@ -380,7 +380,7 @@ export class PracticePage implements OnDestroy {
   selectedCategory: string = '';
 
   constructor() {
-    addIcons({ play, pause, stop, checkmark });
+    addIcons({ play, pause, stop, checkmark, star });
 
     effect(() => {
       const availableCategories = this.categories();
@@ -439,16 +439,23 @@ export class PracticePage implements OnDestroy {
     }
 
     const alert = await this.alertController.create({
-      header: 'Complete Session?',
-      message: `You practiced for ${minutes} minute${minutes !== 1 ? 's' : ''}. Save this session?`,
+      header: 'How did this session go?',
+      message: `You practiced for ${minutes} minute${minutes !== 1 ? 's' : ''}.`,
+      inputs: [
+        { type: 'radio', label: '⭐ Poor', value: '1' },
+        { type: 'radio', label: '⭐⭐ Fair', value: '2' },
+        { type: 'radio', label: '⭐⭐⭐ Good', value: '3', checked: true },
+        { type: 'radio', label: '⭐⭐⭐⭐ Great', value: '4' },
+        { type: 'radio', label: '⭐⭐⭐⭐⭐ Excellent', value: '5' }
+      ],
       buttons: [
         {
-          text: 'Cancel',
-          role: 'cancel'
+          text: 'Skip',
+          handler: () => this.stopSession()
         },
         {
           text: 'Complete',
-          handler: () => this.stopSession()
+          handler: (rating: string) => this.stopSession(parseInt(rating))
         }
       ]
     });
@@ -456,8 +463,8 @@ export class PracticePage implements OnDestroy {
     await alert.present();
   }
 
-  async stopSession() {
-    const session = await this.practiceService.stopTimer();
+  async stopSession(qualityRating?: number) {
+    const session = await this.practiceService.stopTimer(qualityRating);
 
     await this.questService.onPracticeCompleted(session);
     this.weeklyTargetService.onPracticeCompleted(session);
