@@ -219,7 +219,7 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
     }
 
     .timer-display h1 {
-      font-size: 3.8rem;
+      font-size: 5rem;
       font-weight: bold;
       margin: 0;
       font-variant-numeric: tabular-nums;
@@ -228,7 +228,7 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
     }
 
     .timer-display p {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       color: #334155;
       font-weight: 700;
       margin: 0.5rem 0 0 0;
@@ -244,7 +244,7 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
     .timer-controls ion-button {
       --border-radius: 14px;
       font-weight: 700;
-      min-height: 48px;
+      min-height: 52px;
     }
 
     .start-session-button {
@@ -255,6 +255,7 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
       font-weight: 800;
       letter-spacing: 0.01em;
       margin-top: 0.4rem;
+      min-height: 52px;
     }
 
     .session-notes {

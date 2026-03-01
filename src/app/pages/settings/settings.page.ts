@@ -366,14 +366,13 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
 
     .feedback-links {
       display: flex;
-      gap: 0.5rem;
+      flex-direction: column;
+      gap: 0.75rem;
       margin-top: 0.5rem;
-      flex-wrap: wrap;
     }
 
     .feedback-links ion-button {
-      flex: 1;
-      min-width: 140px;
+      min-height: 44px;
     }
 
     .made-with-love {

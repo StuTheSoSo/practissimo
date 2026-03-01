@@ -212,9 +212,14 @@ import { MetronomeService } from '../../core/services/metronome.service';
       text-align: center;
       cursor: pointer;
       user-select: none;
-      padding: 1rem;
+      padding: 1.5rem;
       border-radius: 12px;
       transition: background 0.2s;
+      min-width: 140px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .bpm-value:active {
@@ -229,13 +234,13 @@ import { MetronomeService } from '../../core/services/metronome.service';
     }
 
     .bpm-label {
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--ion-color-medium);
       margin-top: 0.25rem;
     }
 
     .tap-hint {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--ion-color-medium);
       margin-top: 0.25rem;
       font-style: italic;
@@ -248,6 +253,10 @@ import { MetronomeService } from '../../core/services/metronome.service';
 
     .control-buttons {
       margin-top: 1rem;
+    }
+
+    .control-buttons ion-button {
+      min-height: 52px;
     }
 
     .beat-indicator {
@@ -292,7 +301,8 @@ import { MetronomeService } from '../../core/services/metronome.service';
     .preset-bpms ion-button {
       --padding-start: 0.75rem;
       --padding-end: 0.75rem;
-      min-width: 50px;
+      min-width: 56px;
+      min-height: 44px;
     }
 
     ion-item {

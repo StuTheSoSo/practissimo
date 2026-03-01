@@ -95,7 +95,6 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             {{ primaryCtaLabel() }}
           </ion-button>
         </section>
-
         <section class="stat-chips reveal reveal-3">
           <div class="stat-chip streak-chip">
             <ion-icon name="flame"></ion-icon>
@@ -321,6 +320,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             </ion-card-content>
           </ion-card>
         }
+
+        <div class="bottom-spacer"></div>
       </div>
     </ion-content>
   `,
@@ -332,8 +333,12 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .home-container {
       max-width: 600px;
       margin: 0 auto;
-      padding-bottom: 1rem;
+      padding-bottom: 0;
       color: #0f172a;
+    }
+
+    .bottom-spacer {
+      height: 80px;
     }
 
     .home-container ion-card:not(.pro-upgrade-card) {
@@ -364,6 +369,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .reveal {
       opacity: 1;
       transform: translateY(0);
+      will-change: opacity, transform;
       animation: reveal-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
 
@@ -394,6 +400,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
+      padding-top: 1rem;
     }
 
     .instrument-header h2 {
@@ -414,6 +421,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       box-shadow: 0 12px 22px rgba(64, 115, 210, 0.22);
       position: relative;
       overflow: hidden;
+      will-change: background-position;
       background-size: 130% 130%;
       animation: hero-pan 10s ease-in-out infinite alternate;
     }
@@ -457,14 +465,14 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       margin: 0;
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      font-size: 0.72rem;
+      font-size: 0.8rem;
       opacity: 0.95;
       font-weight: 700;
     }
 
     .practice-hero h1 {
       margin: 0.3rem 0 0.35rem;
-      font-size: 2rem;
+      font-size: 2.25rem;
       line-height: 1.1;
       position: relative;
       z-index: 1;
@@ -473,8 +481,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .practice-hero p {
       margin: 0 auto;
       max-width: 30ch;
-      color: rgba(255, 255, 255, 0.92);
-      font-size: 0.98rem;
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.05rem;
       position: relative;
       z-index: 1;
     }
@@ -523,9 +531,9 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       align-items: center;
       gap: 0.35rem;
       margin-top: 0.75rem;
-      padding: 0.32rem 0.62rem;
+      padding: 0.4rem 0.75rem;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: 0.875rem;
       background: rgba(255, 255, 255, 0.22);
       border: 1px solid rgba(255, 255, 255, 0.38);
       position: relative;
@@ -558,7 +566,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .stat-chip span {
       display: block;
-      font-size: 0.72rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #374151;
@@ -567,7 +575,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .stat-chip strong {
-      font-size: 0.95rem;
+      font-size: 1.05rem;
       color: #111827;
       font-weight: 800;
     }
@@ -624,7 +632,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .quick-actions ion-button {
       margin: 0;
       --border-radius: 12px;
-      min-height: 46px;
+      min-height: 48px;
       font-weight: 650;
       transition: transform 140ms ease, filter 140ms ease;
     }
@@ -661,6 +669,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .progress-fill {
       height: 100%;
       border-radius: inherit;
+      will-change: width;
       transition: width 750ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
@@ -874,14 +883,13 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .feedback-links {
       display: flex;
-      gap: 0.5rem;
+      flex-direction: column;
+      gap: 0.75rem;
       margin-top: 0.5rem;
-      flex-wrap: wrap;
     }
 
     .feedback-links ion-button {
-      flex: 1;
-      min-width: 140px;
+      min-height: 44px;
     }
 
     @media (prefers-reduced-motion: reduce) {

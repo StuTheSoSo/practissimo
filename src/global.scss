@@ -51,6 +51,8 @@
 
 ion-content {
   --background: var(--app-page-bg);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 ion-card {
@@ -58,6 +60,10 @@ ion-card {
   border: 1px solid var(--app-card-border);
   background: var(--app-card-bg);
   box-shadow: var(--app-card-shadow);
+}
+
+ion-card-content {
+  padding: 20px;
 }
 
 ion-card-title,
