@@ -24,6 +24,7 @@ import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, time, star, starOutline } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
+import { ProgressStatsComponent } from '../../shared/components/progress-stats.component';
 
 type CalendarDay = {
   date: Date | null;
@@ -48,8 +49,7 @@ type CalendarDay = {
     </ion-header>
 
     <ion-content class="ion-padding">
-      <div class="history-container">
-        <ion-card class="calendar-card">
+      <div class="history-container"><ion-card class="calendar-card">
           <ion-card-header>
             <div class="calendar-header">
               <ion-button fill="clear" size="small" (click)="previousMonth()">
@@ -132,6 +132,8 @@ type CalendarDay = {
             }
           </ion-card-content>
         </ion-card>
+
+        <app-progress-stats></app-progress-stats>
       </div>
     </ion-content>
   `,
@@ -297,7 +299,8 @@ type CalendarDay = {
     IonList,
     IonItem,
     IonLabel,
-    IonBadge
+    IonBadge,
+    ProgressStatsComponent
   ]
 })
 export class HistoryPage {
