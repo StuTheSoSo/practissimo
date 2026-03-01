@@ -11,10 +11,10 @@
 ## 🔲 To Do
 
 ### Store Setup
-- [ ] Create `pro_monthly` subscription in App Store Connect
-- [ ] Create `pro_yearly` subscription in App Store Connect
-- [ ] Create `pro_monthly` subscription in Google Play Console
-- [ ] Create `pro_yearly` subscription in Google Play Console
+- [ ] Create `pq_premium_1month` subscription in App Store Connect
+- [ ] Create `pq_premium_1year` subscription in App Store Connect
+- [ ] Create `pq_premium_1month` subscription in Google Play Console
+- [ ] Create `pq_premium_1year` subscription in Google Play Console
 
 ### RevenueCat Dashboard
 - [ ] Create/verify project in RevenueCat
@@ -22,12 +22,12 @@
 - [ ] Add Android app with package: `com.practissimo.app`
 - [ ] Verify API keys match environment.prod.ts
 - [ ] Create `pro` entitlement
-- [ ] Add `pro_monthly` product (iOS & Android)
-- [ ] Add `pro_yearly` product (iOS & Android)
+- [ ] Add `pq_premium_1month` product (iOS & Android)
+- [ ] Add `pq_premium_1year` product (iOS & Android)
 - [ ] Create default offering
 - [ ] Add monthly package to offering
 - [ ] Add yearly package to offering
-- [ ] Attach products to `pro` entitlement
+- [ ] Attach products to `pro` entitlement (`pq_premium_1month` & `pq_premium_1year`)
 - [ ] Set offering as current
 
 ### Testing

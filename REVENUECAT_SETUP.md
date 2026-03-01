@@ -15,14 +15,14 @@
 5. Create two auto-renewable subscriptions:
 
    **Monthly Subscription:**
-   - Reference Name: `PracticeQuest Pro Monthly`
-   - Product ID: `pro_monthly`
+   - Reference Name: `PracticeQuest Premium - 1 Month`
+   - Product ID: `pq_premium_1month`
    - Subscription Duration: 1 month
    - Price: $0.99 (or your preferred price)
 
    **Yearly Subscription:**
-   - Reference Name: `PracticeQuest Pro Yearly`
-   - Product ID: `pro_yearly`
+   - Reference Name: `PracticeQuest Premium - 1 Year`
+   - Product ID: `pq_premium_1year`
    - Subscription Duration: 1 year
    - Price: $9.99 (or your preferred price)
 
@@ -38,14 +38,14 @@
 5. Create two subscriptions:
 
    **Monthly Subscription:**
-   - Product ID: `pro_monthly`
-   - Name: `PracticeQuest Pro Monthly`
+   - Product ID: `pq_premium_1month`
+   - Name: `PracticeQuest Premium - 1 Month`
    - Billing period: 1 month
    - Price: $0.99 (or your preferred price)
 
    **Yearly Subscription:**
-   - Product ID: `pro_yearly`
-   - Name: `PracticeQuest Pro Yearly`
+   - Product ID: `pq_premium_1year`
+   - Name: `PracticeQuest Premium - 1 Year`
    - Billing period: 1 year
    - Price: $9.99 (or your preferred price)
 
@@ -71,20 +71,20 @@
 
 6. **Create Products:**
    - Go to Products tab
-   - Add `pro_monthly` for both iOS and Android
-   - Add `pro_yearly` for both iOS and Android
+   - Add `pq_premium_1month` for both iOS and Android
+   - Add `pq_premium_1year` for both iOS and Android
 
 7. **Create Offering:**
    - Name: `default` (or custom name)
    - Add packages:
-     - Monthly package → attach `pro_monthly`
-     - Annual package → attach `pro_yearly`
+     - Monthly package → attach `pq_premium_1month`
+     - Annual package → attach `pq_premium_1year`
    - Make this offering current
 
 8. **Attach Products to Entitlement:**
    - Go to Entitlements
    - Select `pro` entitlement
-   - Attach both `pro_monthly` and `pro_yearly` products
+   - Attach both `pq_premium_1month` and `pq_premium_1year` products
 
 ### 4. Testing (Sandbox Mode)
 

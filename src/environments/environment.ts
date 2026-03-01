@@ -14,12 +14,12 @@ export const environment = {
     privacyPolicyUrl: ''
   },
   revenuecat: {
-    iosApiKey: 'test_jsmKwfOxEWgbIVhwnjpwFpfmaJP',
+    iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
     androidApiKey: '',
     entitlementId: 'pro',
     productIds: {
-      proMonthly: 'pro_monthly',
-      proYearly: 'pro_yearly'
+      proMonthly: 'pq_premium_1month',
+      proYearly: 'pq_premium_1year'
     }
   }
 };
@@ -31,4 +31,4 @@ export const environment = {
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown.
  */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.
+import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

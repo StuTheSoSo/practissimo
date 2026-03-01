@@ -12,7 +12,7 @@ import {
 import { environment } from '../../../environments/environment';
 
 const DEFAULT_ENTITLEMENT_ID = 'pro';
-const REVENUECAT_BYPASS = false;
+const REVENUECAT_BYPASS = true;
 
 @Injectable({
   providedIn: 'root'

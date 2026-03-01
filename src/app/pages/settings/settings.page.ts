@@ -175,7 +175,7 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
             <ion-card-title>About</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p>PracticeQuest v1.3.0</p>
+            <p>PracticeQuest v1.4.0</p>
             <p>A gamified practice tracker for musicians</p>
             <p>The only magic I've ever found is "The more you practice, the better you get."</p>
             <ion-list>
