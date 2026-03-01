@@ -8,4 +8,5 @@ export const STORAGE_KEYS = {
   ONBOARDING_COMPLETED: 'onboarding_completed',
   APP_RATING_STATE: 'app_rating_state',
   CELEBRATED_MILESTONES: 'celebrated_milestones',
+  CUSTOM_CATEGORIES: 'custom_categories',
 } as const;

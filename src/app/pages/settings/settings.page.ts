@@ -1,5 +1,5 @@
 // src/app/pages/settings/settings.page.ts (SIMPLIFIED VERSION)
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -23,7 +23,7 @@ import {
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark } from 'ionicons/icons';
+import { chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil } from 'ionicons/icons';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
@@ -62,6 +62,32 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
             </ion-list>
             <ion-button expand="block" (click)="changeInstrument()">
               Change Instrument
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card class="hero-card target-card">
+          <ion-card-header>
+            <ion-card-title>Practice Categories</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p>Customize your practice categories for {{ currentInstrument() }}</p>
+            <ion-list>
+              @for (category of customCategories(); track category) {
+                <ion-item>
+                  <ion-label>{{ category }}</ion-label>
+                  <ion-button slot="end" fill="clear" size="small" (click)="editCategory(category)">
+                    <ion-icon name="pencil" color="primary"></ion-icon>
+                  </ion-button>
+                  <ion-button slot="end" fill="clear" size="small" (click)="removeCategory(category)">
+                    <ion-icon name="trash" color="danger"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              }
+            </ion-list>
+            <ion-button expand="block" fill="outline" (click)="addCategory()">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Add Custom Category
             </ion-button>
           </ion-card-content>
         </ion-card>
@@ -599,6 +625,7 @@ export class SettingsPage {
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
+  customCategories = computed(() => this.instrumentService.getCustomCategories());
   isPro = this.revenueCat.isPro;
   managementUrl = this.revenueCat.managementUrl;
   weeklyTargetMinutes = this.weeklyTargetService.targetMinutes;
@@ -606,7 +633,7 @@ export class SettingsPage {
   reminderTimeLabel = this.notificationService.reminderTimeLabel;
 
   constructor() {
-    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark });
+    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil });
   }
 
   async changeInstrument() {
@@ -785,6 +812,88 @@ export class SettingsPage {
             if (!data.time) return false;
             void this.notificationService.setReminderTime(data.time);
             return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async addCategory() {
+    const alert = await this.alertController.create({
+      header: 'Add Custom Category',
+      message: 'Enter a name for your practice category',
+      inputs: [
+        {
+          name: 'category',
+          type: 'text',
+          placeholder: 'e.g., Song: Wonderwall'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Add',
+          handler: (data: { category?: string }) => {
+            if (!data.category?.trim()) return false;
+            this.instrumentService.addCustomCategory(data.category);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async editCategory(category: string) {
+    const alert = await this.alertController.create({
+      header: 'Edit Category',
+      message: 'Update the category name',
+      inputs: [
+        {
+          name: 'category',
+          type: 'text',
+          value: category
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Save',
+          handler: (data: { category?: string }) => {
+            if (!data.category?.trim()) return false;
+            this.instrumentService.editCustomCategory(category, data.category);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async removeCategory(category: string) {
+    const alert = await this.alertController.create({
+      header: 'Remove Category',
+      message: `Remove "${category}" from your practice categories?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Remove',
+          role: 'destructive',
+          handler: () => {
+            this.instrumentService.removeCustomCategory(category);
           }
         }
       ]

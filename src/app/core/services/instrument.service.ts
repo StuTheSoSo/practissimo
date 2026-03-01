@@ -1,6 +1,7 @@
 // src/app/core/services/instrument.service.ts
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Instrument, InstrumentConfig } from '../models/instrument.model';
+import { CustomCategories } from '../models/custom-categories.model';
 import { INSTRUMENT_CONFIG, getAllInstruments } from '../config/instrument.config';
 import { StorageService } from './storage.service';
 import { STORAGE_KEYS } from '../models/storage-keys.model';
@@ -17,6 +18,7 @@ export class InstrumentService {
 
   // State signals
   private currentInstrumentSignal = signal<Instrument>('guitar');
+  private customCategories = signal<CustomCategories>({});
 
   // Public readonly signals
   readonly currentInstrument = this.currentInstrumentSignal.asReadonly();
@@ -26,9 +28,11 @@ export class InstrumentService {
     INSTRUMENT_CONFIG[this.currentInstrument()]
   );
 
-  readonly currentCategories = computed<string[]>(() =>
-    this.currentConfig().categories
-  );
+  readonly currentCategories = computed<string[]>(() => {
+    const defaultCategories = this.currentConfig().categories;
+    const customCats = this.customCategories()[this.currentInstrument()] || [];
+    return [...defaultCategories, ...customCats];
+  });
 
   readonly currentDisplayName = computed<string>(() =>
     this.currentConfig().displayName
@@ -56,6 +60,12 @@ export class InstrumentService {
       const instrument = this.currentInstrument();
       this.persistInstrument(instrument);
     });
+
+    // Effect to persist custom categories
+    effect(() => {
+      const categories = this.customCategories();
+      this.storage.set(STORAGE_KEYS.CUSTOM_CATEGORIES, categories);
+    });
   }
 
   /**
@@ -68,6 +78,14 @@ export class InstrumentService {
 
     if (progress?.selectedInstrument) {
       this.currentInstrumentSignal.set(progress.selectedInstrument);
+    }
+
+    const savedCustomCategories = await this.storage.get<CustomCategories>(
+      STORAGE_KEYS.CUSTOM_CATEGORIES
+    );
+
+    if (savedCustomCategories) {
+      this.customCategories.set(savedCustomCategories);
     }
   }
 
@@ -90,6 +108,68 @@ export class InstrumentService {
    */
   isValidCategory(category: string): boolean {
     return this.currentCategories().includes(category);
+  }
+
+  /**
+   * Add custom category for current instrument
+   */
+  addCustomCategory(category: string): void {
+    const trimmed = category.trim();
+    if (!trimmed || this.currentCategories().includes(trimmed)) {
+      return;
+    }
+
+    const instrument = this.currentInstrument();
+    this.customCategories.update(cats => ({
+      ...cats,
+      [instrument]: [...(cats[instrument] || []), trimmed]
+    }));
+  }
+
+  /**
+   * Remove custom category for current instrument
+   */
+  removeCustomCategory(category: string): void {
+    const instrument = this.currentInstrument();
+    const customCats = this.customCategories()[instrument] || [];
+    
+    if (!customCats.includes(category)) {
+      return;
+    }
+
+    this.customCategories.update(cats => ({
+      ...cats,
+      [instrument]: customCats.filter(c => c !== category)
+    }));
+  }
+
+  /**
+   * Edit custom category for current instrument
+   */
+  editCustomCategory(oldCategory: string, newCategory: string): void {
+    const trimmed = newCategory.trim();
+    if (!trimmed || trimmed === oldCategory) {
+      return;
+    }
+
+    const instrument = this.currentInstrument();
+    const customCats = this.customCategories()[instrument] || [];
+    
+    if (!customCats.includes(oldCategory) || customCats.includes(trimmed)) {
+      return;
+    }
+
+    this.customCategories.update(cats => ({
+      ...cats,
+      [instrument]: customCats.map(c => c === oldCategory ? trimmed : c)
+    }));
+  }
+
+  /**
+   * Get only custom categories for current instrument
+   */
+  getCustomCategories(): string[] {
+    return this.customCategories()[this.currentInstrument()] || [];
   }
 
   /**

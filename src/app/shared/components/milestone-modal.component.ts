@@ -138,9 +138,6 @@ import { Milestone } from '../../core/models/milestone.model';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
     IonButton,
     IonIcon
