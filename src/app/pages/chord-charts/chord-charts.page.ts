@@ -223,23 +223,23 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
         </ion-grid>
 
         @if (!isPro() && lockedCount() > 0) {
-          // <ion-card class="pro-cta">
-          //   <ion-card-content>
-          //     <div class="pro-kicker">PracticeQuest Pro</div>
-          //     <h3>Unlock {{ lockedCount() }} more chords</h3>
-          //     <p>Full library access, saved favorites, and advanced filters.</p>
-          //     <p class="pro-price">From $0.99/month or $9.99/year.</p>
-          //     <ul class="pro-features">
-          //       <li>Intermediate + advanced chord charts</li>
-          //       <li>Save chords for quick access</li>
-          //       <li>Complete difficulty filters</li>
-          //       <li>New features at least monthly</li>
-          //     </ul>
-          //     <ion-button expand="block" class="pro-cta-button" (click)="showPaywall('Unlock the full chord library.')">
-          //       Upgrade to Pro
-          //     </ion-button>
-          //   </ion-card-content>
-          // </ion-card>
+          <ion-card class="pro-cta">
+            <ion-card-content>
+              <div class="pro-kicker">PracticeQuest Pro</div>
+              <h3>Unlock {{ lockedCount() }} more chords</h3>
+              <p>Full library access, saved favorites, and advanced filters.</p>
+              <p class="pro-price">From $0.99/month or $9.99/year.</p>
+              <ul class="pro-features">
+                <li>Intermediate + advanced chord charts</li>
+                <li>Save chords for quick access</li>
+                <li>Complete difficulty filters</li>
+                <li>New features at least monthly</li>
+              </ul>
+              <ion-button expand="block" class="pro-cta-button" (click)="showPaywall('Unlock the full chord library.')">
+                Upgrade to Pro
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
         }
       </div>
     </ion-content>

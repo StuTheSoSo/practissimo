@@ -196,7 +196,6 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
           </ion-card-content>
         </ion-card>
 
-        <!--
         <ion-card class="pro-card">
           <ion-card-header>
             <ion-card-title>
@@ -249,7 +248,6 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
             </div>
           </ion-card-content>
         </ion-card>
-        -->
       </div>
     </ion-content>
   `,
