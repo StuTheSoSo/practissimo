@@ -51,7 +51,9 @@ export class NotificationService {
 
   private reminderSettings = signal<ReminderSettings>({
     enabled: false,
-    time: '19:00'
+    time: '19:00',
+    streakProtection: true,
+    smartTiming: false
   });
 
   readonly settings = this.reminderSettings.asReadonly();
@@ -70,7 +72,9 @@ export class NotificationService {
     if (saved) {
       this.reminderSettings.set({
         enabled: !!saved.enabled,
-        time: this.isValidTime(saved.time) ? saved.time : '19:00'
+        time: this.isValidTime(saved.time) ? saved.time : '19:00',
+        streakProtection: saved.streakProtection ?? true,
+        smartTiming: saved.smartTiming ?? false
       });
     }
 
@@ -167,16 +171,37 @@ export class NotificationService {
         continue;
       }
 
+      const message = this.getReminderMessage(dayOffset);
+
       notifications.push({
         id: this.REMINDER_BASE_ID + dayOffset,
-        title: 'PracticeQuest Reminder',
-        body: 'Time to practice and keep your streak alive.',
+        title: 'PracticeQuest',
+        body: message,
         schedule: { at: scheduledAt, allowWhileIdle: true },
         channelId: this.REMINDER_CHANNEL_ID,
         extra: {
           route: '/practice'
         }
       });
+
+      // Add streak protection reminder (2 hours before midnight)
+      if (this.reminderSettings().streakProtection && dayOffset === 0) {
+        const lateReminder = new Date();
+        lateReminder.setHours(22, 0, 0, 0);
+        
+        if (lateReminder > now) {
+          notifications.push({
+            id: this.REMINDER_BASE_ID + 100,
+            title: '🔥 Streak Protection!',
+            body: 'Don\'t break your streak! Practice before midnight.',
+            schedule: { at: lateReminder, allowWhileIdle: true },
+            channelId: this.REMINDER_CHANNEL_ID,
+            extra: {
+              route: '/practice'
+            }
+          });
+        }
+      }
     }
 
     if (notifications.length === 0) {
@@ -193,9 +218,12 @@ export class NotificationService {
   }
 
   private async clearReminderNotifications(): Promise<void> {
-    const notifications = Array.from({ length: this.DAYS_TO_SCHEDULE }, (_, index) => ({
-      id: this.REMINDER_BASE_ID + index
-    }));
+    const notifications = [
+      ...Array.from({ length: this.DAYS_TO_SCHEDULE }, (_, index) => ({
+        id: this.REMINDER_BASE_ID + index
+      })),
+      { id: this.REMINDER_BASE_ID + 100 } // Streak protection reminder
+    ];
 
     try {
       await LocalNotifications.cancel({ notifications });
@@ -249,5 +277,51 @@ export class NotificationService {
       hour: 'numeric',
       minute: '2-digit'
     }).format(value);
+  }
+
+  private getReminderMessage(dayOffset: number): string {
+    const hour = new Date().getHours();
+    
+    // Morning messages (6am-12pm)
+    if (hour >= 6 && hour < 12) {
+      const morning = [
+        'Good morning! ☀️ Start your day with some practice',
+        'Rise and shine! 🌅 Your instrument misses you',
+        'Morning practice = best practice! ☕🎵',
+        'Early bird gets the... better at music! 🐦🎸'
+      ];
+      return morning[dayOffset % morning.length];
+    }
+    
+    // Afternoon messages (12pm-5pm)
+    if (hour >= 12 && hour < 17) {
+      const afternoon = [
+        'Afternoon jam session? 🎶 Let\'s go!',
+        'Perfect time for practice! 🎵',
+        'Your daily dose of music awaits! 🎹',
+        'Break time = practice time! 🎸'
+      ];
+      return afternoon[dayOffset % afternoon.length];
+    }
+    
+    // Evening messages (5pm-10pm)
+    if (hour >= 17 && hour < 22) {
+      const evening = [
+        'Evening vibes! 🌙 Time to practice',
+        'Wind down with some music! 🎵',
+        'Your instrument is calling! 📞🎸',
+        'Let\'s make tonight musical! ✨🎶'
+      ];
+      return evening[dayOffset % evening.length];
+    }
+    
+    // Late night messages (10pm+)
+    const late = [
+      'Last call for practice! 🌙 Keep that streak alive',
+      'Quick session before bed? 😴🎵',
+      'Night owl practice session! 🦉🎸',
+      'Don\'t let today slip away! ⏰🎶'
+    ];
+    return late[dayOffset % late.length];
   }
 }
