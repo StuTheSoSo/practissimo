@@ -524,19 +524,39 @@ export class PracticePage implements OnDestroy {
   }
 
   async quickLog() {
-    if (!this.selectedCategory) {
-      const alert = await this.alertController.create({
-        header: 'Category Required',
-        message: 'Please select a practice category.',
-        buttons: ['OK']
-      });
-      await alert.present();
-      return;
-    }
+    const categoryInputs = this.categories().map(category => ({
+      type: 'radio' as const,
+      label: category,
+      value: category,
+      checked: category === this.selectedCategory
+    }));
 
-    const alert = await this.alertController.create({
-      header: 'Quick Log Session',
-      message: 'How long did you practice?',
+    const categoryAlert = await this.alertController.create({
+      header: 'Select Category',
+      inputs: categoryInputs,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Next',
+          handler: async (category: string) => {
+            if (!category) return false;
+            await this.promptDuration(category);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await categoryAlert.present();
+  }
+
+  async promptDuration(category: string) {
+    const durationAlert = await this.alertController.create({
+      header: 'Practice Duration',
+      message: `Category: ${category}`,
       inputs: [
         {
           name: 'duration',
@@ -554,22 +574,20 @@ export class PracticePage implements OnDestroy {
           text: 'Log',
           handler: async (data: { duration?: string }) => {
             const duration = parseInt(data.duration || '0');
-            if (duration < 1) {
-              return false;
-            }
-            await this.logQuickSession(duration);
+            if (duration < 1) return false;
+            await this.logQuickSession(category, duration);
             return true;
           }
         }
       ]
     });
 
-    await alert.present();
+    await durationAlert.present();
   }
 
-  async logQuickSession(duration: number) {
+  async logQuickSession(category: string, duration: number) {
     const session = await this.practiceService.quickLogSession(
-      this.selectedCategory,
+      category,
       duration,
       this.sessionNotes() || undefined
     );
