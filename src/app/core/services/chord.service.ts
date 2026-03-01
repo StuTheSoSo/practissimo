@@ -4,8 +4,7 @@ import { Chord, SavedChord, ChordCategory } from '../models/chord.model';
 import { CHORD_LIBRARY_DEDUPED, getChordsForInstrument, getChordsByCategory, getChordsByDifficulty } from '../config/chord-library.config';
 import { InstrumentService } from './instrument.service';
 import { StorageService } from './storage.service';
-
-const STORAGE_KEY = 'saved_chords';
+import { STORAGE_KEYS } from '../models/storage-keys.model';
 
 /**
  * ChordService - Manages chord library and user's saved chords
@@ -77,7 +76,7 @@ export class ChordService {
     // Persist saved chords
     effect(() => {
       const saved = this.savedChords();
-      this.storage.set(STORAGE_KEY, saved);
+      this.storage.set(STORAGE_KEYS.SAVED_CHORDS, saved);
     });
   }
 
@@ -85,7 +84,7 @@ export class ChordService {
    * Initialize service
    */
   async initialize(): Promise<void> {
-    const saved = await this.storage.get<string[]>(STORAGE_KEY);
+    const saved = await this.storage.get<string[]>(STORAGE_KEYS.SAVED_CHORDS);
     if (saved) {
       this.savedChordIds.set(saved);
     }

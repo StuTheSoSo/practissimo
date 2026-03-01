@@ -406,7 +406,22 @@ export class PaywallModalComponent {
   manageSubscription() {
     const url = this.managementUrl();
     if (url) {
-      window.open(url, '_blank');
+      // Validate URL is from trusted domain before opening
+      try {
+        const urlObj = new URL(url);
+        const trustedDomains = ['revenuecat.com', 'apple.com', 'play.google.com'];
+        const isTrusted = trustedDomains.some(domain => 
+          urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
+        );
+        
+        if (isTrusted) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        } else {
+          console.warn('Untrusted subscription management URL blocked:', urlObj.hostname);
+        }
+      } catch (e) {
+        console.error('Invalid subscription management URL');
+      }
     }
   }
 

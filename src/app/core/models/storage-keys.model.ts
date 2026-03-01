@@ -9,4 +9,5 @@ export const STORAGE_KEYS = {
   APP_RATING_STATE: 'app_rating_state',
   CELEBRATED_MILESTONES: 'celebrated_milestones',
   CUSTOM_CATEGORIES: 'custom_categories',
+  SAVED_CHORDS: 'saved_chords',
 } as const;

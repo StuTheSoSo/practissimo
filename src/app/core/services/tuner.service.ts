@@ -223,11 +223,13 @@ export class TunerService implements OnDestroy {
 
       this.tunerState.update(state => ({ ...state, isListening: true }));
       this.detectPitch();
-    } catch (error) {
-      const normalized = this.normalizeError(error, 'Microphone access denied or unavailable');
-      console.error('Failed to start tuner:', normalized.message, error);
-      throw normalized;
-    }
+      } catch (error) {
+        const normalized = this.normalizeError(error, 'Microphone access denied or unavailable');
+        // Sanitize error message before logging
+        const sanitizedMsg = normalized.message.replace(/[\r\n]/g, ' ').substring(0, 200);
+        console.error('Failed to start tuner:', sanitizedMsg);
+        throw normalized;
+      }
   }
 
   stop(): void {
@@ -323,13 +325,23 @@ export class TunerService implements OnDestroy {
 
   private normalizeError(error: unknown, fallbackMessage: string): Error {
     if (error instanceof Error) return error;
-    if (typeof error === 'string') return new Error(error);
+    if (typeof error === 'string') {
+      // Sanitize error string to prevent log injection
+      const sanitized = error.replace(/[\r\n]/g, ' ').substring(0, 200);
+      return new Error(sanitized);
+    }
     if (error && typeof error === 'object') {
       const msg = (error as any).message;
       const name = (error as any).name;
-      if (msg) return new Error(msg);
-      if (name) return new Error(`Microphone access failed: ${name}`);
-      try { return new Error(JSON.stringify(error)); } catch { return new Error(fallbackMessage); }
+      if (msg) {
+        const sanitized = String(msg).replace(/[\r\n]/g, ' ').substring(0, 200);
+        return new Error(sanitized);
+      }
+      if (name) {
+        const sanitized = String(name).replace(/[\r\n]/g, ' ').substring(0, 100);
+        return new Error(`Microphone access failed: ${sanitized}`);
+      }
+      try { return new Error(JSON.stringify(error).substring(0, 200)); } catch { return new Error(fallbackMessage); }
     }
     return new Error(fallbackMessage);
   }
@@ -417,7 +429,10 @@ export class TunerService implements OnDestroy {
     const corrected = frequency * best.ratio;
 
     if (best.ratio !== 1 && this.DEBUG_MODE) {
-      console.log(`Octave corrected: ${frequency.toFixed(1)} Hz → ${corrected.toFixed(1)} Hz (ratio ${best.ratio})`);
+      // Sanitize frequency values before logging
+      const sanitizedFreq = Math.max(0, Math.min(20000, frequency)).toFixed(1);
+      const sanitizedCorrected = Math.max(0, Math.min(20000, corrected)).toFixed(1);
+      console.log(`Octave corrected: ${sanitizedFreq} Hz → ${sanitizedCorrected} Hz (ratio ${best.ratio})`);
     }
 
     return corrected;
@@ -769,7 +784,9 @@ export class TunerService implements OnDestroy {
     }
 
     if (noteIndex < 0 || noteIndex >= NOTE_NAMES.length) {
-      console.error('Invalid note index:', noteIndex);
+      // Sanitize note index before logging
+      const sanitizedIndex = Math.max(-12, Math.min(24, noteIndex));
+      console.error('Invalid note index:', sanitizedIndex);
       return { note: 'Unknown', octave: 0, frequency, cents: 0 };
     }
 
@@ -778,7 +795,10 @@ export class TunerService implements OnDestroy {
 
     if (this.DEBUG_MODE) {
       if (frequency > 300 && frequency < 350) {
-        console.log(`High E debug: ${frequency.toFixed(1)}Hz → ${note}${octave} (${cents > 0 ? '+' : ''}${cents}¢)`);
+        // Sanitize values before logging
+        const sanitizedFreq = Math.max(0, Math.min(20000, frequency)).toFixed(1);
+        const sanitizedCents = Math.max(-100, Math.min(100, cents));
+        console.log(`High E debug: ${sanitizedFreq}Hz → ${note}${octave} (${sanitizedCents > 0 ? '+' : ''}${sanitizedCents}¢)`);
       }
     }
 
@@ -793,7 +813,9 @@ export class TunerService implements OnDestroy {
       this.switchCandidateString = null;
       this.switchCandidateFrames = 0;
     } else {
-      console.warn(`Tuning preset not found: ${tuningId}`);
+      // Sanitize tuning ID before logging
+      const sanitizedId = String(tuningId).replace(/[\r\n]/g, ' ').substring(0, 50);
+      console.warn(`Tuning preset not found: ${sanitizedId}`);
     }
   }
 
