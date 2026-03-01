@@ -14,7 +14,7 @@ export const environment = {
     privacyPolicyUrl: ''
   },
   revenuecat: {
-    iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
+    iosApiKey: 'PASTE_NEW_KEY_HERE',
     androidApiKey: '',
     entitlementId: 'pro',
     productIds: {

@@ -4,6 +4,7 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import {
   CustomerInfo,
+  LOG_LEVEL,
   Purchases,
   PurchasesOffering,
   PurchasesOfferings,
@@ -12,7 +13,7 @@ import {
 import { environment } from '../../../environments/environment';
 
 const DEFAULT_ENTITLEMENT_ID = 'pro';
-const REVENUECAT_BYPASS = true;
+const REVENUECAT_BYPASS = false;
 
 @Injectable({
   providedIn: 'root'
@@ -50,48 +51,63 @@ export class RevenueCatService {
   readonly managementUrl = computed<string | null>(() => this.customerInfo()?.managementURL ?? null);
 
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    
+    if (this.initialized) {
+      return;
+    }
+    
     if (this.initializationError) {
+      console.error('[RevenueCat] Previous initialization error:', this.initializationError);
       throw new Error(this.initializationError);
     }
+    
     if (REVENUECAT_BYPASS) {
+      console.log('[RevenueCat] BYPASS mode enabled - skipping initialization');
       this.initialized = true;
       this.initializationError = null;
       return;
     }
 
+    const platform = Capacitor.getPlatform();
+    console.log('[RevenueCat] Platform:', platform);
+    
     if (!this.isNativePlatform()) {
+      console.log('[RevenueCat] Not a native platform, skipping initialization');
       return;
     }
 
     const apiKey = this.getApiKey();
+    
     if (!apiKey) {
-      const platform = Capacitor.getPlatform();
       const message = platform === 'android'
         ? 'Purchases are not configured for Android. Set revenuecat.androidApiKey in src/environments/environment.prod.ts.'
         : 'Purchases are not configured. Missing RevenueCat API key.';
+      console.error('[RevenueCat] Missing API key:', message);
       this.initializationError = message;
       throw new Error(message);
     }
 
     try {
       await Purchases.configure({ apiKey });
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+      
       this.initialized = true;
       this.initializationError = null;
 
       await this.refreshCustomerInfo();
+      
       await this.refreshOfferings();
 
       await Purchases.addCustomerInfoUpdateListener(info => {
         this.customerInfo.set(info);
       });
 
-      // Keep entitlement state fresh when returning to the app (e.g. after App Store flows).
       await App.addListener('appStateChange', state => {
         if (!state.isActive) return;
         void this.refreshCustomerInfo();
         void this.refreshOfferings();
       });
+      
     } catch (error) {
       const fallback = 'Unable to initialize purchases. Check RevenueCat API keys and store product setup.';
       const message = error instanceof Error && error.message ? error.message : fallback;
@@ -103,17 +119,25 @@ export class RevenueCatService {
   async refreshCustomerInfo(): Promise<CustomerInfo | null> {
     if (REVENUECAT_BYPASS) return null;
     if (!this.isNativePlatform()) return null;
-    const { customerInfo } = await Purchases.getCustomerInfo();
-    this.customerInfo.set(customerInfo);
-    return customerInfo;
+    try {
+      const { customerInfo } = await Purchases.getCustomerInfo();
+      this.customerInfo.set(customerInfo);
+      return customerInfo;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async refreshOfferings(): Promise<PurchasesOfferings | null> {
     if (REVENUECAT_BYPASS) return null;
     if (!this.isNativePlatform()) return null;
-    const offerings = await Purchases.getOfferings();
-    this.offerings.set(offerings);
-    return offerings;
+    try {
+      const offerings = await Purchases.getOfferings();
+      this.offerings.set(offerings);
+      return offerings;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async purchasePro(): Promise<void> {
