@@ -5,6 +5,9 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { STORAGE_KEYS } from '../models/storage-keys.model';
 import { ReminderSettings } from '../models/reminder-settings.model';
 import { StorageService } from './storage.service';
+import { PracticeService } from './practice.service';
+import { GamificationService } from './gamification.service';
+import { InstrumentService } from './instrument.service';
 
 interface LocalNotificationSchema {
   id: number;
@@ -48,6 +51,9 @@ export class NotificationService {
 
   private storage = inject(StorageService);
   private router = inject(Router);
+  private practiceService = inject(PracticeService, { optional: true });
+  private gamificationService = inject(GamificationService, { optional: true });
+  private instrumentService = inject(InstrumentService, { optional: true });
 
   private reminderSettings = signal<ReminderSettings>({
     enabled: false,
@@ -171,7 +177,7 @@ export class NotificationService {
         continue;
       }
 
-      const message = this.getReminderMessage(dayOffset);
+      const message = this.getSmartReminderMessage(dayOffset);
 
       notifications.push({
         id: this.REMINDER_BASE_ID + dayOffset,
@@ -277,6 +283,70 @@ export class NotificationService {
       hour: 'numeric',
       minute: '2-digit'
     }).format(value);
+  }
+
+  private getSmartReminderMessage(dayOffset: number): string {
+    if (!this.practiceService || !this.gamificationService || !this.instrumentService) {
+      return this.getReminderMessage(dayOffset);
+    }
+
+    const instrument = this.instrumentService.currentInstrument();
+    const recentSessions = this.practiceService.getRecentSessions(7, instrument);
+    const streak = this.gamificationService.currentStreak();
+
+    // No recent practice - comeback message
+    if (recentSessions.length === 0) {
+      const comebacks = [
+        'Ready to start fresh? 🎵 Let\'s practice!',
+        'Your instrument misses you! 🎸 Time to play',
+        'New day, new practice session! ✨',
+        'Let\'s rebuild that practice habit! 💪'
+      ];
+      return comebacks[dayOffset % comebacks.length];
+    }
+
+    // Streak at risk
+    if (streak > 2) {
+      const today = new Date().toDateString();
+      const practicedToday = recentSessions.some(s => new Date(s.date).toDateString() === today);
+      if (!practicedToday) {
+        return `Keep your ${streak}-day streak alive! 🔥 Practice now`;
+      }
+    }
+
+    // Find neglected category (5+ days)
+    const categories = ['Scales', 'Technique', 'Repertoire', 'Sight Reading', 'Theory', 'Ear Training'];
+    for (const category of categories) {
+      const gap = this.practiceService.getCategoryGap(category, instrument);
+      if (gap >= 5 && gap < Infinity) {
+        return `You haven't practiced ${category} in ${gap} days! 🎵`;
+      }
+    }
+
+    // Encourage variety if focusing too much on one category
+    const mostPracticed = this.practiceService.getMostPracticedCategory(7, instrument);
+    if (mostPracticed && recentSessions.length >= 3) {
+      const mostPracticedCount = recentSessions.filter(s => s.category === mostPracticed).length;
+      if (mostPracticedCount >= recentSessions.length * 0.7) {
+        const others = categories.filter(c => c !== mostPracticed);
+        const suggestion = others[dayOffset % others.length];
+        return `Try some ${suggestion} today - balance your practice! ⚖️🎵`;
+      }
+    }
+
+    // Positive reinforcement
+    if (recentSessions.length >= 5) {
+      const positive = [
+        'You\'re on fire! 🔥 Keep the momentum going',
+        'Consistency is key! 🎯 Another great session awaits',
+        'Your dedication is paying off! 💪 Let\'s practice',
+        'Amazing progress! ⭐ Time for today\'s session'
+      ];
+      return positive[dayOffset % positive.length];
+    }
+
+    // Fallback to generic
+    return this.getReminderMessage(dayOffset);
   }
 
   private getReminderMessage(dayOffset: number): string {

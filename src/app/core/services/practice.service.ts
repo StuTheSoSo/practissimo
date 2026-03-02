@@ -261,6 +261,43 @@ export class PracticeService {
     return filteredSessions.reduce((total, session) => total + session.duration, 0);
   }
 
+  getRecentSessions(days: number, instrument?: string): PracticeSession[] {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    const cutoffTime = cutoff.getTime();
+
+    return this.sessions().filter(s => {
+      const sessionTime = new Date(s.date).getTime();
+      const matchesInstrument = !instrument || s.instrument === instrument;
+      return sessionTime >= cutoffTime && matchesInstrument;
+    });
+  }
+
+  getCategoryGap(category: string, instrument?: string): number {
+    const sessions = instrument
+      ? this.sessions().filter(s => s.instrument === instrument)
+      : this.sessions();
+
+    const categorySessions = sessions.filter(s => s.category === category);
+    if (categorySessions.length === 0) return Infinity;
+
+    const lastSession = categorySessions[categorySessions.length - 1];
+    const daysSince = Math.floor((Date.now() - new Date(lastSession.date).getTime()) / (1000 * 60 * 60 * 24));
+    return daysSince;
+  }
+
+  getMostPracticedCategory(days: number, instrument?: string): string | null {
+    const recent = this.getRecentSessions(days, instrument);
+    if (recent.length === 0) return null;
+
+    const counts = recent.reduce((acc, s) => {
+      acc[s.category] = (acc[s.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }
+
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
