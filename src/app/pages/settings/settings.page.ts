@@ -19,6 +19,7 @@ import {
   IonButton,
   IonIcon,
   IonToggle,
+  IonBadge,
   AlertController,
   ModalController
 } from '@ionic/angular/standalone';
@@ -68,10 +69,20 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
 
         <ion-card class="hero-card target-card">
           <ion-card-header>
-            <ion-card-title>Practice Categories</ion-card-title>
+            <ion-card-title>
+              Practice Categories
+              @if (!isPro() && customCategories().length >= 3) {
+                <span style="margin-left: 0.5rem; font-size: 0.7rem; color: var(--ion-color-warning); font-weight: 700;">LIMIT</span>
+              }
+            </ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <p>Customize your practice categories for {{ currentInstrument() }}</p>
+            <p>
+              Customize your practice categories for {{ currentInstrument() }}
+              @if (!isPro()) {
+                <span style="color: var(--ion-color-medium); font-size: 0.9rem;"> ({{ customCategories().length }}/3 used)</span>
+              }
+            </p>
             <ion-list>
               @for (category of customCategories(); track category) {
                 <ion-item>
@@ -226,6 +237,7 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
                   <li>Intermediate + advanced chords</li>
                   <li>Saved chords and quick access</li>
                   <li>Full difficulty filters</li>
+                  <li>Unlimited custom categories</li>
                   <li>New features at least monthly</li>
                 </ul>
               </div>
@@ -818,9 +830,33 @@ export class SettingsPage {
   }
 
   async addCategory() {
+    const customCount = this.customCategories().length;
+    const isPro = this.isPro();
+    
+    if (!isPro && customCount >= 3) {
+      const alert = await this.alertController.create({
+        header: 'Upgrade to Pro',
+        message: 'Free users can create up to 3 custom categories. Upgrade to Pro for unlimited custom categories.',
+        buttons: [
+          {
+            text: 'Cancel',
+            role: 'cancel'
+          },
+          {
+            text: 'Upgrade',
+            handler: () => {
+              void this.upgradeToPro();
+            }
+          }
+        ]
+      });
+      await alert.present();
+      return;
+    }
+
     const alert = await this.alertController.create({
       header: 'Add Custom Category',
-      message: 'Enter a name for your practice category',
+      message: isPro ? 'Enter a name for your practice category' : `Enter a name for your practice category (${customCount}/3 used)`,
       inputs: [
         {
           name: 'category',
@@ -837,13 +873,37 @@ export class SettingsPage {
           text: 'Add',
           handler: (data: { category?: string }) => {
             if (!data.category?.trim()) return false;
-            this.instrumentService.addCustomCategory(data.category);
+            const success = this.instrumentService.addCustomCategory(data.category, isPro);
+            if (!success) {
+              void this.showCategoryLimitError();
+              return false;
+            }
             return true;
           }
         }
       ]
     });
 
+    await alert.present();
+  }
+
+  private async showCategoryLimitError() {
+    const alert = await this.alertController.create({
+      header: 'Limit Reached',
+      message: 'Free users can create up to 3 custom categories. Upgrade to Pro for unlimited.',
+      buttons: [
+        {
+          text: 'OK',
+          role: 'cancel'
+        },
+        {
+          text: 'Upgrade to Pro',
+          handler: () => {
+            void this.upgradeToPro();
+          }
+        }
+      ]
+    });
     await alert.present();
   }
 

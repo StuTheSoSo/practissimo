@@ -104,7 +104,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 <ion-icon name="sparkles" color="warning"></ion-icon>
                 <div>
                   <h3>Unlock Pro Features</h3>
-                  <p>200+ chords • Save favorites • Advanced filters</p>
+                  <p>200+ chords • Save favorites • Advanced filters • Unlimited categories</p>
                 </div>
               </div>
               <div class="pro-upgrade-footer-prominent">

@@ -113,17 +113,26 @@ export class InstrumentService {
   /**
    * Add custom category for current instrument
    */
-  addCustomCategory(category: string): void {
+  addCustomCategory(category: string, isPro: boolean = false): boolean {
     const trimmed = category.trim();
     if (!trimmed || this.currentCategories().includes(trimmed)) {
-      return;
+      return false;
     }
 
     const instrument = this.currentInstrument();
+    const customCats = this.customCategories()[instrument] || [];
+    
+    // Free users limited to 3 custom categories
+    if (!isPro && customCats.length >= 3) {
+      return false;
+    }
+
     this.customCategories.update(cats => ({
       ...cats,
-      [instrument]: [...(cats[instrument] || []), trimmed]
+      [instrument]: [...customCats, trimmed]
     }));
+    
+    return true;
   }
 
   /**
