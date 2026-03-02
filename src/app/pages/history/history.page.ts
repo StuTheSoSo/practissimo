@@ -18,13 +18,16 @@ import {
   IonList,
   IonItem,
   IonLabel,
-  IonBadge
+  IonBadge,
+  ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, time, star, starOutline } from 'ionicons/icons';
+import { chevronBack, chevronForward, time, star, starOutline, download, lockClosed } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
 import { ProgressStatsComponent } from '../../shared/components/progress-stats.component';
+import { RevenueCatService } from '../../core/services/revenuecat.service';
+import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 
 type CalendarDay = {
   date: Date | null;
@@ -45,6 +48,13 @@ type CalendarDay = {
           <ion-back-button defaultHref="/home"></ion-back-button>
         </ion-buttons>
         <ion-title>Practice History</ion-title>
+        <ion-buttons slot="end">
+          @if (isPro()) {
+            <ion-button (click)="exportToCSV()">
+              <ion-icon name="download" slot="icon-only"></ion-icon>
+            </ion-button>
+          }
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
@@ -134,6 +144,24 @@ type CalendarDay = {
         </ion-card>
 
         <app-progress-stats></app-progress-stats>
+
+        @if (!isPro()) {
+          <ion-card class="pro-upgrade-card">
+            <ion-card-content>
+              <ion-icon name="lock-closed" color="warning" size="large"></ion-icon>
+              <h3>Unlock Full History</h3>
+              <p>Free users can view the last 30 days. Upgrade to Pro for:</p>
+              <ul>
+                <li>Unlimited practice history</li>
+                <li>Export to CSV</li>
+                <li>Advanced analytics</li>
+              </ul>
+              <ion-button expand="block" (click)="showPaywall()">
+                Upgrade to Pro
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        }
       </div>
     </ion-content>
   `,
@@ -280,6 +308,48 @@ type CalendarDay = {
     .rating ion-icon {
       font-size: 0.9rem;
     }
+
+    .pro-upgrade-card {
+      text-align: center;
+      background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.1), rgba(var(--ion-color-secondary-rgb), 0.1));
+      margin-top: 1rem;
+    }
+
+    .pro-upgrade-card ion-icon {
+      margin-bottom: 1rem;
+    }
+
+    .pro-upgrade-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+    }
+
+    .pro-upgrade-card p {
+      margin-bottom: 1rem;
+      color: var(--ion-color-medium);
+    }
+
+    .pro-upgrade-card ul {
+      text-align: left;
+      margin: 1rem auto;
+      max-width: 300px;
+      list-style: none;
+      padding: 0;
+    }
+
+    .pro-upgrade-card li {
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .pro-upgrade-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--ion-color-success);
+      font-weight: bold;
+    }
   `],
   standalone: true,
   imports: [
@@ -305,8 +375,24 @@ type CalendarDay = {
 })
 export class HistoryPage {
   private practiceService = inject(PracticeService);
+  private modalController = inject(ModalController);
 
   sessions = this.practiceService.currentInstrumentSessions;
+  private revenueCat = inject(RevenueCatService);
+  isPro = this.revenueCat.isPro;
+
+  private filteredSessionsByDate = computed(() => {
+    const allSessions = this.sessions();
+    const isPro = this.isPro();
+    
+    if (!isPro) {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return allSessions.filter(s => new Date(s.date) >= thirtyDaysAgo);
+    }
+    
+    return allSessions;
+  });
   weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   private selectedMonth = signal(this.startOfMonth(new Date()));
@@ -394,7 +480,7 @@ export class HistoryPage {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, time, star, starOutline });
+    addIcons({ chevronBack, chevronForward, time, star, starOutline, download, lockClosed });
 
     effect(() => {
       const sessions = this.sessions();
@@ -449,7 +535,8 @@ export class HistoryPage {
 
   private groupSessionsByDate(sessions: PracticeSession[]): Map<string, PracticeSession[]> {
     const map = new Map<string, PracticeSession[]>();
-    for (const session of sessions) {
+    const sessionsToUse = this.filteredSessionsByDate();
+    for (const session of sessionsToUse) {
       const key = this.toDateKey(new Date(session.date));
       const existing = map.get(key);
       if (existing) {
@@ -470,5 +557,47 @@ export class HistoryPage {
 
   private startOfMonth(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  async exportToCSV() {
+    const sessions = this.filteredSessionsByDate();
+    if (sessions.length === 0) {
+      return;
+    }
+
+    const csv = this.generateCSV(sessions);
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `practice-history-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  private generateCSV(sessions: PracticeSession[]): string {
+    const headers = ['Date', 'Time', 'Instrument', 'Category', 'Duration (min)', 'Quality Rating', 'XP Earned', 'Notes'];
+    const rows = sessions.map(s => [
+      new Date(s.date).toLocaleDateString(),
+      new Date(s.date).toLocaleTimeString(),
+      s.instrument,
+      s.category,
+      s.duration.toString(),
+      s.qualityRating?.toString() || '',
+      s.xpEarned.toString(),
+      `"${(s.notes || '').replace(/"/g, '""')}"`
+    ]);
+
+    return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  }
+
+  async showPaywall() {
+    const modal = await this.modalController.create({
+      component: PaywallModalComponent,
+      componentProps: {
+        reason: 'Unlock unlimited practice history and export your data to CSV.'
+      }
+    });
+    await modal.present();
   }
 }
