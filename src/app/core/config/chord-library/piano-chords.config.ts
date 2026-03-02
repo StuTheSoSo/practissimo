@@ -1330,5 +1330,719 @@ export const PIANO_CHORDS: Chord[] = [
       }
     }
   ]
+  },
+
+  // ============================================================================
+  // PIANO - MORE DOMINANT 7TH CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_fsharp7',
+    name: 'F# Dominant 7',
+    displayName: 'F#7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Sharp dominant seventh',
+    commonIn: ['Blues', 'Jazz', 'Key of B'],
+    variations: [
+      {
+        id: 'piano_fsharp7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F#', octave: 3, finger: 1 },
+            { note: 'A#', octave: 3, finger: 2 },
+            { note: 'C#', octave: 4, finger: 3 },
+            { note: 'E', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_bb7',
+    name: 'Bb Dominant 7',
+    displayName: 'Bb7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Bluesy flat seventh',
+    commonIn: ['Blues', 'Jazz', 'Key of Eb'],
+    variations: [
+      {
+        id: 'piano_bb7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Bb', octave: 3, finger: 1 },
+            { note: 'D', octave: 4, finger: 2 },
+            { note: 'F', octave: 4, finger: 3 },
+            { note: 'Ab', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_eb7',
+    name: 'Eb Dominant 7',
+    displayName: 'Eb7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Dark dominant seventh',
+    commonIn: ['Blues', 'Jazz', 'Key of Ab'],
+    variations: [
+      {
+        id: 'piano_eb7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Eb', octave: 3, finger: 1 },
+            { note: 'G', octave: 3, finger: 2 },
+            { note: 'Bb', octave: 3, finger: 3 },
+            { note: 'Db', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_ab7',
+    name: 'Ab Dominant 7',
+    displayName: 'Ab7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Rich dominant seventh',
+    commonIn: ['Blues', 'Jazz', 'Key of Db'],
+    variations: [
+      {
+        id: 'piano_ab7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Ab', octave: 3, finger: 1 },
+            { note: 'C', octave: 4, finger: 2 },
+            { note: 'Eb', octave: 4, finger: 3 },
+            { note: 'Gb', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_db7',
+    name: 'Db Dominant 7',
+    displayName: 'Db7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Flat dominant seventh',
+    commonIn: ['Blues', 'Jazz', 'Key of Gb'],
+    variations: [
+      {
+        id: 'piano_db7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Db', octave: 4, finger: 1 },
+            { note: 'F', octave: 4, finger: 2 },
+            { note: 'Ab', octave: 4, finger: 3 },
+            { note: 'Cb', octave: 5, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - MORE MINOR 7TH CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_fsharp_m7',
+    name: 'F# Minor 7',
+    displayName: 'F#m7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Moody minor seventh',
+    commonIn: ['Jazz', 'Pop', 'Key of A'],
+    variations: [
+      {
+        id: 'piano_fsharp_m7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'F#', octave: 3, finger: 1 },
+            { note: 'A', octave: 3, finger: 2 },
+            { note: 'C#', octave: 4, finger: 4 },
+            { note: 'E', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_gsharp_m7',
+    name: 'G# Minor 7',
+    displayName: 'G#m7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Tense minor seventh',
+    commonIn: ['Jazz', 'Pop', 'Key of B'],
+    variations: [
+      {
+        id: 'piano_gsharp_m7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G#', octave: 3, finger: 1 },
+            { note: 'B', octave: 3, finger: 2 },
+            { note: 'D#', octave: 4, finger: 4 },
+            { note: 'F#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_csharp_m7',
+    name: 'C# Minor 7',
+    displayName: 'C#m7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Expressive minor seventh',
+    commonIn: ['Jazz', 'Pop', 'Key of E'],
+    variations: [
+      {
+        id: 'piano_csharp_m7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C#', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 2 },
+            { note: 'G#', octave: 4, finger: 4 },
+            { note: 'B', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_ebm7',
+    name: 'Eb Minor 7',
+    displayName: 'Ebm7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Deep minor seventh',
+    commonIn: ['Jazz', 'Neo-soul', 'Key of Gb'],
+    variations: [
+      {
+        id: 'piano_ebm7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Eb', octave: 3, finger: 1 },
+            { note: 'Gb', octave: 3, finger: 2 },
+            { note: 'Bb', octave: 3, finger: 4 },
+            { note: 'Db', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_bbm7',
+    name: 'Bb Minor 7',
+    displayName: 'Bbm7',
+    category: 'seventh',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Somber minor seventh',
+    commonIn: ['Jazz', 'R&B', 'Key of Db'],
+    variations: [
+      {
+        id: 'piano_bbm7_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'Bb', octave: 3, finger: 1 },
+            { note: 'Db', octave: 4, finger: 2 },
+            { note: 'F', octave: 4, finger: 4 },
+            { note: 'Ab', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - DOMINANT 9TH CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_c9',
+    name: 'C Dominant 9',
+    displayName: 'C9',
+    category: 'ninth',
+    difficulty: 'advanced',
+    instrument: 'piano',
+    description: 'Jazzy dominant 9th',
+    commonIn: ['Jazz', 'Blues', 'Funk'],
+    variations: [
+      {
+        id: 'piano_c9_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 3, finger: 1 },
+            { note: 'E', octave: 3, finger: 2 },
+            { note: 'Bb', octave: 3, finger: 4 },
+            { note: 'D', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_d9',
+    name: 'D Dominant 9',
+    displayName: 'D9',
+    category: 'ninth',
+    difficulty: 'advanced',
+    instrument: 'piano',
+    description: 'Bright dominant 9th',
+    commonIn: ['Jazz', 'Blues', 'Funk'],
+    variations: [
+      {
+        id: 'piano_d9_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 3, finger: 1 },
+            { note: 'F#', octave: 3, finger: 2 },
+            { note: 'C', octave: 4, finger: 4 },
+            { note: 'E', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_e9',
+    name: 'E Dominant 9',
+    displayName: 'E9',
+    category: 'ninth',
+    difficulty: 'advanced',
+    instrument: 'piano',
+    description: 'Full-bodied dominant 9th',
+    commonIn: ['Jazz', 'Blues', 'Funk'],
+    variations: [
+      {
+        id: 'piano_e9_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 3, finger: 1 },
+            { note: 'G#', octave: 3, finger: 2 },
+            { note: 'D', octave: 4, finger: 4 },
+            { note: 'F#', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_g9',
+    name: 'G Dominant 9',
+    displayName: 'G9',
+    category: 'ninth',
+    difficulty: 'advanced',
+    instrument: 'piano',
+    description: 'Rich dominant 9th',
+    commonIn: ['Jazz', 'Blues', 'Funk'],
+    variations: [
+      {
+        id: 'piano_g9_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'G', octave: 3, finger: 1 },
+            { note: 'B', octave: 3, finger: 2 },
+            { note: 'F', octave: 4, finger: 4 },
+            { note: 'A', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_a9',
+    name: 'A Dominant 9',
+    displayName: 'A9',
+    category: 'ninth',
+    difficulty: 'advanced',
+    instrument: 'piano',
+    description: 'Bluesy dominant 9th',
+    commonIn: ['Jazz', 'Blues', 'Funk'],
+    variations: [
+      {
+        id: 'piano_a9_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'A', octave: 3, finger: 1 },
+            { note: 'C#', octave: 4, finger: 2 },
+            { note: 'G', octave: 4, finger: 4 },
+            { note: 'B', octave: 4, finger: 5 }
+          ],
+          octave: 3
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - SUSPENDED CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_csus2',
+    name: 'C Suspended 2',
+    displayName: 'Csus2',
+    category: 'suspended',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Open, airy suspended chord',
+    commonIn: ['Pop', 'Rock', 'Ambient'],
+    variations: [
+      {
+        id: 'piano_csus2_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'D', octave: 4, finger: 2 },
+            { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_csus4',
+    name: 'C Suspended 4',
+    displayName: 'Csus4',
+    category: 'suspended',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Tension and resolution',
+    commonIn: ['Pop', 'Rock', 'Folk'],
+    variations: [
+      {
+        id: 'piano_csus4_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'F', octave: 4, finger: 3 },
+            { note: 'G', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_dsus2',
+    name: 'D Suspended 2',
+    displayName: 'Dsus2',
+    category: 'suspended',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Bright suspended chord',
+    commonIn: ['Pop', 'Folk', 'Ambient'],
+    variations: [
+      {
+        id: 'piano_dsus2_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 2 },
+            { note: 'A', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_dsus4',
+    name: 'D Suspended 4',
+    displayName: 'Dsus4',
+    category: 'suspended',
+    difficulty: 'beginner',
+    instrument: 'piano',
+    description: 'Classic suspended chord',
+    commonIn: ['Pop', 'Folk', 'Rock'],
+    variations: [
+      {
+        id: 'piano_dsus4_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'G', octave: 4, finger: 3 },
+            { note: 'A', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - DIMINISHED CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_cdim',
+    name: 'C Diminished',
+    displayName: 'Cdim',
+    category: 'diminished',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Tense, unstable chord',
+    commonIn: ['Jazz', 'Classical', 'Film'],
+    variations: [
+      {
+        id: 'piano_cdim_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'Eb', octave: 4, finger: 3 },
+            { note: 'Gb', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_ddim',
+    name: 'D Diminished',
+    displayName: 'Ddim',
+    category: 'diminished',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Dissonant diminished chord',
+    commonIn: ['Jazz', 'Classical', 'Blues'],
+    variations: [
+      {
+        id: 'piano_ddim_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'F', octave: 4, finger: 3 },
+            { note: 'Ab', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_edim',
+    name: 'E Diminished',
+    displayName: 'Edim',
+    category: 'diminished',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Dramatic diminished chord',
+    commonIn: ['Jazz', 'Classical', 'Film'],
+    variations: [
+      {
+        id: 'piano_edim_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 4, finger: 1 },
+            { note: 'G', octave: 4, finger: 3 },
+            { note: 'Bb', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  // ============================================================================
+  // PIANO - AUGMENTED CHORDS
+  // ============================================================================
+
+  {
+    id: 'piano_caug',
+    name: 'C Augmented',
+    displayName: 'Caug',
+    category: 'augmented',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Mysterious, dreamlike chord',
+    commonIn: ['Jazz', 'Film', 'Experimental'],
+    variations: [
+      {
+        id: 'piano_caug_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'C', octave: 4, finger: 1 },
+            { note: 'E', octave: 4, finger: 3 },
+            { note: 'G#', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_daug',
+    name: 'D Augmented',
+    displayName: 'Daug',
+    category: 'augmented',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Unstable augmented chord',
+    commonIn: ['Jazz', 'Film', 'Classical'],
+    variations: [
+      {
+        id: 'piano_daug_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'D', octave: 4, finger: 1 },
+            { note: 'F#', octave: 4, finger: 3 },
+            { note: 'A#', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
+  },
+
+  {
+    id: 'piano_eaug',
+    name: 'E Augmented',
+    displayName: 'Eaug',
+    category: 'augmented',
+    difficulty: 'intermediate',
+    instrument: 'piano',
+    description: 'Tense augmented chord',
+    commonIn: ['Jazz', 'Film', 'Experimental'],
+    variations: [
+      {
+        id: 'piano_eaug_root',
+        name: 'Root Position',
+        isPrimary: true,
+        positions: {
+          type: 'piano',
+          notes: [
+            { note: 'E', octave: 4, finger: 1 },
+            { note: 'G#', octave: 4, finger: 3 },
+            { note: 'B#', octave: 4, finger: 5 }
+          ],
+          octave: 4
+        }
+      }
+    ]
   }
 ];
