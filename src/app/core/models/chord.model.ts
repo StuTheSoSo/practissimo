@@ -39,7 +39,11 @@ export type ChordCategory =
   | 'diminished'
   | 'augmented'
   | 'power'
-  | 'add';
+  | 'add'
+  | 'ninth'
+  | 'sixth'
+  | 'half-diminished'
+  | 'slash';
 
 /**
  * Instrument-specific chord positions
