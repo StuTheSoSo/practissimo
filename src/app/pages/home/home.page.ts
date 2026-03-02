@@ -38,7 +38,9 @@ import {
   chatbubbleEllipses,
   bug,
   bulb,
-  barChart
+  barChart,
+  heart,
+  download
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
@@ -103,8 +105,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
               <div class="pro-upgrade-header-prominent">
                 <ion-icon name="sparkles" color="warning"></ion-icon>
                 <div>
-                  <h3>Unlock Pro Features</h3>
-                  <p>200+ chords • Save favorites • Advanced filters • Unlimited categories</p>
+                  <h3>Master Your Practice</h3>
+                  <p>Everything you need to level up faster</p>
                 </div>
               </div>
               <div class="pro-upgrade-footer-prominent">
@@ -115,6 +117,36 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 <ion-button size="default" class="pro-upgrade-cta-prominent" (click)="openPaywall()">
                   Upgrade Now
                 </ion-button>
+              </div>
+              <div class="pro-benefits">
+                <div class="benefit-item">
+                  <ion-icon name="musical-notes" color="primary"></ion-icon>
+                  <div>
+                    <strong>200+ Chords</strong>
+                    <span>Master intermediate & advanced techniques</span>
+                  </div>
+                </div>
+                <div class="benefit-item">
+                  <ion-icon name="heart" color="danger"></ion-icon>
+                  <div>
+                    <strong>Save Favorites</strong>
+                    <span>Quick access to your most-used chords</span>
+                  </div>
+                </div>
+                <div class="benefit-item">
+                  <ion-icon name="bar-chart" color="success"></ion-icon>
+                  <div>
+                    <strong>Advanced Analytics</strong>
+                    <span>Track progress with detailed insights</span>
+                  </div>
+                </div>
+                <div class="benefit-item">
+                  <ion-icon name="download" color="warning"></ion-icon>
+                  <div>
+                    <strong>Export History</strong>
+                    <span>Download unlimited practice data</span>
+                  </div>
+                </div>
               </div>
             </ion-card-content>
           </ion-card>
@@ -891,6 +923,45 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       width: 100%;
     }
 
+    .pro-benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .benefit-item ion-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .benefit-item div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .benefit-item strong {
+      font-size: 0.95rem;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .benefit-item span {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.3;
+    }
+
     @media (min-width: 480px) {
       .pro-upgrade-footer-prominent {
         flex-direction: row;
@@ -1254,7 +1325,9 @@ export class HomePage implements OnInit {
       chatbubbleEllipses,
       bug,
       bulb,
-      barChart
+      barChart,
+      heart,
+      download
     });
   }
 
