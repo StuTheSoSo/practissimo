@@ -24,7 +24,7 @@ import {
   ModalController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil } from 'ionicons/icons';
+import { chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil, helpCircle } from 'ionicons/icons';
 import { InstrumentService } from '../../core/services/instrument.service';
 import { Instrument } from '../../core/models/instrument.model';
 import { FeedbackModalComponent } from '../../shared/components/feedback.component';
@@ -169,11 +169,11 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
 
             <!-- Quick Links -->
             <div class="feedback-links">
-              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('bug')">
+              <ion-button fill="outline" size="small" (click)="openFeedbackWithType('bug')">
                 <ion-icon name="bug" slot="start"></ion-icon>
                 Report Bug
               </ion-button>
-              <ion-button fill="clear" size="small" (click)="openFeedbackWithType('feature')">
+              <ion-button fill="outline" size="small" (click)="openFeedbackWithType('feature')">
                 <ion-icon name="bulb" slot="start"></ion-icon>
                 Request Feature
               </ion-button>
@@ -190,6 +190,10 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
             <p>A gamified practice tracker for musicians</p>
             <p>The only magic I've ever found is "The more you practice, the better you get."</p>
             <ion-list>
+              <ion-item button detail="true" (click)="openHelp()">
+                <ion-icon name="help-circle" slot="start"></ion-icon>
+                <ion-label>Help & FAQ</ion-label>
+              </ion-item>
               <ion-item button detail="true" (click)="openTermsOfUse()">
                 <ion-icon name="document-text" slot="start"></ion-icon>
                 <ion-label>Terms of Use (EULA)</ion-label>
@@ -267,173 +271,126 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
     .settings-container {
       max-width: 600px;
       margin: 0 auto;
+      padding-bottom: 2rem;
     }
 
     .hero-card {
       position: relative;
       overflow: hidden;
       border: 1px solid var(--app-card-border);
-      border-radius: 18px;
-      box-shadow: var(--app-card-shadow);
-      backdrop-filter: blur(3px);
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1rem;
+      background: var(--ion-card-background);
     }
 
-    .hero-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(125deg, rgba(255, 255, 255, 0.5), transparent 48%, rgba(255, 255, 255, 0.22));
+    .hero-card ion-card-header {
+      padding: 1.25rem 1rem 0.75rem;
     }
 
-    .instrument-card {
-      background:
-        radial-gradient(560px 240px at -6% -32%, rgba(89, 150, 228, 0.26), transparent 62%),
-        linear-gradient(135deg, #f8fbff, #ecf4ff);
+    .hero-card ion-card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ion-text-color);
     }
 
-    .target-card {
-      background:
-        radial-gradient(600px 200px at 108% -30%, rgba(124, 175, 246, 0.28), transparent 56%),
-        linear-gradient(135deg, #f6fbff, #e8f2ff);
-    }
-
-    .reminder-card {
-      background:
-        radial-gradient(560px 240px at 0% 120%, rgba(96, 167, 229, 0.24), transparent 62%),
-        linear-gradient(135deg, #f5faff, #e8f2ff);
-    }
-
-    .feedback-card {
-      background:
-        radial-gradient(620px 260px at 110% 10%, rgba(82, 141, 225, 0.22), transparent 60%),
-        linear-gradient(135deg, #f4f9ff, #e6f0ff);
-    }
-
-    .about-card {
-      background:
-        radial-gradient(620px 240px at -5% 0%, rgba(62, 118, 210, 0.24), transparent 60%),
-        linear-gradient(135deg, #f2f8ff, #e3eeff);
-    }
-
-    .hero-card ion-card-title,
-    .hero-card h2,
-    .hero-card h3,
-    .hero-card ion-label {
-      color: var(--app-text-primary);
+    .hero-card ion-card-content {
+      padding: 0 1rem 1.25rem;
     }
 
     .hero-card p {
-      color: var(--app-text-secondary);
-    }
-
-    .hero-card ion-item {
-      --background: transparent;
-      --color: var(--app-text-primary);
-      --border-color: rgba(58, 86, 144, 0.2);
-    }
-
-    .hero-card ion-button[fill='outline'] {
-      --border-color: rgba(56, 90, 153, 0.35);
-      --color: var(--app-text-primary);
-    }
-
-    .instrument-card ion-item {
-      --background: rgba(255, 255, 255, 0.74);
-      --color: var(--app-text-primary);
-      border: 1px solid rgba(58, 90, 151, 0.2);
-      border-radius: 12px;
-    }
-
-    .instrument-card ion-label h2 {
-      color: var(--app-text-primary) !important;
-      font-weight: 800;
-    }
-
-    .instrument-card ion-label p {
-      color: var(--app-text-secondary) !important;
-      font-weight: 600;
-    }
-
-    .about-card ion-item {
-      --background: rgba(255, 255, 255, 0.74);
-      --color: var(--app-text-primary);
-      --detail-icon-color: var(--app-text-secondary);
-      border: 1px solid rgba(58, 90, 151, 0.2);
-      border-radius: 12px;
-      margin-bottom: 0.45rem;
-    }
-
-    .about-card ion-item ion-label,
-    .about-card ion-item ion-icon {
-      color: var(--app-text-primary) !important;
+      margin: 0 0 1rem;
+      color: var(--ion-color-medium);
+      font-size: 0.9rem;
+      line-height: 1.5;
     }
 
     ion-list {
       padding: 0;
-      margin-bottom: 1rem;
+      margin: 0 0 1rem;
+      background: transparent;
+    }
+
+    ion-item {
+      --background: transparent;
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      --border-color: var(--ion-color-light-shade);
+      margin-bottom: 0.5rem;
+    }
+
+    ion-item:last-child {
+      --border-width: 0;
+    }
+
+    ion-button {
+      --border-radius: 10px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.01em;
+    }
+
+    ion-button[expand="block"] {
+      margin-top: 0.5rem;
+      height: 44px;
     }
 
     .feedback-links {
       display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 0.5rem;
+      gap: 0.5rem;
+      margin-top: 1rem;
     }
 
     .feedback-links ion-button {
-      min-height: 44px;
+      flex: 1;
+      margin: 0;
+      --padding-start: 0.5rem;
+      --padding-end: 0.5rem;
     }
 
     .made-with-love {
       text-align: center;
-      color: var(--app-text-secondary);
+      color: var(--ion-color-medium);
+      font-size: 0.9rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
+      margin-top: 1rem;
     }
 
     .pro-card {
       position: relative;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background:
-        radial-gradient(1200px 300px at -10% -20%, rgba(255, 199, 0, 0.35), transparent 60%),
-        radial-gradient(1000px 400px at 110% -10%, rgba(0, 209, 255, 0.25), transparent 55%),
-        linear-gradient(135deg, #0d1b2a, #152238);
-      color: #f8f9ff;
-      box-shadow: 0 24px 40px rgba(13, 27, 42, 0.35);
+      border-radius: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+      margin-bottom: 1rem;
     }
 
-    .pro-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -50%;
-      width: 200%;
-      height: 100%;
-      background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
-      transform: translateX(-60%);
-      animation: pro-shimmer 6s ease-in-out infinite;
-      pointer-events: none;
+    .pro-card ion-card-header {
+      padding: 1.5rem 1rem 0.75rem;
+    }
+
+    .pro-card ion-card-content {
+      padding: 0 1rem 1.5rem;
     }
 
     .pro-kicker {
-      font-size: 0.75rem;
-      letter-spacing: 0.35em;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.65);
+      opacity: 0.8;
       font-weight: 600;
       display: block;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.25rem;
     }
 
     .pro-title {
       display: block;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      color: #ffffff;
     }
 
     .pro-badge-row {
@@ -441,163 +398,77 @@ import { LegalLinksService } from '../../core/services/legal-links.service';
       align-items: center;
       gap: 0.75rem;
       margin-bottom: 1rem;
-      flex-wrap: wrap;
     }
 
     .pro-badge {
-      background: linear-gradient(135deg, #ffb703, #fb8500);
-      color: #1b1300;
-      padding: 0.35rem 0.7rem;
-      border-radius: 999px;
-      font-weight: 800;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.7rem;
       letter-spacing: 0.1em;
-      font-size: 0.75rem;
     }
 
     .pro-subtitle {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
     }
 
     .pro-state p {
-      margin: 0.35rem 0 0.75rem 0;
-      color: rgba(255, 255, 255, 0.85);
+      margin: 0.5rem 0;
+      opacity: 0.95;
+      line-height: 1.5;
     }
 
     .pro-price {
       font-weight: 700;
-      color: #ffffff;
-      margin-top: 0.25rem;
+      font-size: 1.05rem;
     }
 
     .pro-features {
-      margin: 0;
+      margin: 1rem 0;
       padding: 0;
       list-style: none;
       display: grid;
       gap: 0.5rem;
-      color: rgba(255, 255, 255, 0.85);
     }
 
     .pro-features li {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-    }
-
-    .pro-features li::before {
-      content: '✦';
-      color: #ffd166;
       font-size: 0.9rem;
     }
 
+    .pro-features li::before {
+      content: '✓';
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
     .pro-actions {
-      margin-top: 1rem;
+      margin-top: 1.25rem;
       display: grid;
       gap: 0.75rem;
     }
 
     .pro-cta {
-      --background: linear-gradient(135deg, #ffd166, #ff8fab);
-      --color: #1b1b1b;
-      --border-radius: 12px;
-      --box-shadow: 0 12px 24px rgba(255, 142, 112, 0.35);
+      --background: #fff;
+      --color: #667eea;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      height: 48px;
     }
 
     .pro-restore {
-      --color: #ffffff;
+      --color: #fff;
       --border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    @keyframes pro-shimmer {
-      0% {
-        transform: translateX(-60%);
-      }
-      50% {
-        transform: translateX(0%);
-      }
-      100% {
-        transform: translateX(60%);
-      }
+      height: 44px;
     }
 
     @media (prefers-color-scheme: dark) {
       .hero-card {
-        border-color: rgba(154, 183, 242, 0.36);
-      }
-
-      .hero-card::before {
-        background: linear-gradient(125deg, rgba(255, 255, 255, 0.1), transparent 52%, rgba(255, 255, 255, 0.04));
-      }
-
-      .instrument-card {
-        background:
-          radial-gradient(620px 260px at -8% -28%, rgba(111, 165, 255, 0.25), transparent 64%),
-          linear-gradient(135deg, #1a2744, #111d35);
-      }
-
-      .target-card {
-        background:
-          radial-gradient(620px 260px at 108% -26%, rgba(132, 176, 255, 0.26), transparent 62%),
-          linear-gradient(135deg, #1a2947, #101e39);
-      }
-
-      .reminder-card {
-        background:
-          radial-gradient(600px 260px at 0% 120%, rgba(97, 158, 238, 0.24), transparent 64%),
-          linear-gradient(135deg, #182743, #0f1d36);
-      }
-
-      .feedback-card {
-        background:
-          radial-gradient(620px 260px at 110% 8%, rgba(103, 156, 241, 0.22), transparent 62%),
-          linear-gradient(135deg, #1a2744, #101b33);
-      }
-
-      .about-card {
-        background:
-          radial-gradient(620px 260px at -6% 2%, rgba(97, 147, 234, 0.26), transparent 62%),
-          linear-gradient(135deg, #172640, #0f1d34);
-      }
-
-      .hero-card ion-item {
-        --background: rgba(20, 34, 60, 0.72);
-        --color: var(--app-text-primary);
-        --border-color: rgba(164, 194, 255, 0.3);
-      }
-
-      .hero-card ion-button[fill='outline'] {
-        --border-color: rgba(170, 200, 255, 0.42);
-        --color: var(--app-text-primary);
-      }
-
-      .instrument-card ion-item {
-        --background: rgba(20, 34, 60, 0.78);
-        --color: var(--app-text-primary);
-        border-color: rgba(164, 194, 255, 0.32);
-      }
-
-      .instrument-card ion-label h2 {
-        color: var(--app-text-primary) !important;
-      }
-
-      .instrument-card ion-label p {
-        color: var(--app-text-secondary) !important;
-      }
-
-      .about-card ion-item {
-        --background: rgba(20, 34, 60, 0.78);
-        --color: var(--app-text-primary);
-        --detail-icon-color: var(--app-text-secondary);
-        border-color: rgba(164, 194, 255, 0.32);
-      }
-
-      .about-card ion-item ion-label,
-      .about-card ion-item ion-icon {
-        color: var(--app-text-primary) !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
       }
     }
   `],
@@ -642,7 +513,7 @@ export class SettingsPage {
   reminderTimeLabel = this.notificationService.reminderTimeLabel;
 
   constructor() {
-    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil });
+    addIcons({ chatbubbleEllipses, bug, bulb, heart, notifications, time, documentText, shieldCheckmark, add, trash, pencil, helpCircle });
   }
 
   async changeInstrument() {
@@ -733,6 +604,10 @@ export class SettingsPage {
 
   openTermsOfUse() {
     void this.legalLinksService.openTermsOfUse();
+  }
+
+  openHelp() {
+    void this.router.navigate(['/help']);
   }
 
   openPrivacyPolicy() {

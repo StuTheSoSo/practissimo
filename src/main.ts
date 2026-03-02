@@ -54,6 +54,10 @@ const routes: Routes = [
     loadComponent: () => import('./app/pages/settings/settings.page').then(m => m.SettingsPage)
   },
   {
+    path: 'help',
+    loadComponent: () => import('./app/pages/help/help.page').then(m => m.HelpPage)
+  },
+  {
     path: 'privacy-policy',
     loadComponent: () => import('./app/pages/privacy-policy/privacy-policy.page').then(m => m.PrivacyPolicyPage)
   },
