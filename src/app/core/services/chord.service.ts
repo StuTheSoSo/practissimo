@@ -1,7 +1,7 @@
 // src/app/core/services/chord.service.ts
 import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Chord, SavedChord, ChordCategory } from '../models/chord.model';
-import { CHORD_LIBRARY_DEDUPED, getChordsForInstrument, getChordsByCategory, getChordsByDifficulty } from '../config/chord-library.config';
+import { CHORD_LIBRARY_DEDUPED, getChordsForInstrument, getChordsByCategory, getChordsByDifficulty } from '../config/chord-library';
 import { InstrumentService } from './instrument.service';
 import { StorageService } from './storage.service';
 import { STORAGE_KEYS } from '../models/storage-keys.model';
