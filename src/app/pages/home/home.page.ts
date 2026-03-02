@@ -37,7 +37,8 @@ import {
   sparkles,
   chatbubbleEllipses,
   bug,
-  bulb
+  bulb,
+  barChart
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
@@ -206,6 +207,18 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 </ion-button>
               </ion-col>
             }
+          </ion-row>
+          <ion-row>
+            <ion-col size="12">
+              <ion-button expand="block" fill="clear" (click)="goToAnalytics()">
+                <ion-icon name="bar-chart" slot="start"></ion-icon>
+                Advanced Analytics
+                @if (isPro()) {
+                  <ion-badge color="warning" style="margin-left: 0.5rem;">PRO</ion-badge>
+                }
+                <ion-icon name="chevron-forward" slot="end"></ion-icon>
+              </ion-button>
+            </ion-col>
           </ion-row>
           <ion-row>
             <ion-col size="12">
@@ -842,8 +855,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
     .pro-upgrade-footer-prominent {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 1rem;
     }
 
@@ -876,6 +888,19 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       text-transform: uppercase;
       letter-spacing: 0.08em;
       flex-shrink: 0;
+      width: 100%;
+    }
+
+    @media (min-width: 480px) {
+      .pro-upgrade-footer-prominent {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .pro-upgrade-cta-prominent {
+        width: auto;
+      }
     }
 
     .pro-upgrade-card {
@@ -1228,7 +1253,8 @@ export class HomePage implements OnInit {
       sparkles,
       chatbubbleEllipses,
       bug,
-      bulb
+      bulb,
+      barChart
     });
   }
 
@@ -1281,6 +1307,10 @@ export class HomePage implements OnInit {
 
   goToHistory() {
     this.router.navigate(['/history']);
+  }
+
+  goToAnalytics() {
+    this.router.navigate(['/analytics']);
   }
 
   goToSettings() {
