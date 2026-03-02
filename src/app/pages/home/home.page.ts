@@ -95,7 +95,31 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             {{ primaryCtaLabel() }}
           </ion-button>
         </section>
-        <section class="stat-chips reveal reveal-3">
+        @if (!isPro()) {
+          <ion-card class="pro-upgrade-card-prominent reveal reveal-3">
+            <ion-card-content>
+              <div class="pro-upgrade-badge">⚡ Limited Time</div>
+              <div class="pro-upgrade-header-prominent">
+                <ion-icon name="sparkles" color="warning"></ion-icon>
+                <div>
+                  <h3>Unlock Pro Features</h3>
+                  <p>200+ chords • Save favorites • Advanced filters</p>
+                </div>
+              </div>
+              <div class="pro-upgrade-footer-prominent">
+                <div class="pro-price-stack">
+                  <span class="pro-price-main">$0.99/month</span>
+                  <span class="pro-price-alt">or $9.99/year (save 17%)</span>
+                </div>
+                <ion-button size="default" class="pro-upgrade-cta-prominent" (click)="openPaywall()">
+                  Upgrade Now
+                </ion-button>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        }
+
+        <section class="stat-chips reveal reveal-4">
           <div class="stat-chip streak-chip">
             <ion-icon name="flame"></ion-icon>
             <div>
@@ -125,7 +149,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </div>
         </section>
 
-        <ion-card class="streak-card reveal reveal-4">
+        <ion-card class="streak-card reveal reveal-5">
           <ion-card-header>
             <div class="streak-header">
               <ion-icon name="flame" color="danger"></ion-icon>
@@ -140,7 +164,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-grid class="quick-actions reveal reveal-5">
+        <ion-grid class="quick-actions reveal reveal-6">
           <ion-row>
             <ion-col [size]="showPitchFinderAction() || supportsTuner() ? '6' : '12'">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
@@ -194,7 +218,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-row>
         </ion-grid>
 
-        <ion-card class="level-progress-card reveal reveal-6">
+        <ion-card class="level-progress-card reveal reveal-7">
           <ion-card-header>
             <ion-card-title>Level Progress</ion-card-title>
           </ion-card-header>
@@ -209,7 +233,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="weekly-target-card reveal reveal-7" [class.complete]="weeklyTargetCompleted()">
+        <ion-card class="weekly-target-card reveal reveal-8" [class.complete]="weeklyTargetCompleted()">
           <ion-card-header>
             <ion-card-title>Weekly Target</ion-card-title>
           </ion-card-header>
@@ -232,27 +256,6 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-        @if (!isPro()) {
-          <ion-card class="pro-upgrade-card reveal reveal-8">
-            <ion-card-content>
-              <div class="pro-upgrade-kicker">PracticeQuest Pro</div>
-              <div class="pro-upgrade-header">
-                <ion-icon name="sparkles" color="warning"></ion-icon>
-                <div>
-                  <h3>Unlock Your Full Practice Power</h3>
-                  <p>Full chord library, favorites, and advanced filters.</p>
-                </div>
-              </div>
-              <div class="pro-upgrade-footer">
-                <span class="pro-upgrade-price">From $0.99/month</span>
-                <ion-button size="small" class="pro-upgrade-cta" (click)="openPaywall()">
-                  Go Pro
-                </ion-button>
-              </div>
-            </ion-card-content>
-          </ion-card>
-        }
-
         <section class="more-section reveal reveal-9">
           <ion-button expand="block" fill="clear" (click)="toggleMoreSection()">
             {{ showMoreSection() ? 'Hide Secondary Sections' : 'See More Tools & Feedback' }}
@@ -266,7 +269,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
         @if (showMoreSection()) {
           @if (todaysQuests().length > 0) {
-            <ion-card class="quests-card reveal reveal-10">
+            <ion-card class="quests-card reveal reveal-11">
               <ion-card-header>
                 <ion-card-title>Today's Quests</ion-card-title>
               </ion-card-header>
@@ -293,7 +296,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             </ion-card>
           }
 
-          <ion-card class="feedback-card reveal reveal-10">
+          <ion-card class="feedback-card reveal reveal-12">
             <ion-card-header>
               <ion-card-title>Help Us Improve</ion-card-title>
             </ion-card-header>
@@ -381,6 +384,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .reveal-8 { animation-delay: 320ms; }
     .reveal-9 { animation-delay: 360ms; }
     .reveal-10 { animation-delay: 400ms; }
+    .reveal-11 { animation-delay: 440ms; }
+    .reveal-12 { animation-delay: 480ms; }
 
     @keyframes reveal-in {
       from {
@@ -762,6 +767,117 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       to { transform: translateY(-10%); }
     }
 
+    .pro-upgrade-card-prominent {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0d1b2a, #152238);
+      color: #f8f9ff;
+      border: 2px solid rgba(255, 209, 102, 0.4);
+      box-shadow: 0 16px 32px rgba(255, 209, 102, 0.2);
+      animation: pro-card-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pro-card-pulse {
+      0%, 100% {
+        box-shadow: 0 16px 32px rgba(255, 209, 102, 0.2);
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      50% {
+        box-shadow: 0 20px 40px rgba(255, 209, 102, 0.35);
+        border-color: rgba(255, 209, 102, 0.6);
+      }
+    }
+
+    .pro-upgrade-card-prominent::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%);
+      transform: translateX(-60%);
+      animation: pro-upgrade-shimmer 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .pro-upgrade-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      background: linear-gradient(135deg, #ffd166, #ff8fab);
+      color: #1b1b1b;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+
+    .pro-upgrade-header-prominent {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .pro-upgrade-header-prominent ion-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .pro-upgrade-header-prominent h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .pro-upgrade-header-prominent p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .pro-upgrade-footer-prominent {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .pro-price-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .pro-price-main {
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #ffd166;
+    }
+
+    .pro-price-alt {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.75);
+      font-weight: 600;
+    }
+
+    .pro-upgrade-cta-prominent {
+      --background: linear-gradient(135deg, #ffd166, #ff8fab);
+      --color: #1b1b1b;
+      --border-radius: 12px;
+      --box-shadow: 0 10px 20px rgba(255, 142, 112, 0.4);
+      --padding-start: 1.5rem;
+      --padding-end: 1.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
     .pro-upgrade-card {
       position: relative;
       overflow: hidden;
@@ -894,7 +1010,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       .reveal,
       .pulse-cta,
       .practice-hero,
-      .weekly-target-card::after {
+      .weekly-target-card::after,
+      .pro-upgrade-card-prominent {
         animation: none !important;
       }
 
@@ -1118,6 +1235,24 @@ export class HomePage implements OnInit {
   ngOnInit() {
     this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
     this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
+    this.checkTimeBasedPaywall();
+  }
+
+  private checkTimeBasedPaywall() {
+    if (this.isPro()) return;
+
+    const lastShown = localStorage.getItem('paywall_last_shown');
+    const now = Date.now();
+    const threeDays = 3 * 24 * 60 * 60 * 1000;
+
+    if (!lastShown || now - parseInt(lastShown) > threeDays) {
+      setTimeout(() => {
+        if (!this.isPro()) {
+          localStorage.setItem('paywall_last_shown', now.toString());
+          void this.openPaywall();
+        }
+      }, 15000); // 15 seconds
+    }
   }
 
   startPractice() {

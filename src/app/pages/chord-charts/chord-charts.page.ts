@@ -482,7 +482,7 @@ export class ChordChartsPage {
 
   categories = this.chordService.categoriesForInstrument;
 
-  private readonly freeChordLimit = 20;
+  private readonly freeChordLimit = 30;
 
   displayChords = computed<Chord[]>(() => {
     const view = this.selectedView();
