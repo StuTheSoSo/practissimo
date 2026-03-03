@@ -11,7 +11,7 @@ export const environment = {
   },
   revenuecat: {
     iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
-    androidApiKey: 'goog_vWKiSbXUDEZCQJNJbnFIDWzEULA',
+    androidApiKey: 'goog_BMXdGSnGMkRnpZComKJmPETQfNC',
     entitlementId: 'pro',
     productIds: {
       proMonthly: 'pq_premium_1month',
