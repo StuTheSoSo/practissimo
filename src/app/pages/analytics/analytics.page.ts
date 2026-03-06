@@ -18,7 +18,8 @@ import {
   IonIcon,
   IonBadge,
   IonButton,
-  ModalController
+  ModalController,
+  AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { trendingUp, time, flame, calendar, pieChart, barChart, lockClosed } from 'ionicons/icons';
@@ -77,7 +78,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
           </ion-segment>
 
           <div class="metrics-grid">
-            <ion-card class="metric-card">
+            <ion-card class="metric-card" (click)="showMetricDetails('minutes')">
               <ion-card-content>
                 <ion-icon name="time" color="primary"></ion-icon>
                 <div class="metric-value">{{ totalMinutes() }}</div>
@@ -85,7 +86,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
               </ion-card-content>
             </ion-card>
 
-            <ion-card class="metric-card">
+            <ion-card class="metric-card" (click)="showMetricDetails('sessions')">
               <ion-card-content>
                 <ion-icon name="calendar" color="success"></ion-icon>
                 <div class="metric-value">{{ totalSessions() }}</div>
@@ -93,7 +94,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
               </ion-card-content>
             </ion-card>
 
-            <ion-card class="metric-card">
+            <ion-card class="metric-card" (click)="showMetricDetails('average')">
               <ion-card-content>
                 <ion-icon name="trending-up" color="warning"></ion-icon>
                 <div class="metric-value">{{ avgSessionLength() }}</div>
@@ -101,7 +102,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
               </ion-card-content>
             </ion-card>
 
-            <ion-card class="metric-card">
+            <ion-card class="metric-card" (click)="showMetricDetails('consistency')">
               <ion-card-content>
                 <ion-icon name="flame" color="danger"></ion-icon>
                 <div class="metric-value">{{ consistencyScore() }}%</div>
@@ -282,6 +283,12 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
 
     .metric-card {
       margin: 0;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .metric-card:active {
+      transform: scale(0.98);
     }
 
     .metric-card ion-card-content {
@@ -529,6 +536,7 @@ export class AnalyticsPage {
   private practiceService = inject(PracticeService);
   private revenueCat = inject(RevenueCatService);
   private modalController = inject(ModalController);
+  private alertController = inject(AlertController);
 
   isPro = this.revenueCat.isPro;
   selectedPeriod = signal<'week' | 'month' | 'year'>('month');
@@ -716,5 +724,47 @@ export class AnalyticsPage {
       }
     });
     await modal.present();
+  }
+
+  async showMetricDetails(type: 'minutes' | 'sessions' | 'average' | 'consistency') {
+    const sessions = this.filteredSessions();
+    const period = this.selectedPeriod();
+    const periodLabel = period === 'week' ? 'week' : period === 'month' ? 'month' : 'year';
+    
+    let header = '';
+    let message = '';
+
+    if (type === 'minutes') {
+      const total = this.totalMinutes();
+      const dailyAvg = period === 'week' ? Math.round(total / 7) : period === 'month' ? Math.round(total / 30) : Math.round(total / 365);
+      const longest = sessions.length > 0 ? Math.max(...sessions.map(s => s.duration)) : 0;
+      header = 'Total Minutes';
+      message = `You've practiced ${total} minutes this ${periodLabel}.\n\nDaily average: ${dailyAvg} min\nLongest session: ${longest} min`;
+    } else if (type === 'sessions') {
+      const total = this.totalSessions();
+      const uniqueDays = new Set(sessions.map(s => new Date(s.date).toDateString())).size;
+      const avgPerDay = uniqueDays > 0 ? (total / uniqueDays).toFixed(1) : '0';
+      header = 'Total Sessions';
+      message = `You've completed ${total} practice session${total !== 1 ? 's' : ''} this ${periodLabel}.\n\nPractice days: ${uniqueDays}\nAvg sessions per day: ${avgPerDay}`;
+    } else if (type === 'average') {
+      const avg = this.avgSessionLength();
+      const shortest = sessions.length > 0 ? Math.min(...sessions.map(s => s.duration)) : 0;
+      const longest = sessions.length > 0 ? Math.max(...sessions.map(s => s.duration)) : 0;
+      header = 'Average Session Length';
+      message = `Your average session is ${avg} minutes.\n\nShortest: ${shortest} min\nLongest: ${longest} min\n\nTip: ${avg >= 30 ? 'Great session length for deep practice!' : 'Consider longer sessions for complex material.'}`;
+    } else {
+      const score = this.consistencyScore();
+      const uniqueDays = new Set(sessions.map(s => new Date(s.date).toDateString())).size;
+      const totalDays = period === 'week' ? 7 : period === 'month' ? 30 : 365;
+      header = 'Consistency Score';
+      message = `You practiced on ${uniqueDays} out of ${totalDays} days (${score}%).\n\n${score >= 80 ? 'Outstanding! You\'re building a strong habit.' : score >= 50 ? 'Good progress! Try practicing more days.' : 'Set daily reminders to build consistency.'}`;
+    }
+
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 }

@@ -369,6 +369,9 @@ export class MetronomeComponent implements OnDestroy {
 
   onBpmChange(event: any): void {
     this.metronome.setBpm(event.detail.value);
+    if (this.metronome.isPlaying()) {
+      this.restartBeatAnimation();
+    }
   }
 
   onTimeSignatureChange(event: any): void {
@@ -407,5 +410,10 @@ export class MetronomeComponent implements OnDestroy {
       this.beatInterval = null;
     }
     this.currentBeat = 0;
+  }
+
+  private restartBeatAnimation(): void {
+    this.stopBeatAnimation();
+    this.startBeatAnimation();
   }
 }
