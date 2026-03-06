@@ -19,10 +19,11 @@ import {
   IonItem,
   IonLabel,
   IonBadge,
-  ModalController
+  ModalController,
+  AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, time, star, starOutline, download, lockClosed } from 'ionicons/icons';
+import { chevronBack, chevronForward, time, star, starOutline, download, lockClosed, pencil } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
 import { ProgressStatsComponent } from '../../shared/components/progress-stats.component';
@@ -124,6 +125,9 @@ type CalendarDay = {
                         <p class="notes">{{ session.notes }}</p>
                       }
                     </ion-label>
+                    <ion-button slot="end" fill="clear" size="small" (click)="editNotes(session)">
+                      <ion-icon name="pencil" slot="icon-only"></ion-icon>
+                    </ion-button>
                     <div slot="end" class="session-meta">
                       @if (session.qualityRating) {
                         <div class="rating">
@@ -380,6 +384,7 @@ type CalendarDay = {
 export class HistoryPage {
   private practiceService = inject(PracticeService);
   private modalController = inject(ModalController);
+  private alertController = inject(AlertController);
 
   sessions = this.practiceService.currentInstrumentSessions;
   private revenueCat = inject(RevenueCatService);
@@ -484,7 +489,7 @@ export class HistoryPage {
   });
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, time, star, starOutline, download, lockClosed });
+    addIcons({ chevronBack, chevronForward, time, star, starOutline, download, lockClosed, pencil });
 
     effect(() => {
       const sessions = this.sessions();
@@ -603,5 +608,34 @@ export class HistoryPage {
       }
     });
     await modal.present();
+  }
+
+  async editNotes(session: PracticeSession) {
+    const alert = await this.alertController.create({
+      header: 'Edit Notes',
+      message: `${session.category} - ${session.duration} min`,
+      inputs: [
+        {
+          name: 'notes',
+          type: 'textarea',
+          placeholder: 'Add practice notes...',
+          value: session.notes || ''
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Save',
+          handler: (data: { notes?: string }) => {
+            this.practiceService.updateSessionNotes(session.id, data.notes || '');
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

@@ -301,4 +301,10 @@ export class PracticeService {
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
+
+  updateSessionNotes(sessionId: string, notes: string): void {
+    this.sessions.update(sessions =>
+      sessions.map(s => s.id === sessionId ? { ...s, notes: notes || undefined } : s)
+    );
+  }
 }
