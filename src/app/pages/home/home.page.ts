@@ -40,7 +40,8 @@ import {
   bulb,
   barChart,
   heart,
-  download
+  download,
+  checkmarkDone
 } from 'ionicons/icons';
 import { GamificationService } from '../../core/services/gamification.service';
 import { InstrumentService } from '../../core/services/instrument.service';
@@ -257,6 +258,15 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
               <ion-button expand="block" fill="clear" (click)="goToHistory()">
                 <ion-icon name="calendar" slot="start"></ion-icon>
                 View History
+                <ion-icon name="chevron-forward" slot="end"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="12">
+              <ion-button expand="block" fill="clear" (click)="goToGoals()">
+                <ion-icon name="checkmark-done" slot="start"></ion-icon>
+                Goals
                 <ion-icon name="chevron-forward" slot="end"></ion-icon>
               </ion-button>
             </ion-col>
@@ -1329,7 +1339,8 @@ export class HomePage implements OnInit {
       bulb,
       barChart,
       heart,
-      download
+      download,
+      checkmarkDone
     });
   }
 
@@ -1386,6 +1397,10 @@ export class HomePage implements OnInit {
 
   goToAnalytics() {
     this.router.navigate(['/analytics']);
+  }
+
+  goToGoals() {
+    this.router.navigate(['/goals']);
   }
 
   goToSettings() {

@@ -1,6 +1,7 @@
 // src/app/pages/analytics/analytics.page.ts
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -27,6 +28,7 @@ import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
+import { GoalsService } from '../../core/services/goals.service';
 
 @Component({
   selector: 'app-analytics',
@@ -47,6 +49,16 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
 
     <ion-content class="ion-padding">
       <div class="analytics-container">
+        @if (suggestionsCount() > 0) {
+          <ion-card class="insights-card">
+            <ion-card-content>
+              <strong>{{ suggestionsCount() }} suggested goal{{ suggestionsCount() !== 1 ? 's' : '' }} available</strong>
+              <p>Review analytics-driven goals and accept the ones that fit your current focus.</p>
+              <ion-button size="small" (click)="goToGoals()">Review Suggestions</ion-button>
+            </ion-card-content>
+          </ion-card>
+        }
+
         @if (!isPro()) {
           <ion-card class="paywall-card">
             <ion-card-content>
@@ -712,8 +724,11 @@ export class AnalyticsPage {
   private revenueCat = inject(RevenueCatService);
   private modalController = inject(ModalController);
   private alertController = inject(AlertController);
+  private goalsService = inject(GoalsService);
+  private router = inject(Router);
 
   isPro = this.revenueCat.isPro;
+  suggestionsCount = this.goalsService.suggestionsAvailableCount;
   selectedPeriod = signal<'week' | 'month' | 'year'>('month');
 
   parseFloat = parseFloat;
@@ -975,6 +990,10 @@ export class AnalyticsPage {
       }
     });
     await modal.present();
+  }
+
+  goToGoals(): void {
+    void this.router.navigate(['/goals']);
   }
 
   async showDayDetails(day: { date: string; dateObj: Date; sessions: PracticeSession[] }) {

@@ -46,6 +46,10 @@ const routes: Routes = [
     loadComponent: () => import('./app/pages/history/history.page').then(m => m.HistoryPage)
   },
   {
+    path: 'goals',
+    loadComponent: () => import('./app/pages/goals/goals.page').then(m => m.GoalsPage)
+  },
+  {
     path: 'analytics',
     loadComponent: () => import('./app/pages/analytics/analytics.page').then(m => m.AnalyticsPage)
   },

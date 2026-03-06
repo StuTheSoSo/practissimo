@@ -1,6 +1,8 @@
 export const STORAGE_KEYS = {
   USER_PROGRESS: 'user_progress',
   PRACTICE_SESSIONS: 'practice_sessions',
+  GOALS: 'goals',
+  GOAL_SUGGESTION_STATE: 'goal_suggestion_state',
   QUESTS: 'quests',
   ACHIEVEMENTS: 'achievements',
   WEEKLY_TARGET: 'weekly_target',

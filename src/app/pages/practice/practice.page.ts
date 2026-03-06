@@ -35,8 +35,10 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { MetronomeService } from '../../core/services/metronome.service';
 import { MilestoneService } from '../../core/services/milestone.service';
+import { GoalsService } from '../../core/services/goals.service';
 import { MetronomeComponent } from '../../shared/components/metronome.component';
 import { MilestoneModalComponent } from '../../shared/components/milestone-modal.component';
+import { PracticeSession } from '../../core/models/practice-session.model';
 
 @Component({
   selector: 'app-practice',
@@ -391,6 +393,7 @@ export class PracticePage implements OnDestroy {
   private notificationService = inject(NotificationService);
   private metronomeService = inject(MetronomeService);
   private milestoneService = inject(MilestoneService);
+  private goalsService = inject(GoalsService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
@@ -519,6 +522,7 @@ export class PracticePage implements OnDestroy {
 
     await alert.present();
     await alert.onDidDismiss();
+    await this.promptGoalProgress(session);
 
     // Show milestone celebration if achieved
     if (milestone) {
@@ -629,6 +633,7 @@ export class PracticePage implements OnDestroy {
 
     await alert.present();
     await alert.onDidDismiss();
+    await this.promptGoalProgress(session);
 
     if (milestone) {
       await this.milestoneService.celebrateMilestone(milestone.id);
@@ -652,5 +657,50 @@ export class PracticePage implements OnDestroy {
 
   ngOnDestroy(): void {
     this.metronomeService.resetToDefaults();
+  }
+
+  private async promptGoalProgress(session: PracticeSession): Promise<void> {
+    const assistableGoals = this.goalsService.assistableGoals();
+    if (assistableGoals.length === 0) {
+      return;
+    }
+
+    const alert = await this.alertController.create({
+      header: 'Log Progress To Goals',
+      message: 'Apply this session to one or more active goals.',
+      inputs: assistableGoals.map(goal => ({
+        type: 'checkbox' as const,
+        label: `${goal.title}${goal.metric ? ` (${goal.metric.currentValue}/${goal.metric.targetValue} ${goal.metric.unit})` : ''}`,
+        value: goal.id
+      })),
+      buttons: [
+        {
+          text: 'Skip',
+          role: 'cancel'
+        },
+        {
+          text: 'Log Progress',
+          handler: async (selectedGoalIds: string[]) => {
+            if (!Array.isArray(selectedGoalIds) || selectedGoalIds.length === 0) {
+              return true;
+            }
+
+            const updated = this.goalsService.logSessionProgressForGoals(selectedGoalIds, session);
+            if (updated > 0) {
+              const confirmation = await this.alertController.create({
+                header: 'Goals Updated',
+                message: `Applied this session to ${updated} goal${updated !== 1 ? 's' : ''}.`,
+                buttons: ['OK']
+              });
+              await confirmation.present();
+            }
+
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 }
