@@ -111,40 +111,72 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
             </ion-card>
           </div>
 
+
           <ion-card>
             <ion-card-header>
               <ion-card-title>
-                <ion-icon name="bar-chart"></ion-icon>
-                Practice Heatmap
+                <ion-icon name="star"></ion-icon>
+                Practice Quality Trends
               </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <div class="heatmap">
-                @for (day of heatmapData(); track day.date) {
-                  <div 
-                    class="heatmap-cell" 
-                    [class.intensity-0]="day.intensity === 0"
-                    [class.intensity-1]="day.intensity === 1"
-                    [class.intensity-2]="day.intensity === 2"
-                    [class.intensity-3]="day.intensity === 3"
-                    [class.intensity-4]="day.intensity === 4"
-                    [title]="day.label"
-                  ></div>
-                }
-              </div>
-              <div class="heatmap-legend">
-                <span>Less</span>
-                <div class="legend-cells">
-                  <div class="legend-cell intensity-0"></div>
-                  <div class="legend-cell intensity-1"></div>
-                  <div class="legend-cell intensity-2"></div>
-                  <div class="legend-cell intensity-3"></div>
-                  <div class="legend-cell intensity-4"></div>
+              @if (qualityData().totalRated === 0) {
+                <p class="empty-state">Start rating your sessions to see quality trends</p>
+              } @else {
+                <div class="quality-overview">
+                  <div class="quality-stat">
+                    <div class="quality-stat-value">{{ qualityData().averageRating }}</div>
+                    <div class="quality-stat-label">Average Rating</div>
+                  </div>
+                  <div class="quality-stat">
+                    <div class="quality-stat-value">{{ qualityData().totalRated }}</div>
+                    <div class="quality-stat-label">Rated Sessions</div>
+                  </div>
+                  <div class="quality-stat">
+                    <div class="quality-stat-value" [class.trend-up]="qualityData().trend === 'improving'" [class.trend-down]="qualityData().trend === 'declining'">
+                      {{ qualityData().trend === 'improving' ? '↗' : qualityData().trend === 'declining' ? '↘' : '→' }}
+                    </div>
+                    <div class="quality-stat-label">Trend</div>
+                  </div>
                 </div>
-                <span>More</span>
-              </div>
+
+                <div class="quality-distribution">
+                  <div class="distribution-label">Rating Distribution</div>
+                  @for (rating of [5,4,3,2,1]; track rating) {
+                    <div class="distribution-row">
+                      <div class="distribution-stars">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <ion-icon [name]="star <= rating ? 'star' : 'star-outline'" size="small" color="warning"></ion-icon>
+                        }
+                      </div>
+                      <div class="distribution-bar-container">
+                        <div class="distribution-bar" [style.width.%]="qualityData().distribution[rating] || 0"></div>
+                      </div>
+                      <span class="distribution-count">{{ qualityData().counts[rating] || 0 }}</span>
+                    </div>
+                  }
+                </div>
+
+                @if (qualityByCategory().length > 0) {
+                  <div class="quality-by-category">
+                    <div class="category-quality-label">Quality by Category</div>
+                    @for (cat of qualityByCategory(); track cat.category) {
+                      <div class="category-quality-item">
+                        <span class="category-quality-name">{{ cat.category }}</span>
+                        <div class="category-quality-rating">
+                          <span class="category-quality-value">{{ cat.avgRating }}</span>
+                          @for (star of [1,2,3,4,5]; track star) {
+                            <ion-icon [name]="star <= parseFloat(cat.avgRating) ? 'star' : 'star-outline'" size="small" color="warning"></ion-icon>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              }
             </ion-card-content>
           </ion-card>
+
 
           <ion-card>
             <ion-card-header>
@@ -175,6 +207,7 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
             </ion-card-content>
           </ion-card>
 
+          
           <ion-card>
             <ion-card-header>
               <ion-card-title>
@@ -213,6 +246,44 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
               </div>
             </ion-card-content>
           </ion-card>
+
+
+
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="bar-chart"></ion-icon>
+                Practice Heatmap
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="heatmap">
+                @for (day of heatmapData(); track day.date) {
+                  <div 
+                    class="heatmap-cell" 
+                    [class.intensity-0]="day.intensity === 0"
+                    [class.intensity-1]="day.intensity === 1"
+                    [class.intensity-2]="day.intensity === 2"
+                    [class.intensity-3]="day.intensity === 3"
+                    [class.intensity-4]="day.intensity === 4"
+                    [title]="day.label"
+                  ></div>
+                }
+              </div>
+              <div class="heatmap-legend">
+                <span>Less</span>
+                <div class="legend-cells">
+                  <div class="legend-cell intensity-0"></div>
+                  <div class="legend-cell intensity-1"></div>
+                  <div class="legend-cell intensity-2"></div>
+                  <div class="legend-cell intensity-3"></div>
+                  <div class="legend-cell intensity-4"></div>
+                </div>
+                <span>More</span>
+              </div>
+            </ion-card-content>
+          </ion-card>
+
         }
       </div>
     </ion-content>
@@ -432,6 +503,108 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
       text-align: right;
     }
 
+    .category-quality-value {
+      font-weight: 700;
+      color: var(--ion-color-warning);
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .quality-overview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .quality-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--ion-color-primary);
+    }
+
+    .quality-stat-value.trend-up {
+      color: var(--ion-color-success);
+    }
+
+    .quality-stat-value.trend-down {
+      color: var(--ion-color-danger);
+    }
+
+    .quality-stat-label {
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+
+    .quality-distribution {
+      margin-bottom: 1.5rem;
+    }
+
+    .distribution-label,
+    .category-quality-label {
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .distribution-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 40px;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .distribution-stars {
+      display: flex;
+      gap: 2px;
+    }
+
+    .distribution-bar-container {
+      height: 20px;
+      background: var(--ion-color-light);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .distribution-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--ion-color-warning), var(--ion-color-warning-shade));
+      transition: width 0.5s ease;
+    }
+
+    .distribution-count {
+      font-weight: 600;
+      text-align: right;
+      color: var(--ion-color-medium);
+    }
+
+    .quality-by-category {
+      padding-top: 1rem;
+      border-top: 1px solid var(--ion-color-light);
+    }
+
+    .category-quality-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+    }
+
+    .category-quality-name {
+      font-weight: 600;
+    }
+
+    .category-quality-rating {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     .time-chart {
       display: flex;
       align-items: flex-end;
@@ -540,6 +713,8 @@ export class AnalyticsPage {
 
   isPro = this.revenueCat.isPro;
   selectedPeriod = signal<'week' | 'month' | 'year'>('month');
+
+  parseFloat = parseFloat;
 
   private sessions = this.practiceService.currentInstrumentSessions;
 
@@ -665,6 +840,68 @@ export class AnalyticsPage {
         ...h,
         percentage: (h.sessions / maxSessions) * 100
       }));
+  });
+
+  qualityData = computed(() => {
+    const sessions = this.filteredSessions().filter(s => s.qualityRating);
+    const totalRated = sessions.length;
+    
+    if (totalRated === 0) {
+      return {
+        averageRating: '0.0',
+        totalRated: 0,
+        trend: 'stable' as 'improving' | 'declining' | 'stable',
+        distribution: {} as Record<number, number>,
+        counts: {} as Record<number, number>
+      };
+    }
+
+    const avgRating = (sessions.reduce((sum, s) => sum + (s.qualityRating || 0), 0) / totalRated).toFixed(1);
+    
+    const midpoint = Math.floor(totalRated / 2);
+    const firstHalf = sessions.slice(0, midpoint);
+    const secondHalf = sessions.slice(midpoint);
+    
+    const firstAvg = firstHalf.length > 0 ? firstHalf.reduce((sum, s) => sum + (s.qualityRating || 0), 0) / firstHalf.length : 0;
+    const secondAvg = secondHalf.length > 0 ? secondHalf.reduce((sum, s) => sum + (s.qualityRating || 0), 0) / secondHalf.length : 0;
+    
+    let trend: 'improving' | 'declining' | 'stable' = 'stable';
+    if (secondAvg > firstAvg + 0.3) trend = 'improving';
+    else if (secondAvg < firstAvg - 0.3) trend = 'declining';
+
+    const counts: Record<number, number> = {};
+    sessions.forEach(s => {
+      const rating = s.qualityRating || 0;
+      counts[rating] = (counts[rating] || 0) + 1;
+    });
+
+    const distribution: Record<number, number> = {};
+    Object.keys(counts).forEach(key => {
+      const rating = parseInt(key);
+      distribution[rating] = Math.round((counts[rating] / totalRated) * 100);
+    });
+
+    return { averageRating: avgRating, totalRated, trend, distribution, counts };
+  });
+
+  qualityByCategory = computed(() => {
+    const sessions = this.filteredSessions().filter(s => s.qualityRating);
+    const categoryMap = new Map<string, { total: number; count: number }>();
+
+    sessions.forEach(s => {
+      const existing = categoryMap.get(s.category) || { total: 0, count: 0 };
+      categoryMap.set(s.category, {
+        total: existing.total + (s.qualityRating || 0),
+        count: existing.count + 1
+      });
+    });
+
+    return Array.from(categoryMap.entries())
+      .map(([category, stats]) => ({
+        category,
+        avgRating: (stats.total / stats.count).toFixed(1)
+      }))
+      .sort((a, b) => parseFloat(b.avgRating) - parseFloat(a.avgRating));
   });
 
   insights = computed(() => {
