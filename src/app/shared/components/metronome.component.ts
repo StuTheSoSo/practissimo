@@ -89,6 +89,21 @@ import { MetronomeService } from '../../core/services/metronome.service';
             </ion-select>
           </ion-item>
 
+          <!-- Subdivision -->
+          <ion-item>
+            <ion-label>Subdivision</ion-label>
+            <ion-select
+              [value]="metronome.subdivision()"
+              (ionChange)="onSubdivisionChange($event)"
+              interface="popover"
+            >
+              <ion-select-option value="quarter">Quarter Notes</ion-select-option>
+              <ion-select-option value="eighth">8th Notes</ion-select-option>
+              <ion-select-option value="triplet">Triplets</ion-select-option>
+              <ion-select-option value="sixteenth">16th Notes</ion-select-option>
+            </ion-select>
+          </ion-item>
+
           <!-- Volume -->
           <ion-item lines="none">
             <ion-label>Volume</ion-label>
@@ -377,6 +392,10 @@ export class MetronomeComponent implements OnDestroy {
   onTimeSignatureChange(event: any): void {
     this.metronome.setBeatsPerBar(event.detail.value);
     this.updateBeats();
+  }
+
+  onSubdivisionChange(event: any): void {
+    this.metronome.setSubdivision(event.detail.value);
   }
 
   onVolumeChange(event: any): void {

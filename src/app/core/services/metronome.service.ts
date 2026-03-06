@@ -25,6 +25,7 @@ export class MetronomeService {
   private bpmSignal = signal<number>(this.defaultBpm);
   private beatsPerBarSignal = signal<number>(this.defaultBeatsPerBar);
   private volumeSignal = signal<number>(this.defaultVolume);
+  private subdivisionSignal = signal<'quarter' | 'eighth' | 'triplet' | 'sixteenth'>('quarter');
   private readonly maxVolume = 2.0;
 
   // Public readonly signals
@@ -32,6 +33,7 @@ export class MetronomeService {
   readonly bpm = this.bpmSignal.asReadonly();
   readonly beatsPerBar = this.beatsPerBarSignal.asReadonly();
   readonly volume = this.volumeSignal.asReadonly();
+  readonly subdivision = this.subdivisionSignal.asReadonly();
 
   // Computed
   readonly secondsPerBeat = computed(() => 60.0 / this.bpm());
@@ -182,6 +184,13 @@ export class MetronomeService {
   }
 
   /**
+   * Set subdivision
+   */
+  setSubdivision(subdivision: 'quarter' | 'eighth' | 'triplet' | 'sixteenth'): void {
+    this.subdivisionSignal.set(subdivision);
+  }
+
+  /**
    * Schedule metronome beats
    */
   private scheduler(): void {
@@ -200,7 +209,18 @@ export class MetronomeService {
    * Calculate timing for next note
    */
   private nextNote(): void {
-    const secondsPerBeat = this.secondsPerBeat();
+    const subdivision = this.subdivision();
+    let secondsPerBeat = this.secondsPerBeat();
+    
+    // Adjust timing based on subdivision
+    if (subdivision === 'eighth') {
+      secondsPerBeat /= 2;
+    } else if (subdivision === 'triplet') {
+      secondsPerBeat /= 3;
+    } else if (subdivision === 'sixteenth') {
+      secondsPerBeat /= 4;
+    }
+    
     this.nextNoteTime += secondsPerBeat;
 
     this.currentBeatInBar++;
@@ -213,19 +233,42 @@ export class MetronomeService {
    * Schedule a single metronome beat
    */
   private scheduleNote(time: number): void {
+    const subdivision = this.subdivision();
     const isAccent = this.currentBeatInBar === 0;
+    
+    // Determine if this is a subdivision click
+    let isSubdivision = false;
+    if (subdivision === 'eighth') {
+      isSubdivision = this.currentBeatInBar % 2 !== 0;
+    } else if (subdivision === 'triplet') {
+      isSubdivision = this.currentBeatInBar % 3 !== 0;
+    } else if (subdivision === 'sixteenth') {
+      isSubdivision = this.currentBeatInBar % 4 !== 0;
+    }
 
-    // Create oscillator for the click sound
     const osc = this.audioContext!.createOscillator();
     const gainNode = this.audioContext!.createGain();
 
-    // Accent beat (first beat of bar) is higher pitched and louder
-    osc.frequency.value = isAccent ? 1000 : 800;
+    // Frequency: accent > beat > subdivision
+    if (isAccent) {
+      osc.frequency.value = 1000;
+    } else if (isSubdivision) {
+      osc.frequency.value = 600;
+    } else {
+      osc.frequency.value = 800;
+    }
 
-    // Volume envelope
+    // Volume: accent > beat > subdivision
     const volume = this.volume();
-    const boosted = isAccent ? volume * 2.0 : volume * 1.6;
-    const targetGain = Math.min(this.maxVolume, boosted);
+    let targetGain: number;
+    if (isAccent) {
+      targetGain = Math.min(this.maxVolume, volume * 2.0);
+    } else if (isSubdivision) {
+      targetGain = Math.min(this.maxVolume, volume * 0.8);
+    } else {
+      targetGain = Math.min(this.maxVolume, volume * 1.6);
+    }
+    
     gainNode.gain.setValueAtTime(targetGain, time);
     gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
