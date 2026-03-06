@@ -61,7 +61,17 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
             <ion-card-content>
               <ion-item>
                 <ion-label position="stacked">Instrument</ion-label>
-                <ion-note>{{ currentInstrument() }}</ion-note>
+                <ion-select
+                  [value]="instrumentService.currentInstrument()"
+                  (ionChange)="onInstrumentChange($event)"
+                  interface="action-sheet"
+                >
+                  @for (instrument of allInstruments(); track instrument.id) {
+                    <ion-select-option [value]="instrument.id">
+                      {{ instrument.displayName }}
+                    </ion-select-option>
+                  }
+                </ion-select>
               </ion-item>
 
               <ion-item>
@@ -366,7 +376,6 @@ import { MilestoneModalComponent } from '../../shared/components/milestone-modal
     IonTextarea,
     IonItem,
     IonLabel,
-    IonNote,
     MetronomeComponent
   ]
 })
@@ -375,7 +384,7 @@ export class PracticePage implements OnDestroy {
   private alertController = inject(AlertController);
   private modalController = inject(ModalController);
   private practiceService = inject(PracticeService);
-  private instrumentService = inject(InstrumentService);
+  instrumentService = inject(InstrumentService);
   private questService = inject(QuestService);
   private achievementService = inject(AchievementService);
   private weeklyTargetService = inject(WeeklyTargetService);
@@ -384,6 +393,7 @@ export class PracticePage implements OnDestroy {
   private milestoneService = inject(MilestoneService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
+  allInstruments = this.instrumentService.allInstruments;
   categories = this.instrumentService.currentCategories;
 
   timerState = this.practiceService.timer;
@@ -408,6 +418,10 @@ export class PracticePage implements OnDestroy {
         this.selectedCategory = defaultCategory;
       }
     });
+  }
+
+  onInstrumentChange(event: any) {
+    this.instrumentService.setInstrument(event.detail.value);
   }
 
   onCategoryChange(event: any) {

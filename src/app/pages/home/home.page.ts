@@ -680,7 +680,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     .quick-actions ion-button {
       margin: 0;
       --border-radius: 12px;
-      min-height: 48px;
+      min-height: 52px;
+      height: 52px;
       font-weight: 650;
       transition: transform 140ms ease, filter 140ms ease;
     }
@@ -1099,7 +1100,8 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     }
 
     .feedback-links ion-button {
-      min-height: 44px;
+      min-height: 52px;
+      height: 52px;
     }
 
     @media (prefers-reduced-motion: reduce) {

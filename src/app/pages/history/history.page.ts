@@ -185,6 +185,10 @@ type CalendarDay = {
       --inner-padding-end: 0;
     }
 
+    ion-item ion-label p {
+      text-transform: capitalize;
+    }
+
     .calendar-card {
       margin-bottom: 16px;
     }
