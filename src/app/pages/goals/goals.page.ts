@@ -58,50 +58,6 @@ import { GoalsService } from '../../core/services/goals.service';
           <ion-icon name="add" slot="start"></ion-icon>
           Add Goal
         </ion-button>
-
-        @if (suggestedGoals().length > 0) {
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>
-                <ion-icon name="sparkles"></ion-icon>
-                Suggested Goals ({{ suggestedGoals().length }})
-              </ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
-                @for (goal of suggestedGoals(); track goal.id) {
-                  <ion-item>
-                    <ion-label>
-                      <h3>{{ goal.title }}</h3>
-                      @if (goal.description) {
-                        <p>{{ goal.description }}</p>
-                      }
-                      <p>{{ suggestionReasonLabel(goal) }}</p>
-                      @if (goal.metric) {
-                        <p>{{ goal.metric.targetValue }} {{ goal.metric.unit }} target</p>
-                      }
-                    </ion-label>
-                  </ion-item>
-                  <div class="actions-row">
-                    <ion-button size="small" (click)="acceptSuggestion(goal)">
-                      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
-                      Accept
-                    </ion-button>
-                    <ion-button size="small" fill="outline" color="medium" (click)="snoozeSuggestion(goal)">
-                      <ion-icon name="pause-circle" slot="start"></ion-icon>
-                      Snooze
-                    </ion-button>
-                    <ion-button size="small" fill="clear" color="danger" (click)="dismissSuggestion(goal)">
-                      <ion-icon name="trash" slot="start"></ion-icon>
-                      Dismiss
-                    </ion-button>
-                  </div>
-                }
-              </ion-list>
-            </ion-card-content>
-          </ion-card>
-        }
-
         <ion-card>
           <ion-card-header>
             <ion-card-title>
@@ -159,6 +115,52 @@ import { GoalsService } from '../../core/services/goals.service';
           </ion-card-content>
         </ion-card>
 
+        
+
+        @if (suggestedGoals().length > 0) {
+          <ion-card>
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="sparkles"></ion-icon>
+                Suggested Goals ({{ suggestedGoals().length }})
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                @for (goal of suggestedGoals(); track goal.id) {
+                  <ion-item>
+                    <ion-label>
+                      <h3>{{ goal.title }}</h3>
+                      @if (goal.description) {
+                        <p>{{ goal.description }}</p>
+                      }
+                      <p>{{ suggestionReasonLabel(goal) }}</p>
+                      @if (goal.metric) {
+                        <p>{{ goal.metric.targetValue }} {{ goal.metric.unit }} target</p>
+                      }
+                    </ion-label>
+                  </ion-item>
+                  <div class="actions-row">
+                    <ion-button size="small" (click)="acceptSuggestion(goal)">
+                      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+                      Accept
+                    </ion-button>
+                    <ion-button size="small" fill="outline" color="medium" (click)="snoozeSuggestion(goal)">
+                      <ion-icon name="pause-circle" slot="start"></ion-icon>
+                      Snooze
+                    </ion-button>
+                    <ion-button size="small" fill="clear" color="danger" (click)="dismissSuggestion(goal)">
+                      <ion-icon name="trash" slot="start"></ion-icon>
+                      Dismiss
+                    </ion-button>
+                  </div>
+                }
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+        }
+
+        
         <ion-card>
           <ion-card-header>
             <ion-card-title>Completed Goals ({{ completedGoals().length }})</ion-card-title>
