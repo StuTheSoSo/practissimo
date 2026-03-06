@@ -95,7 +95,7 @@ import { PracticeSession } from '../../core/models/practice-session.model';
               <ion-item>
                 <ion-label position="stacked">Notes (Optional)</ion-label>
                 <ion-textarea
-                  [(ngModel)]="sessionNotes"
+                  [(ngModel)]="draftNotes"
                   rows="3"
                   placeholder="What will you practice today?"
                 ></ion-textarea>
@@ -347,6 +347,15 @@ import { PracticeSession } from '../../core/models/practice-session.model';
         --color: #e5e7eb;
       }
 
+      .session-notes {
+        background: rgba(15, 23, 42, 0.88);
+        border-color: rgba(148, 163, 184, 0.34);
+      }
+
+      .session-notes p {
+        color: #f8fafc !important;
+      }
+
       ion-select,
       ion-textarea {
         --color: #f3f4f6;
@@ -404,6 +413,7 @@ export class PracticePage implements OnDestroy {
   formattedTime = this.practiceService.formattedTime;
   elapsedMinutes = this.practiceService.elapsedMinutes;
   sessionNotes = this.practiceService.notes;
+  draftNotes: string = '';
 
   selectedCategory: string = '';
 
@@ -419,6 +429,12 @@ export class PracticePage implements OnDestroy {
 
       if (!this.selectedCategory || !availableCategories.includes(this.selectedCategory)) {
         this.selectedCategory = defaultCategory;
+      }
+    });
+
+    effect(() => {
+      if (!this.timerState().isRunning) {
+        this.draftNotes = this.sessionNotes() || '';
       }
     });
   }
@@ -444,7 +460,7 @@ export class PracticePage implements OnDestroy {
     }
 
     this.practiceService.setCategory(this.selectedCategory);
-    this.practiceService.setNotes(this.sessionNotes() || '');
+    this.practiceService.setNotes(this.draftNotes || '');
 
     this.practiceService.startTimer();
   }
@@ -607,7 +623,7 @@ export class PracticePage implements OnDestroy {
     const session = await this.practiceService.quickLogSession(
       category,
       duration,
-      this.sessionNotes() || undefined
+      this.draftNotes || undefined
     );
 
     await this.questService.onPracticeCompleted(session);
