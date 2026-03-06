@@ -24,6 +24,7 @@ import {
 import { addIcons } from 'ionicons';
 import { trendingUp, time, flame, calendar, pieChart, barChart, lockClosed } from 'ionicons/icons';
 import { PracticeService } from '../../core/services/practice.service';
+import { PracticeSession } from '../../core/models/practice-session.model';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 
@@ -266,7 +267,8 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
                     [class.intensity-2]="day.intensity === 2"
                     [class.intensity-3]="day.intensity === 3"
                     [class.intensity-4]="day.intensity === 4"
-                    [title]="day.label"
+                    [title]="day.tooltip"
+                    (click)="showDayDetails(day)"
                   ></div>
                 }
               </div>
@@ -761,22 +763,31 @@ export class AnalyticsPage {
 
   heatmapData = computed(() => {
     const days = 84;
-    const sessions = this.sessions();
-    const data: { date: string; intensity: number; label: string }[] = [];
+    const allSessions = this.sessions();
+    const data: { date: string; dateObj: Date; intensity: number; label: string; tooltip: string; sessions: PracticeSession[] }[] = [];
 
-    const sessionsByDate = new Map<string, number>();
-    sessions.forEach(s => {
+    const sessionsByDate = new Map<string, PracticeSession[]>();
+    allSessions.forEach(s => {
       const key = new Date(s.date).toDateString();
-      sessionsByDate.set(key, (sessionsByDate.get(key) || 0) + s.duration);
+      if (!sessionsByDate.has(key)) {
+        sessionsByDate.set(key, []);
+      }
+      sessionsByDate.get(key)!.push(s);
     });
 
-    const maxMinutes = Math.max(...Array.from(sessionsByDate.values()), 1);
+    const minutesByDate = new Map<string, number>();
+    sessionsByDate.forEach((sessions, key) => {
+      minutesByDate.set(key, sessions.reduce((sum, s) => sum + s.duration, 0));
+    });
+
+    const maxMinutes = Math.max(...Array.from(minutesByDate.values()), 1);
 
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const key = date.toDateString();
-      const minutes = sessionsByDate.get(key) || 0;
+      const minutes = minutesByDate.get(key) || 0;
+      const sessions = sessionsByDate.get(key) || [];
       
       let intensity = 0;
       if (minutes > 0) {
@@ -786,8 +797,11 @@ export class AnalyticsPage {
 
       data.push({
         date: key,
+        dateObj: date,
         intensity,
-        label: `${date.toLocaleDateString()}: ${minutes}m`
+        label: `${date.toLocaleDateString()}: ${minutes}m`,
+        tooltip: `${date.toLocaleDateString()} - Click for details`,
+        sessions
       });
     }
 
@@ -961,6 +975,37 @@ export class AnalyticsPage {
       }
     });
     await modal.present();
+  }
+
+  async showDayDetails(day: { date: string; dateObj: Date; sessions: PracticeSession[] }) {
+    if (day.sessions.length === 0) {
+      const alert = await this.alertController.create({
+        header: day.dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+        message: 'No practice sessions on this day.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
+    const totalMinutes = day.sessions.reduce((sum, s) => sum + s.duration, 0);
+    const avgQuality = day.sessions.filter(s => s.qualityRating).length > 0
+      ? (day.sessions.filter(s => s.qualityRating).reduce((sum, s) => sum + (s.qualityRating || 0), 0) / day.sessions.filter(s => s.qualityRating).length).toFixed(1)
+      : null;
+    
+    const categoryBreakdown = day.sessions.map(s => {
+      const quality = s.qualityRating ? ` ${'⭐'.repeat(s.qualityRating)}` : '';
+      return `• ${s.category}: ${s.duration}m${quality}`;
+    }).join('\n');
+    
+    const qualityLine = avgQuality ? `\nAverage Quality: ${avgQuality} ⭐` : '';
+    
+    const alert = await this.alertController.create({
+      header: day.dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+      message: `🎵 ${totalMinutes} minutes practiced\n📊 ${day.sessions.length} session${day.sessions.length !== 1 ? 's' : ''}${qualityLine}\n\n${categoryBreakdown}`,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 
   async showMetricDetails(type: 'minutes' | 'sessions' | 'average' | 'consistency') {
