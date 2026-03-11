@@ -11,11 +11,11 @@ export const environment = {
   },
   revenuecat: {
     iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
-    androidApiKey: 'test_VVabTqzjsbwvLeeMbxwNnxCWwwO',
+    androidApiKey: 'goog_BMXdGSnGMkRnpZComKJmPETQfNC',
     entitlementId: 'PracticeQuest Pro',
     productIds: {
-      proMonthly: 'monthly',
-      proYearly: 'yearly'
+      proMonthly: 'pq_premium_play:premium-monthly',
+      proYearly: 'pq_premium_play:premium-yearly'
     }
   }
 };
