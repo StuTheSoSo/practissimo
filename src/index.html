@@ -8,7 +8,10 @@
   <base href="/" />
 
   <meta name="color-scheme" content="light dark" />
-  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  />
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-tap-highlight" content="no" />
 
@@ -34,6 +37,12 @@
     </div>
   </div>
   <app-root></app-root>
+  <script>
+    // Prevent pinch-to-zoom in iOS (Safari/WKWebView) as a defense-in-depth alongside the viewport meta tag.
+    document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
+  </script>
 </body>
 
 </html>
