@@ -1,5 +1,5 @@
 // src/app/pages/home/home.page.ts
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
@@ -65,12 +65,12 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="home-content ion-padding">
-      <div class="home-container">
-        <div class="instrument-header reveal reveal-1">
-          <h2>{{ currentInstrument() }}</h2>
-          <ion-badge color="primary">Level {{ level() }}</ion-badge>
-        </div>
+	    <ion-content class="home-content ion-padding">
+	      <div class="home-container">
+	        <div class="instrument-header reveal reveal-1">
+	          <h2>{{ currentInstrument() }}</h2>
+	          <ion-badge color="primary">Level {{ level() }}</ion-badge>
+	        </div>
 
         <section
           class="practice-hero reveal reveal-2"
@@ -96,67 +96,14 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
             (click)="startPractice()"
           >
             <ion-icon name="play" slot="start"></ion-icon>
-            {{ primaryCtaLabel() }}
-          </ion-button>
-        </section>
-        @if (!isPro()) {
-          <ion-card class="pro-upgrade-card-prominent reveal reveal-3">
-            <ion-card-content>
-              <div class="pro-upgrade-badge">⚡ Limited Time</div>
-              <div class="pro-upgrade-header-prominent">
-                <ion-icon name="sparkles" color="warning"></ion-icon>
-                <div>
-                  <h3>Master Your Practice</h3>
-                  <p>Everything you need to level up faster</p>
-                </div>
-              </div>
-              <div class="pro-upgrade-footer-prominent">
-                <div class="pro-price-stack">
-                  <span class="pro-price-main">$0.99/month</span>
-                  <span class="pro-price-alt">or $9.99/year (save 17%)</span>
-                </div>
-                <ion-button size="default" class="pro-upgrade-cta-prominent" (click)="openPaywall()">
-                  Upgrade Now
-                </ion-button>
-              </div>
-              <div class="pro-benefits">
-                <div class="benefit-item">
-                  <ion-icon name="musical-notes" color="primary"></ion-icon>
-                  <div>
-                    <strong>200+ Chords</strong>
-                    <span>Master intermediate & advanced techniques</span>
-                  </div>
-                </div>
-                <div class="benefit-item">
-                  <ion-icon name="heart" color="danger"></ion-icon>
-                  <div>
-                    <strong>Save Favorites</strong>
-                    <span>Quick access to your most-used chords</span>
-                  </div>
-                </div>
-                <div class="benefit-item">
-                  <ion-icon name="bar-chart" color="success"></ion-icon>
-                  <div>
-                    <strong>Advanced Analytics</strong>
-                    <span>Track progress with detailed insights</span>
-                  </div>
-                </div>
-                <div class="benefit-item">
-                  <ion-icon name="download" color="warning"></ion-icon>
-                  <div>
-                    <strong>Export History</strong>
-                    <span>Download unlimited practice data</span>
-                  </div>
-                </div>
-              </div>
-            </ion-card-content>
-          </ion-card>
-        }
+	            {{ primaryCtaLabel() }}
+	          </ion-button>
+	        </section>
 
-        <section class="stat-chips reveal reveal-4">
-          <div class="stat-chip streak-chip">
-            <ion-icon name="flame"></ion-icon>
-            <div>
+	        <section class="stat-chips reveal reveal-4">
+	          <div class="stat-chip streak-chip">
+	            <ion-icon name="flame"></ion-icon>
+	            <div>
               <span>Streak</span>
               <strong>{{ currentStreak() }} days</strong>
             </div>
@@ -179,15 +126,15 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                   {{ weeklyMinutesRemaining() }} min left
                 }
               </strong>
-            </div>
-          </div>
-        </section>
+	            </div>
+	          </div>
+	        </section>
 
-        <ion-card class="streak-card reveal reveal-5">
-          <ion-card-header>
-            <div class="streak-header">
-              <ion-icon name="flame" color="danger"></ion-icon>
-              <ion-card-title>{{ currentStreak() }} Day Streak</ion-card-title>
+	        <ion-card class="streak-card reveal reveal-5">
+	          <ion-card-header>
+	            <div class="streak-header">
+	              <ion-icon name="flame" color="danger"></ion-icon>
+	              <ion-card-title>{{ currentStreak() }} Day Streak</ion-card-title>
             </div>
           </ion-card-header>
           <ion-card-content>
@@ -288,10 +235,10 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card-content>
         </ion-card>
 
-        <ion-card class="weekly-target-card reveal reveal-8" [class.complete]="weeklyTargetCompleted()">
-          <ion-card-header>
-            <ion-card-title>Weekly Target</ion-card-title>
-          </ion-card-header>
+	        <ion-card class="weekly-target-card reveal reveal-8" [class.complete]="weeklyTargetCompleted()">
+	          <ion-card-header>
+	            <ion-card-title>Weekly Target</ion-card-title>
+	          </ion-card-header>
           <ion-card-content>
             <div class="weekly-target-meta">
               <span>{{ weekRangeLabel() }}</span>
@@ -308,14 +255,68 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 <span> ({{ weeklyMinutesRemaining() }} min left)</span>
               }
             </p>
-          </ion-card-content>
-        </ion-card>
+	          </ion-card-content>
+	        </ion-card>
 
-        <section class="more-section reveal reveal-9">
-          <ion-button expand="block" fill="clear" (click)="toggleMoreSection()">
-            {{ showMoreSection() ? 'Hide Secondary Sections' : 'See More Tools & Feedback' }}
-            <ion-icon
-              name="chevron-forward"
+	        @if (!isPro()) {
+	          <ion-card class="pro-upgrade-card-prominent reveal reveal-9">
+	            <ion-card-content>
+	              <div class="pro-upgrade-badge">⚡ Limited Time</div>
+	              <div class="pro-upgrade-header-prominent">
+	                <ion-icon name="sparkles" color="warning"></ion-icon>
+	                <div>
+	                  <h3>Master Your Practice</h3>
+	                  <p>Everything you need to level up faster</p>
+	                </div>
+	              </div>
+	              <div class="pro-upgrade-footer-prominent">
+	                <div class="pro-price-stack">
+	                  <span class="pro-price-main">$0.99/month</span>
+	                  <span class="pro-price-alt">or $9.99/year (save 17%)</span>
+	                </div>
+	                <ion-button size="default" class="pro-upgrade-cta-prominent" (click)="openPaywall()">
+	                  Upgrade Now
+	                </ion-button>
+	              </div>
+	              <div class="pro-benefits">
+	                <div class="benefit-item">
+	                  <ion-icon name="musical-notes" color="primary"></ion-icon>
+	                  <div>
+	                    <strong>200+ Chords</strong>
+	                    <span>Master intermediate & advanced techniques</span>
+	                  </div>
+	                </div>
+	                <div class="benefit-item">
+	                  <ion-icon name="heart" color="danger"></ion-icon>
+	                  <div>
+	                    <strong>Save Favorites</strong>
+	                    <span>Quick access to your most-used chords</span>
+	                  </div>
+	                </div>
+	                <div class="benefit-item">
+	                  <ion-icon name="bar-chart" color="success"></ion-icon>
+	                  <div>
+	                    <strong>Advanced Analytics</strong>
+	                    <span>Track progress with detailed insights</span>
+	                  </div>
+	                </div>
+	                <div class="benefit-item">
+	                  <ion-icon name="download" color="warning"></ion-icon>
+	                  <div>
+	                    <strong>Export History</strong>
+	                    <span>Download unlimited practice data</span>
+	                  </div>
+	                </div>
+	              </div>
+	            </ion-card-content>
+	          </ion-card>
+	        }
+
+	        <section class="more-section reveal reveal-9">
+	          <ion-button expand="block" fill="clear" (click)="toggleMoreSection()">
+	            {{ showMoreSection() ? 'Hide Secondary Sections' : 'See More Tools & Feedback' }}
+	            <ion-icon
+	              name="chevron-forward"
               slot="end"
               [class.more-chevron-open]="showMoreSection()"
             ></ion-icon>
@@ -397,17 +398,17 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
       height: 80px;
     }
 
-    .home-container ion-card:not(.pro-upgrade-card) {
-      --color: #0f172a;
-      color: #0f172a;
-    }
+	    .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) {
+	      --color: #0f172a;
+	      color: #0f172a;
+	    }
 
-    .home-container ion-card:not(.pro-upgrade-card) ion-card-title,
-    .home-container ion-card:not(.pro-upgrade-card) ion-label,
-    .home-container ion-card:not(.pro-upgrade-card) p,
-    .home-container ion-card:not(.pro-upgrade-card) span {
-      color: #1f2937;
-    }
+	    .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) ion-card-title,
+	    .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) ion-label,
+	    .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) p,
+	    .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) span {
+	      color: #1f2937;
+	    }
 
     .home-container ion-item {
       --color: #1f2937;
@@ -1189,21 +1190,21 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
         color: #f8fafc !important;
       }
 
-      .home-container,
-      .home-container ion-card:not(.pro-upgrade-card) {
-        color: #f3f4f6 !important;
-        --color: #f3f4f6;
-      }
+	      .home-container,
+	      .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) {
+	        color: #f3f4f6 !important;
+	        --color: #f3f4f6;
+	      }
 
-      .home-container ion-card:not(.pro-upgrade-card) ion-card-title,
-      .home-container ion-card:not(.pro-upgrade-card) ion-label,
-      .home-container ion-card:not(.pro-upgrade-card) p,
-      .home-container ion-card:not(.pro-upgrade-card) span,
-      .instrument-header h2,
-      .stat-chip span,
-      .stat-chip strong,
-      .streak-status,
-      .longest-streak,
+	      .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) ion-card-title,
+	      .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) ion-label,
+	      .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) p,
+	      .home-container ion-card:not(.pro-upgrade-card):not(.pro-upgrade-card-prominent) span,
+	      .instrument-header h2,
+	      .stat-chip span,
+	      .stat-chip strong,
+	      .streak-status,
+	      .longest-streak,
       .level-progress-card .xp-info span,
       .weekly-target-meta,
       .weekly-target-card .weekly-target-meta span,
@@ -1252,7 +1253,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
     IonLabel
   ]
 })
-export class HomePage implements OnInit {
+export class HomePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private gamificationService = inject(GamificationService);
   private instrumentService = inject(InstrumentService);
@@ -1322,8 +1323,10 @@ export class HomePage implements OnInit {
     }
   });
 
-  constructor() {
-    addIcons({
+	  private paywallTimeoutId: number | null = null;
+
+	  constructor() {
+	    addIcons({
       flame,
       trophy,
       star,
@@ -1344,28 +1347,38 @@ export class HomePage implements OnInit {
     });
   }
 
-  ngOnInit() {
-    this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
-    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
-    this.checkTimeBasedPaywall();
-  }
+	  ngOnInit() {
+	    this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
+	    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
+	    this.checkTimeBasedPaywall();
+	  }
 
-  private checkTimeBasedPaywall() {
-    if (this.isPro()) return;
+	  ngOnDestroy() {
+	    if (this.paywallTimeoutId !== null) {
+	      clearTimeout(this.paywallTimeoutId);
+	      this.paywallTimeoutId = null;
+	    }
+	  }
 
-    const lastShown = localStorage.getItem('paywall_last_shown');
-    const now = Date.now();
-    const threeDays = 3 * 24 * 60 * 60 * 1000;
+	  private checkTimeBasedPaywall() {
+	    if (this.isPro()) return;
+	    if (this.paywallTimeoutId !== null) return;
 
-    if (!lastShown || now - parseInt(lastShown) > threeDays) {
-      setTimeout(() => {
-        if (!this.isPro()) {
-          localStorage.setItem('paywall_last_shown', now.toString());
-          void this.openPaywall();
-        }
-      }, 15000); // 15 seconds
-    }
-  }
+	    const lastShownRaw = localStorage.getItem('paywall_last_shown');
+	    const lastShown = lastShownRaw ? Number.parseInt(lastShownRaw, 10) : 0;
+	    const now = Date.now();
+	    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+	    if (!lastShown || Number.isNaN(lastShown) || now - lastShown > oneWeek) {
+	      this.paywallTimeoutId = window.setTimeout(() => {
+	        this.paywallTimeoutId = null;
+	        if (!this.isPro()) {
+	          localStorage.setItem('paywall_last_shown', Date.now().toString());
+	          void this.openPaywall();
+	        }
+	      }, 15000); // 15 seconds
+	    }
+	  }
 
   startPractice() {
     this.router.navigate(['/practice']);

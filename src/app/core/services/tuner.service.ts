@@ -2,7 +2,8 @@
 import { Injectable, signal, computed, inject, effect, OnDestroy } from '@angular/core';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
-import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES } from '../config/tuner.config';
+import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES, ENHARMONIC_MAP } from '../config/tuner.config';
+import { TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE } from '../config/tuner-samples.config';
 
 /**
  * TunerService - Audio-based instrument tuner
@@ -24,6 +25,9 @@ export class TunerService implements OnDestroy {
   private animationId?: number;
   private audioBuffer?: Float32Array<ArrayBuffer>;
   private activeOscillators: Set<OscillatorNode> = new Set();
+  private guitarReferenceSampleBuffers = new Map<string, AudioBuffer>();
+  private activeReferenceSampleSource?: AudioBufferSourceNode;
+  private activeReferenceSampleGain?: GainNode;
 
   // Configuration
   private customA4Frequency = signal<number>(440);
@@ -163,15 +167,17 @@ export class TunerService implements OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    document.removeEventListener('visibilitychange', this.visibilityHandler);
-    this.stop();
-    this.stopAllOscillators();
-    if (this.playbackContext) {
-      this.playbackContext.close();
-      this.playbackContext = undefined;
-    }
-  }
+	  ngOnDestroy(): void {
+	    document.removeEventListener('visibilitychange', this.visibilityHandler);
+	    this.stop();
+	    this.stopAllOscillators();
+	    this.stopActiveReferenceSample();
+	    this.guitarReferenceSampleBuffers.clear();
+	    if (this.playbackContext) {
+	      this.playbackContext.close();
+	      this.playbackContext = undefined;
+	    }
+	  }
 
   setA4Frequency(frequency: number): void {
     if (frequency < 400 || frequency > 480) {
@@ -836,22 +842,30 @@ export class TunerService implements OnDestroy {
     this.activeOscillators.clear();
   }
 
-  playReferenceTone(stringInfo: StringInfo, duration: number = 1000): void {
+  async playReferenceTone(stringInfo: StringInfo, duration: number = 1000): Promise<void> {
     try {
+      const instrument = this.instrumentService.currentInstrument();
+
+      if (instrument === 'guitar') {
+        const played = await this.playGuitarReferenceSample(stringInfo, duration);
+        if (played) {
+          return;
+        }
+      }
+
       if (!this.playbackContext || this.playbackContext.state === 'closed') {
         this.playbackContext = new AudioContext();
       }
       const playTone = () => {
         if (!this.playbackContext) return;
 
+        this.stopActiveReferenceSample();
         this.stopAllOscillators();
 
         const currentTime = this.playbackContext.currentTime;
         const attackEnd = currentTime + 0.015;
         const endTime = currentTime + duration / 1000;
         const releaseStart = Math.max(currentTime, endTime - 0.08);
-        const instrument = this.instrumentService.currentInstrument();
-
         const masterGain = this.playbackContext.createGain();
         masterGain.gain.cancelScheduledValues(currentTime);
         masterGain.gain.setValueAtTime(0.0001, currentTime);
@@ -884,17 +898,218 @@ export class TunerService implements OnDestroy {
         }
       };
 
-      if (this.playbackContext.state === 'suspended') {
-        void this.playbackContext.resume().then(playTone).catch(error => {
-          console.error('Failed to resume playback AudioContext:', error);
-        });
-        return;
-      }
+	      if (this.playbackContext.state === 'suspended') {
+	        await this.playbackContext.resume().then(playTone).catch(error => {
+	          console.error('Failed to resume playback AudioContext:', error);
+	        });
+	        return;
+	      }
 
-      playTone();
+	      playTone();
     } catch (error) {
       console.error('Failed to play reference tone:', error);
       throw new Error('Audio playback unavailable');
+    }
+  }
+
+  private async playGuitarReferenceSample(stringInfo: StringInfo, durationMs: number): Promise<boolean> {
+    const noteName = this.normalizeSampleNoteName(stringInfo.name);
+    const targetFrequency = stringInfo.frequency;
+
+    const best = this.pickBestGuitarSampleForTarget(noteName, stringInfo.octave, targetFrequency);
+    if (!best) return false;
+
+    const context = await this.getOrCreatePlaybackContext();
+    if (!context) return false;
+
+    try {
+      if (context.state === 'suspended') {
+        await context.resume();
+      }
+    } catch (error) {
+      console.warn('Failed to resume playback AudioContext for sample playback:', error);
+    }
+
+    const buffer = await this.getOrLoadReferenceSampleBuffer(context, best.path);
+    if (!buffer) return false;
+
+    this.stopAllOscillators();
+    this.stopActiveReferenceSample();
+
+    const currentTime = context.currentTime;
+    const attackEnd = currentTime + 0.012;
+    const endTime = currentTime + durationMs / 1000;
+    const releaseStart = Math.max(currentTime, endTime - 0.09);
+
+    const masterGain = context.createGain();
+    masterGain.gain.cancelScheduledValues(currentTime);
+    masterGain.gain.setValueAtTime(0.0001, currentTime);
+    masterGain.gain.exponentialRampToValueAtTime(0.35, attackEnd);
+    masterGain.gain.setValueAtTime(0.35, releaseStart);
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+    masterGain.connect(context.destination);
+
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.setValueAtTime(best.playbackRate, currentTime);
+    source.connect(masterGain);
+    source.start(currentTime);
+    source.stop(endTime);
+
+    this.activeReferenceSampleSource = source;
+    this.activeReferenceSampleGain = masterGain;
+    source.onended = () => {
+      if (this.activeReferenceSampleSource === source) {
+        this.activeReferenceSampleSource = undefined;
+        this.activeReferenceSampleGain = undefined;
+      }
+      try { source.disconnect(); } catch {}
+      try { masterGain.disconnect(); } catch {}
+    };
+
+    return true;
+  }
+
+  private getGuitarSamplePath(noteName: string, octave: number): string | undefined {
+    const direct = this.getGuitarSamplePathForNote(noteName, octave);
+    if (direct) return direct;
+
+    const enharmonic = ENHARMONIC_MAP[noteName];
+    if (!enharmonic) return undefined;
+    return this.getGuitarSamplePathForNote(enharmonic, octave);
+  }
+
+  private normalizeSampleNoteName(raw: string): string {
+    const sanitized = String(raw).trim();
+    // Normalizations in case anything ever feeds in unicode accidentals.
+    return sanitized.replace(/♯/g, '#').replace(/♭/g, 'b');
+  }
+
+  private getGuitarSamplePathForNote(noteName: string, octave: number): string | undefined {
+    const byOctave = TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE[noteName];
+    if (!byOctave) return undefined;
+
+    const exact = byOctave[octave];
+    if (exact) return exact;
+
+    const availableOctaves = Object.keys(byOctave)
+      .map((value) => Number.parseInt(value, 10))
+      .filter((value) => !Number.isNaN(value))
+      .sort((a, b) => a - b);
+
+    if (availableOctaves.length === 0) return undefined;
+
+    let best = availableOctaves[0];
+    let bestDistance = Math.abs(octave - best);
+    for (let i = 1; i < availableOctaves.length; i++) {
+      const candidate = availableOctaves[i];
+      const distance = Math.abs(octave - candidate);
+      if (distance < bestDistance) {
+        best = candidate;
+        bestDistance = distance;
+      }
+    }
+
+    return byOctave[best];
+  }
+
+  private pickBestGuitarSampleForTarget(
+    noteName: string,
+    octave: number,
+    targetFrequency: number
+  ): { path: string; playbackRate: number } | null {
+    if (!Number.isFinite(targetFrequency) || targetFrequency <= 0) return null;
+
+    const candidates: Array<{ path: string; baseFrequency: number }> = [];
+
+    const addNoteCandidates = (name: string) => {
+      const byOctave = TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE[name];
+      if (!byOctave) return;
+      for (const [octaveKey, path] of Object.entries(byOctave)) {
+        const parsedOctave = Number.parseInt(octaveKey, 10);
+        if (!Number.isFinite(parsedOctave)) continue;
+        const baseFrequency = this.noteToFrequency(name, parsedOctave);
+        if (!Number.isFinite(baseFrequency) || baseFrequency <= 0) continue;
+        candidates.push({ path, baseFrequency });
+      }
+    };
+
+    addNoteCandidates(noteName);
+
+    const enharmonic = ENHARMONIC_MAP[noteName];
+    if (enharmonic) addNoteCandidates(enharmonic);
+
+    // If we don't have an exact note match, try the whole sample set and pitch-shift.
+    if (candidates.length === 0) {
+      for (const name of Object.keys(TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE)) {
+        addNoteCandidates(name);
+      }
+    }
+
+    if (candidates.length === 0) return null;
+
+    let best: { path: string; playbackRate: number } | null = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    for (const candidate of candidates) {
+      const playbackRate = targetFrequency / candidate.baseFrequency;
+      if (!Number.isFinite(playbackRate) || playbackRate <= 0) continue;
+
+      // Prefer keeping playbackRate in a reasonable range to avoid artifacts.
+      const outOfRangePenalty = playbackRate < 0.5 || playbackRate > 2.0 ? 5000 : 0;
+      const centsDistance = Math.abs(1200 * (Math.log(playbackRate) / Math.log(2)));
+
+      // Small bias toward octave-near samples when multiple options are similar.
+      const octaveBias = Math.min(3, Math.abs(octave - Math.round(Math.log2(targetFrequency / 440) * 12 / 12 + 4))) * 12;
+
+      const score = outOfRangePenalty + centsDistance + octaveBias;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { path: candidate.path, playbackRate };
+      }
+    }
+
+    return best;
+  }
+
+  private stopActiveReferenceSample(): void {
+    if (this.activeReferenceSampleSource) {
+      try { this.activeReferenceSampleSource.stop(); } catch {}
+      try { this.activeReferenceSampleSource.disconnect(); } catch {}
+      this.activeReferenceSampleSource = undefined;
+    }
+    if (this.activeReferenceSampleGain) {
+      try { this.activeReferenceSampleGain.disconnect(); } catch {}
+      this.activeReferenceSampleGain = undefined;
+    }
+  }
+
+  private async getOrCreatePlaybackContext(): Promise<AudioContext | null> {
+    try {
+      if (!this.playbackContext || this.playbackContext.state === 'closed') {
+        this.playbackContext = new AudioContext();
+      }
+      return this.playbackContext;
+    } catch (error) {
+      console.warn('Failed to create playback AudioContext:', error);
+      return null;
+    }
+  }
+
+  private async getOrLoadReferenceSampleBuffer(context: AudioContext, path: string): Promise<AudioBuffer | null> {
+    const cached = this.guitarReferenceSampleBuffers.get(path);
+    if (cached) return cached;
+
+    try {
+      const response = await fetch(path);
+      if (!response.ok) return null;
+      const data = await response.arrayBuffer();
+      const buffer = await context.decodeAudioData(data);
+      this.guitarReferenceSampleBuffers.set(path, buffer);
+      return buffer;
+    } catch (error) {
+      console.warn('Failed to load/decode reference sample:', error);
+      return null;
     }
   }
 

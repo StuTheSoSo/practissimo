@@ -756,8 +756,8 @@ export class TunerPage implements OnDestroy {
     this.tunerService.setTuning(event.detail.value);
   }
 
-  playReferenceTone(string: any) {
-    this.tunerService.playReferenceTone(string, 1000);
+  async playReferenceTone(string: any): Promise<void> {
+    await this.tunerService.playReferenceTone(string, 1000);
   }
 
   isActiveString(string: any): boolean {
