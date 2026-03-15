@@ -1,5 +1,5 @@
 // src/app/core/services/tuner.service.ts
-import { Injectable, signal, computed, inject, effect, OnDestroy } from '@angular/core';
+import { Injectable, signal, computed, inject, effect, OnDestroy, isDevMode } from '@angular/core';
 import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES, ENHARMONIC_MAP } from '../config/tuner.config';
@@ -33,8 +33,6 @@ export class TunerService implements OnDestroy {
   private customA4Frequency = signal<number>(440);
   private readonly MIN_CLARITY = 0.9;
   private readonly BUFFER_SIZE = 8192;
-  private readonly SMOOTHING_FACTOR = 0.12;
-  private readonly ADAPTIVE_SMOOTHING_FACTOR = 0.25;
   private readonly MIN_RMS = 0.0012;
   private readonly VERY_LOW_RMS = 0.00018;
   private readonly LOW_STRING_FREQUENCY = 180;
@@ -52,13 +50,10 @@ export class TunerService implements OnDestroy {
   private readonly UI_UPDATE_INTERVAL_MS = 40;
   private readonly HISTORY_SIZE = 7;
   private readonly TUNING_HISTORY_SIZE = 30;
-  private readonly SOFT_BIAS_SWITCH_CENTS_THRESHOLD = 40;
-  private readonly LOCKED_TARGET_BIAS_CENTS_THRESHOLD = 55;
   private readonly EXPECTED_NOTE_BONUS_WEIGHT = 1.4;
   private readonly LOCKED_STRING_BONUS_WEIGHT = 1.2;
   private readonly CLARITY_BONUS_WEIGHT = 0.1;
-  private readonly FORCE_RAW_IF_FAR_HZ = 45;
-  private readonly DEBUG_MODE = true; // ← Set to true during testing high strings
+  private readonly DEBUG_MODE = isDevMode();
 
   // State
   private tunerState = signal<TunerState>({
@@ -84,9 +79,12 @@ export class TunerService implements OnDestroy {
   private switchCandidateString: StringInfo | null = null;
   private switchCandidateFrames = 0;
   private lastUiUpdateAt = 0;
-  private readonly visibilityHandler = () => this.handleVisibilityChange();
+  private pitchDetectionActive = false;
+  private readonly visibilityHandler = () => {
+    this.handleVisibilityChange().catch(err => console.error('Visibility handler error:', err));
+  };
 
-  private normalizedBuffer?: Float32Array;
+  private normalizedBuffer?: Float32Array<ArrayBuffer>;
 
   // Public readonly signals
   readonly state = this.tunerState.asReadonly();
@@ -167,17 +165,17 @@ export class TunerService implements OnDestroy {
     });
   }
 
-	  ngOnDestroy(): void {
-	    document.removeEventListener('visibilitychange', this.visibilityHandler);
-	    this.stop();
-	    this.stopAllOscillators();
-	    this.stopActiveReferenceSample();
-	    this.guitarReferenceSampleBuffers.clear();
-	    if (this.playbackContext) {
-	      this.playbackContext.close();
-	      this.playbackContext = undefined;
-	    }
-	  }
+  ngOnDestroy(): void {
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+    this.stop();
+    this.stopAllOscillators();
+    this.stopActiveReferenceSample();
+    this.guitarReferenceSampleBuffers.clear();
+    if (this.playbackContext) {
+      this.playbackContext.close();
+      this.playbackContext = undefined;
+    }
+  }
 
   setA4Frequency(frequency: number): void {
     if (frequency < 400 || frequency > 480) {
@@ -211,12 +209,14 @@ export class TunerService implements OnDestroy {
     }
 
     try {
-      await this.ensureMicrophonePermission();
+      // Acquire the microphone stream once, then pass it into setupNativeInput
+      // to avoid a double permission prompt.
+      const stream = await this.acquireMicrophoneStream();
       this.audioContext = new AudioContext();
-      await this.setupNativeInput();
+      await this.setupNativeInput(stream);
 
-      this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * 4));
-      this.normalizedBuffer = new Float32Array(this.BUFFER_SIZE);
+      this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT));
+      this.normalizedBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT));
       this.sessionStartTime = performance.now();
       this.rmsNoiseSamples = [];
       this.candidateNoteKey = '';
@@ -227,18 +227,23 @@ export class TunerService implements OnDestroy {
       this.switchCandidateFrames = 0;
       this.lastUiUpdateAt = 0;
 
+      // Mark active before scheduling the first frame so the loop guard is correct.
+      this.pitchDetectionActive = true;
       this.tunerState.update(state => ({ ...state, isListening: true }));
       this.detectPitch();
-      } catch (error) {
-        const normalized = this.normalizeError(error, 'Microphone access denied or unavailable');
-        // Sanitize error message before logging
-        const sanitizedMsg = normalized.message.replace(/[\r\n]/g, ' ').substring(0, 200);
-        console.error('Failed to start tuner:', sanitizedMsg);
-        throw normalized;
-      }
+    } catch (error) {
+      const normalized = this.normalizeError(error, 'Microphone access denied or unavailable');
+      const sanitizedMsg = normalized.message.replace(/[\r\n]/g, ' ').substring(0, 200);
+      console.error('Failed to start tuner:', sanitizedMsg);
+      throw normalized;
+    }
   }
 
   stop(): void {
+    // Set the loop-stop flag synchronously before canceling the frame, so any
+    // in-flight detectPitch() call sees it immediately and does not reschedule.
+    this.pitchDetectionActive = false;
+
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = undefined;
@@ -294,23 +299,26 @@ export class TunerService implements OnDestroy {
     }));
   }
 
-  private async ensureMicrophonePermission(): Promise<void> {
+  /**
+   * Acquires the microphone stream a single time. This is the sole place that
+   * calls getUserMedia so the browser only shows one permission prompt.
+   */
+  private async acquireMicrophoneStream(): Promise<MediaStream> {
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error('Microphone access unavailable: missing getUserMedia');
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
+      return await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (error) {
       const normalized = this.normalizeError(error, 'Microphone access failed: UnknownError');
       throw new Error(normalized.message);
     }
   }
 
-  private async setupNativeInput(): Promise<void> {
+  private async setupNativeInput(stream: MediaStream): Promise<void> {
     if (!this.audioContext) throw new Error('Native input failed: missing audio context');
     try {
-      this.nativeStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.nativeStream = stream;
       this.nativeSource = this.audioContext.createMediaStreamSource(this.nativeStream);
       this.nativeAnalyser = this.audioContext.createAnalyser();
       this.nativeAnalyser.fftSize = this.BUFFER_SIZE;
@@ -332,7 +340,6 @@ export class TunerService implements OnDestroy {
   private normalizeError(error: unknown, fallbackMessage: string): Error {
     if (error instanceof Error) return error;
     if (typeof error === 'string') {
-      // Sanitize error string to prevent log injection
       const sanitized = error.replace(/[\r\n]/g, ' ').substring(0, 200);
       return new Error(sanitized);
     }
@@ -366,13 +373,16 @@ export class TunerService implements OnDestroy {
   }
 
   private detectPitch(): void {
-    if (!this.isListening() || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser) return;
+    // Use pitchDetectionActive as the authoritative loop guard. This flag is
+    // set to false synchronously at the top of stop(), so even a frame that
+    // was already queued will bail out here before rescheduling itself.
+    if (!this.pitchDetectionActive || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser) return;
 
     this.nativeAnalyser.getFloatTimeDomainData(this.audioBuffer);
     const rms = this.calculateRMS(this.audioBuffer);
     this.collectNoiseSample(rms);
     if (rms < this.getAdaptiveMinRms()) {
-      if (this.isListening()) this.animationId = requestAnimationFrame(() => this.detectPitch());
+      if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
       return;
     }
 
@@ -384,7 +394,7 @@ export class TunerService implements OnDestroy {
       if (autoResult.clarity >= autoMinClarity) {
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
         this.updateTunerState(correctedFrequency, autoResult.clarity);
-        if (this.isListening()) this.animationId = requestAnimationFrame(() => this.detectPitch());
+        if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
         return;
       }
     }
@@ -397,7 +407,7 @@ export class TunerService implements OnDestroy {
       }
     }
 
-    if (this.isListening()) this.animationId = requestAnimationFrame(() => this.detectPitch());
+    if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
   }
 
   /**
@@ -412,7 +422,7 @@ export class TunerService implements OnDestroy {
     const candidates = [
       { freq: frequency,     ratio: 1.0,  score: 0 },
       { freq: frequency / 2, ratio: 0.5,  score: 0 },
-      { freq: frequency / 4, ratio: 0.25, score: 0 }, // Rare but helps very bright highs
+      { freq: frequency / 4, ratio: 0.25, score: 0 },
       { freq: frequency * 2, ratio: 2.0,  score: 0 }
     ];
 
@@ -425,9 +435,9 @@ export class TunerService implements OnDestroy {
         if (diff < minDiff) minDiff = diff;
       }
       cand.score = 1 / (minDiff + 1);
-      if (cand.ratio < 1) cand.score *= 1.4;     // Reward going down (common on high strings)
-      if (cand.ratio > 1) cand.score *= 0.5;     // Punish going up more strongly
-      if (minDiff < 8) cand.score *= 1.8;        // Extra boost if very close to a string
+      if (cand.ratio < 1) cand.score *= 1.4;
+      if (cand.ratio > 1) cand.score *= 0.5;
+      if (minDiff < 8) cand.score *= 1.8;
 
       if (cand.score > best.score) best = cand;
     }
@@ -435,7 +445,6 @@ export class TunerService implements OnDestroy {
     const corrected = frequency * best.ratio;
 
     if (best.ratio !== 1 && this.DEBUG_MODE) {
-      // Sanitize frequency values before logging
       const sanitizedFreq = Math.max(0, Math.min(20000, frequency)).toFixed(1);
       const sanitizedCorrected = Math.max(0, Math.min(20000, corrected)).toFixed(1);
       console.log(`Octave corrected: ${sanitizedFreq} Hz → ${sanitizedCorrected} Hz (ratio ${best.ratio})`);
@@ -453,9 +462,13 @@ export class TunerService implements OnDestroy {
   private updateTunerState(frequency: number, clarity: number): void {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
     const targetNote = this.getStableTargetString(stableFrequency);
-    const biasedPitch = this.selectBiasedPitch(stableFrequency, clarity, targetNote);
-    const noteInfo = this.frequencyToNote(biasedPitch.frequency);
+
+    // Resolve note name/octave from the actual detected frequency, NOT the snapped
+    // target. Snapping before note detection was causing the stabiliser to see an
+    // artificially clean note key and delay switching when the real pitch changed.
+    const noteInfo = this.frequencyToNote(stableFrequency);
     const stableNote = this.applyNoteStabilization(noteInfo, clarity, targetNote);
+
     const now = performance.now();
     if (this.lastUiUpdateAt !== 0 && now - this.lastUiUpdateAt < this.UI_UPDATE_INTERVAL_MS) return;
     this.lastUiUpdateAt = now;
@@ -465,9 +478,12 @@ export class TunerService implements OnDestroy {
       return;
     }
 
-    const practicalTarget = targetNote ?? biasedPitch.targetString;
-    const rawCents = practicalTarget
-      ? this.centsFromFrequencyToTarget(stableFrequency, practicalTarget.frequency)
+    // Cents are measured against the locked target string so the needle reflects
+    // how far the string is from its intended pitch, regardless of which note
+    // the autocorrelator settled on.
+    const centTarget = targetNote ?? this.getBestExpectedStringCandidate(stableFrequency, clarity) ?? undefined;
+    const rawCents = centTarget
+      ? this.centsFromFrequencyToTarget(stableFrequency, centTarget.frequency)
       : noteInfo.cents;
     const stableCents = this.applyCentsStabilization(rawCents);
     this.tuningHistory.push(stableCents);
@@ -514,38 +530,6 @@ export class TunerService implements OnDestroy {
     return best;
   }
 
-  private selectBiasedPitch(
-    frequency: number,
-    clarity: number,
-    preferredTarget?: StringInfo
-  ): { frequency: number; targetString?: StringInfo; usedBias: boolean } {
-    if (preferredTarget) {
-      const preferredHzDiff = Math.abs(frequency - preferredTarget.frequency);
-      const preferredCentsDiff = Math.abs(this.centsFromFrequencyToTarget(frequency, preferredTarget.frequency));
-      const shouldBiasToPreferred =
-        preferredCentsDiff <= this.LOCKED_TARGET_BIAS_CENTS_THRESHOLD &&
-        preferredHzDiff <= this.FORCE_RAW_IF_FAR_HZ * 1.8;
-
-      if (shouldBiasToPreferred) {
-        return { frequency: preferredTarget.frequency, targetString: preferredTarget, usedBias: true };
-      }
-    }
-
-    const expected = this.getBestExpectedStringCandidate(frequency, clarity);
-    if (!expected) {
-      return { frequency, usedBias: false };
-    }
-
-    const frequencyDiff = Math.abs(frequency - expected.frequency);
-    const centsDiff = Math.abs(this.centsFromFrequencyToTarget(frequency, expected.frequency));
-    const shouldUseRaw = frequencyDiff > this.FORCE_RAW_IF_FAR_HZ || centsDiff > this.SOFT_BIAS_SWITCH_CENTS_THRESHOLD;
-
-    if (shouldUseRaw) {
-      return { frequency, targetString: expected, usedBias: false };
-    }
-
-    return { frequency: expected.frequency, targetString: expected, usedBias: true };
-  }
 
   private getStableTargetString(frequency: number): StringInfo | undefined {
     const tuning = this.selectedTuning();
@@ -608,9 +592,8 @@ export class TunerService implements OnDestroy {
     if (frequency < 90) return 0.75;
     if (frequency < this.LOW_STRING_FREQUENCY) return 0.85;
 
-    // High strings → more lenient clarity requirements
-    if (frequency > 400) return 0.82;   // Was 0.93
-    if (frequency > 300) return 0.86;   // Was 0.91
+    if (frequency > 400) return 0.82;
+    if (frequency > 300) return 0.86;
     if (frequency > 200) return 0.88;
 
     return this.MIN_CLARITY;
@@ -622,6 +605,8 @@ export class TunerService implements OnDestroy {
     this.frequencyHistory.push(frequency);
     if (this.frequencyHistory.length > this.HISTORY_SIZE) this.frequencyHistory.shift();
 
+    // Median over the recent history rejects single-frame outliers (spurious
+    // harmonics, transient noise) without introducing lag.
     const sorted = [...this.frequencyHistory].sort((a, b) => a - b);
     const median = sorted[Math.floor(sorted.length / 2)];
 
@@ -630,13 +615,20 @@ export class TunerService implements OnDestroy {
       return this.smoothedFrequency;
     }
 
-    const delta = median - this.smoothedFrequency;
-    const maxStep = this.smoothedFrequency < this.LOW_STRING_FREQUENCY ? 6 : 12;
-    const limited = Math.abs(delta) > maxStep ? this.smoothedFrequency + Math.sign(delta) * maxStep : median;
+    const delta = Math.abs(median - this.smoothedFrequency);
 
-    const smoothingFactor = Math.abs(delta) > 20 ? this.ADAPTIVE_SMOOTHING_FACTOR : this.SMOOTHING_FACTOR;
+    // Large jumps (string change or transient octave error) → snap immediately
+    // rather than smoothing, so the display locks on quickly.
+    if (delta > 80) {
+      this.smoothedFrequency = median;
+      return this.smoothedFrequency;
+    }
 
-    this.smoothedFrequency = (this.smoothedFrequency * (1 - smoothingFactor)) + (limited * smoothingFactor);
+    // Moderate movement → track faster so the tuner settles within a few frames.
+    // Fine movement → heavier smoothing for a steady needle.
+    const smoothingFactor = delta > 15 ? 0.5 : 0.25;
+
+    this.smoothedFrequency = this.smoothedFrequency * (1 - smoothingFactor) + median * smoothingFactor;
     return this.smoothedFrequency;
   }
 
@@ -671,8 +663,6 @@ export class TunerService implements OnDestroy {
     const initialRequiredFrames = inStartup ? this.NOTE_LOCK_FRAMES_STARTUP : this.NOTE_LOCK_FRAMES_STEADY;
     let switchRequiredFrames = inStartup ? this.NOTE_SWITCH_HOLD_FRAMES_STARTUP : this.NOTE_SWITCH_HOLD_FRAMES_STEADY;
 
-    // Adaptive switch: when signal is strong and we are close to expected string pitch,
-    // allow faster switching so the tuner finds the correct string quicker.
     if (clarity >= 0.9) {
       switchRequiredFrames = Math.max(2, switchRequiredFrames - 1);
     }
@@ -700,11 +690,13 @@ export class TunerService implements OnDestroy {
   }
 
   private collectNoiseSample(rms: number): void {
-    const elapsed = performance.now() - this.sessionStartTime;
-    if (elapsed > this.STARTUP_STABILIZATION_MS * 2) return;
-
-    this.rmsNoiseSamples.push(rms);
-    if (this.rmsNoiseSamples.length > this.NOISE_SAMPLE_WINDOW) this.rmsNoiseSamples.shift();
+    // Only update the noise floor when the signal is very quiet — we don't want
+    // loud playing frames to inflate the threshold and gate out legitimate signal.
+    // Cap the window so the estimate stays responsive to room-noise changes.
+    if (rms < this.MIN_RMS) {
+      this.rmsNoiseSamples.push(rms);
+      if (this.rmsNoiseSamples.length > this.NOISE_SAMPLE_WINDOW) this.rmsNoiseSamples.shift();
+    }
   }
 
   private getAdaptiveMinRms(): number {
@@ -716,64 +708,111 @@ export class TunerService implements OnDestroy {
   }
 
   private autoCorrelate(buffer: Float32Array, sampleRate: number): { frequency: number; clarity: number } | null {
+    if (!this.normalizedBuffer) return null;
+
     const size = buffer.length;
     const minLag = Math.floor(sampleRate / 4000);
     const maxLag = Math.floor(sampleRate / 30);
 
+    // Remove DC offset
     let mean = 0;
     for (let i = 0; i < size; i++) mean += buffer[i];
     mean /= size;
 
     let rms = 0;
-    const normalized = this.normalizedBuffer!;
+    const sig = this.normalizedBuffer;
     for (let i = 0; i < size; i++) {
-      const value = buffer[i] - mean;
-      normalized[i] = value;
-      rms += value * value;
+      sig[i] = buffer[i] - mean;
+      rms += sig[i] * sig[i];
     }
     rms = Math.sqrt(rms / size);
     if (rms < this.MIN_RMS) return null;
 
+    // --- NSDF (Normalised Square Difference Function) ---
+    // nsdf(lag) = 2 * r(lag) / (r(0,left) + r(0,right))
+    // where r(0,left)  = sum of sig[i]^2   for i in [0, N-lag)
+    //       r(0,right) = sum of sig[i+lag]^2 for i in [0, N-lag)
+    // This removes the length-bias of the raw autocorrelation and
+    // produces values in [-1, 1] that are much cleaner to threshold.
+
+    // Precompute suffix-energy: suffixEnergy[k] = sum(sig[k..N-1]^2)
+    // and prefix-energy:  prefixEnergy[k] = sum(sig[0..k-1]^2)
+    // so r(0,left) for lag L  = prefixEnergy[N-L]  (sig[0..N-L-1]^2)
+    //    r(0,right) for lag L = suffixEnergy[L]     (sig[L..N-1]^2)
+    // Both are O(N) to build and O(1) per lag — no inner-loop explosion.
+
+    const totalEnergy = rms * rms * size; // sum(sig^2)
+
+    // Build prefix energies in-place using a single pass.
+    // prefixE[i] = sig[0]^2 + ... + sig[i-1]^2
+    const prefixE = new Float32Array(size + 1);
+    for (let i = 0; i < size; i++) prefixE[i + 1] = prefixE[i] + sig[i] * sig[i];
+
+    // suffixE[i] = sig[i]^2 + ... + sig[N-1]^2 = totalEnergy - prefixE[i]
+
+    let bestNsdf = -Infinity;
     let bestLag = -1;
-    let bestCorrelation = 0;
+
+    // We only look for positive-lobe peaks (nsdf > 0) after the first zero-crossing,
+    // so we track whether we have passed through zero from above (starting positive).
+    let passedFirstZeroCrossing = false;
 
     for (let lag = minLag; lag <= maxLag; lag++) {
-      let sum = 0;
-      for (let i = 0; i < size - lag; i++) sum += normalized[i] * normalized[i + lag];
-      const correlation = sum / (size - lag);
-      if (correlation > bestCorrelation) {
-        bestCorrelation = correlation;
+      const n = size - lag;
+      let r = 0;
+      for (let i = 0; i < n; i++) r += sig[i] * sig[i + lag];
+
+      // Left energy: sig[0..n-1]^2 = prefixE[n]
+      const eLeft = prefixE[n];
+      // Right energy: sig[lag..lag+n-1]^2 = prefixE[lag+n] - prefixE[lag]
+      const eRight = prefixE[lag + n] - prefixE[lag];
+      const denom = eLeft + eRight;
+
+      const nsdf = denom > 1e-10 ? (2 * r) / denom : 0;
+
+      // Detect first zero crossing so we skip the trivial peak near lag=0.
+      if (!passedFirstZeroCrossing && nsdf <= 0) {
+        passedFirstZeroCrossing = true;
+      }
+
+      if (passedFirstZeroCrossing && nsdf > bestNsdf) {
+        bestNsdf = nsdf;
         bestLag = lag;
       }
     }
 
-    if (bestLag === -1) return null;
+    // Require a meaningful peak — below 0.6 the signal is too noisy to trust.
+    if (bestLag === -1 || bestNsdf < 0.6) return null;
 
+    // Parabolic interpolation around the peak for sub-sample accuracy.
     const prevLag = Math.max(minLag, bestLag - 1);
     const nextLag = Math.min(maxLag, bestLag + 1);
-    const prev = this.autocorrelationAtLag(normalized, prevLag);
-    const curr = this.autocorrelationAtLag(normalized, bestLag);
-    const next = this.autocorrelationAtLag(normalized, nextLag);
 
-    const denom = (prev - 2 * curr + next);
-    const shift = denom !== 0 ? 0.5 * (prev - next) / denom : 0;
-    const refinedLag = bestLag + shift;
+    const nsdfAt = (lag: number): number => {
+      const n = size - lag;
+      let r = 0;
+      for (let i = 0; i < n; i++) r += sig[i] * sig[i + lag];
+      const eL = prefixE[n];
+      const eR = prefixE[lag + n] - prefixE[lag];
+      const d = eL + eR;
+      return d > 1e-10 ? (2 * r) / d : 0;
+    };
+
+    const vPrev = nsdfAt(prevLag);
+    const vCurr = bestNsdf;
+    const vNext = nsdfAt(nextLag);
+    const paraDenom = vPrev - 2 * vCurr + vNext;
+    const shift = paraDenom !== 0 ? 0.5 * (vPrev - vNext) / paraDenom : 0;
+    const refinedLag = bestLag - shift; // note: subtract because we want lag of peak
 
     const frequency = sampleRate / refinedLag;
 
-    const energyAtZero = this.autocorrelationAtLag(normalized, 0);
-    let clarity = 0;
-    if (energyAtZero > 1e-10) clarity = bestCorrelation / energyAtZero;
-    clarity = Math.max(0, Math.min(1, clarity));
+    // Clarity is the NSDF peak value clamped to [0, 1].
+    // Attenuate slightly for very low frequencies where sub-harmonic risk is higher.
+    let clarity = Math.max(0, Math.min(1, bestNsdf));
     if (frequency < 60) clarity *= 0.7;
 
     return { frequency, clarity };
-  }
-
-  private autocorrelationAtLag(buffer: Float32Array, lag: number): number {
-    let sum = 0;
-    for (let i = 0; i < buffer.length - lag; i++) sum += buffer[i] * buffer[i + lag];
-    return sum / (buffer.length - lag);
   }
 
   private frequencyToNote(frequency: number): NoteInfo {
@@ -790,7 +829,6 @@ export class TunerService implements OnDestroy {
     }
 
     if (noteIndex < 0 || noteIndex >= NOTE_NAMES.length) {
-      // Sanitize note index before logging
       const sanitizedIndex = Math.max(-12, Math.min(24, noteIndex));
       console.error('Invalid note index:', sanitizedIndex);
       return { note: 'Unknown', octave: 0, frequency, cents: 0 };
@@ -801,7 +839,6 @@ export class TunerService implements OnDestroy {
 
     if (this.DEBUG_MODE) {
       if (frequency > 300 && frequency < 350) {
-        // Sanitize values before logging
         const sanitizedFreq = Math.max(0, Math.min(20000, frequency)).toFixed(1);
         const sanitizedCents = Math.max(-100, Math.min(100, cents));
         console.log(`High E debug: ${sanitizedFreq}Hz → ${note}${octave} (${sanitizedCents > 0 ? '+' : ''}${sanitizedCents}¢)`);
@@ -819,7 +856,6 @@ export class TunerService implements OnDestroy {
       this.switchCandidateString = null;
       this.switchCandidateFrames = 0;
     } else {
-      // Sanitize tuning ID before logging
       const sanitizedId = String(tuningId).replace(/[\r\n]/g, ' ').substring(0, 50);
       console.warn(`Tuning preset not found: ${sanitizedId}`);
     }
@@ -887,7 +923,6 @@ export class TunerService implements OnDestroy {
         fundamental.stop(endTime);
         fundamental.onended = () => this.activeOscillators.delete(fundamental);
 
-        // Add light harmonics for a clearer, less synthetic pitch cue.
         if (instrument === 'guitar' || instrument === 'bass') {
           this.addHarmonic(stringInfo.frequency * 2, 0.22, 'sine', masterGain, endTime);
           this.addHarmonic(stringInfo.frequency * 3, 0.1, 'sine', masterGain, endTime);
@@ -898,14 +933,14 @@ export class TunerService implements OnDestroy {
         }
       };
 
-	      if (this.playbackContext.state === 'suspended') {
-	        await this.playbackContext.resume().then(playTone).catch(error => {
-	          console.error('Failed to resume playback AudioContext:', error);
-	        });
-	        return;
-	      }
+      if (this.playbackContext.state === 'suspended') {
+        await this.playbackContext.resume().then(playTone).catch(error => {
+          console.error('Failed to resume playback AudioContext:', error);
+        });
+        return;
+      }
 
-	      playTone();
+      playTone();
     } catch (error) {
       console.error('Failed to play reference tone:', error);
       throw new Error('Audio playback unavailable');
@@ -981,7 +1016,6 @@ export class TunerService implements OnDestroy {
 
   private normalizeSampleNoteName(raw: string): string {
     const sanitized = String(raw).trim();
-    // Normalizations in case anything ever feeds in unicode accidentals.
     return sanitized.replace(/♯/g, '#').replace(/♭/g, 'b');
   }
 
@@ -1039,7 +1073,6 @@ export class TunerService implements OnDestroy {
     const enharmonic = ENHARMONIC_MAP[noteName];
     if (enharmonic) addNoteCandidates(enharmonic);
 
-    // If we don't have an exact note match, try the whole sample set and pitch-shift.
     if (candidates.length === 0) {
       for (const name of Object.keys(TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE)) {
         addNoteCandidates(name);
@@ -1055,11 +1088,8 @@ export class TunerService implements OnDestroy {
       const playbackRate = targetFrequency / candidate.baseFrequency;
       if (!Number.isFinite(playbackRate) || playbackRate <= 0) continue;
 
-      // Prefer keeping playbackRate in a reasonable range to avoid artifacts.
       const outOfRangePenalty = playbackRate < 0.5 || playbackRate > 2.0 ? 5000 : 0;
       const centsDistance = Math.abs(1200 * (Math.log(playbackRate) / Math.log(2)));
-
-      // Small bias toward octave-near samples when multiple options are similar.
       const octaveBias = Math.min(3, Math.abs(octave - Math.round(Math.log2(targetFrequency / 440) * 12 / 12 + 4))) * 12;
 
       const score = outOfRangePenalty + centsDistance + octaveBias;

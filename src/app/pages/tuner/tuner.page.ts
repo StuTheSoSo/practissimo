@@ -28,6 +28,7 @@ import { addIcons } from 'ionicons';
 import { play, stop, musicalNote, volumeHigh, settings } from 'ionicons/icons';
 import { TunerService } from '../../core/services/tuner.service';
 import { InstrumentService } from '../../core/services/instrument.service';
+import { StringInfo } from '../../core/models/tuner.model';
 
 @Component({
   selector: 'app-tuner',
@@ -73,25 +74,30 @@ import { InstrumentService } from '../../core/services/instrument.service';
         <!-- Main Tuner Display -->
         <ion-card class="tuner-display">
           <ion-card-content>
+
             <!-- Detected Note -->
             <div class="note-display">
               <div class="setup-indicator" [class.visible]="showSetupIndicator()">
                 <ion-spinner name="crescent"></ion-spinner>
-                <span>Listening... lock-on in progress</span>
+                <span>Listening… locking on</span>
               </div>
-              <div class="note-name" [class.in-tune]="isInTune()">
-                {{ detectedNote() || '-' }}
-                @if (detectedOctave() > 0) {
+              <div
+                class="note-name"
+                [class.in-tune]="isInTune() && isListening()"
+                [class.idle]="!isListening()"
+              >
+                {{ detectedNote() || (isListening() ? '–' : '–') }}
+                @if (detectedOctave() > 0 && detectedNote()) {
                   <span class="octave">{{ detectedOctave() }}</span>
                 }
               </div>
               <div class="frequency" [class.hidden]="currentFrequency() <= 0">
-                {{ currentFrequency() > 0 ? currentFrequency().toFixed(2) + ' Hz' : '--.-- Hz' }}
+                {{ currentFrequency() > 0 ? (currentFrequency() | number:'1.2-2') + ' Hz' : '' }}
               </div>
             </div>
 
             <!-- Cents Meter -->
-            <div class="cents-meter">
+            <div class="cents-meter" [class.inactive]="!isListening() || !detectedNote()">
               <div class="meter-labels">
                 <span>Flat</span>
                 <span>Sharp</span>
@@ -101,7 +107,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
                 <div
                   class="meter-needle"
                   [style.left.%]="needlePosition()"
-                  [class.in-tune]="isInTune()"
+                  [class.in-tune]="isInTune() && isListening() && !!detectedNote()"
                 ></div>
               </div>
               <div class="meter-ticks">
@@ -113,30 +119,29 @@ import { InstrumentService } from '../../core/services/instrument.service';
               </div>
             </div>
 
-            <!-- Status Display -->
+            <!-- Status Badge -->
             <div class="status-display">
-              @if (cents() !== 0) {
+              @if (isListening() && detectedNote()) {
                 <div
                   class="status-badge"
                   [class.in-tune]="tuningStatus() === 'in-tune'"
                   [class.flat]="tuningStatus() === 'flat'"
                   [class.sharp]="tuningStatus() === 'sharp'"
                 >
-                  @if (tuningStatus() === 'in-tune') {
-                    ✓ IN TUNE
-                  } @else if (tuningStatus() === 'flat') {
-                    ♭ {{ formatCents(cents()) }} cents
-                  } @else {
-                    ♯ {{ formatCents(cents()) }} cents
+                  @switch (tuningStatus()) {
+                    @case ('in-tune') { ✓ IN TUNE }
+                    @case ('flat')    { ♭ {{ centsLabel() }} flat }
+                    @default          { ♯ {{ centsLabel() }} sharp }
                   }
                 </div>
               }
             </div>
 
-            <!-- Clarity/Confidence Indicator -->
+            <!-- Signal confidence -->
             <div class="clarity-indicator" [class.hidden]="!(isListening() && clarity() > 0)">
               <small>Signal: {{ (clarity() * 100).toFixed(0) }}%</small>
             </div>
+
           </ion-card-content>
         </ion-card>
 
@@ -184,7 +189,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
                   >
                     <ion-label>
                       <h3>String {{ string.stringNumber }}</h3>
-                      <p>{{ string.name }}{{ string.octave }} - {{ string.frequency.toFixed(2) }} Hz</p>
+                      <p>{{ string.name }}{{ string.octave }} · {{ string.frequency | number:'1.2-2' }} Hz</p>
                     </ion-label>
                     @if (isActiveString(string)) {
                       <ion-badge slot="end" color="primary">Tuning</ion-badge>
@@ -204,14 +209,15 @@ import { InstrumentService } from '../../core/services/instrument.service';
               <strong>How to use:</strong>
               <ol>
                 <li>Allow microphone access when prompted</li>
-                <li>Click "Start Tuner"</li>
-                <li>Play one string at a time</li>
-                <li>Tune until the needle is in the center (green)</li>
+                <li>Tap "Start Tuner"</li>
+                <li>Play one string at a time, close to the mic</li>
+                <li>Tune until the needle is centred and green</li>
                 <li>Tap any string in the guide to hear its reference tone</li>
               </ol>
             </div>
           </ion-card-content>
         </ion-card>
+
       </div>
     </ion-content>
   `,
@@ -248,6 +254,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       margin: 0;
     }
 
+    /* ── Tuner display card ─────────────────────────────────────── */
     .tuner-display {
       margin: 2rem 0;
       background:
@@ -256,6 +263,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
         linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 251, 255, 0.98));
     }
 
+    /* ── Note display ───────────────────────────────────────────── */
     .note-display {
       text-align: center;
       margin: 2rem 0;
@@ -273,13 +281,10 @@ import { InstrumentService } from '../../core/services/instrument.service';
       font-weight: 600;
       font-size: 0.9rem;
       min-height: 32px;
+      /* Hidden by default; becomes visible via .visible */
       opacity: 0;
       visibility: hidden;
-    }
-
-    .setup-indicator ion-spinner {
-      width: 16px;
-      height: 16px;
+      transition: opacity 0.2s ease;
     }
 
     .setup-indicator.visible {
@@ -287,21 +292,36 @@ import { InstrumentService } from '../../core/services/instrument.service';
       visibility: visible;
     }
 
+    .setup-indicator ion-spinner {
+      width: 16px;
+      height: 16px;
+    }
+
     .note-name {
       font-size: 6rem;
       font-weight: bold;
       line-height: 1;
       color: #3a4b66;
-      transition: color 0.3s ease;
+      transition: color 0.25s ease;
+      /* Prevent layout shift when note appears */
+      min-height: 6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .note-name.in-tune {
       color: var(--ion-color-success);
     }
 
+    .note-name.idle {
+      opacity: 0.35;
+    }
+
     .octave {
       font-size: 3rem;
       vertical-align: super;
+      line-height: 1;
     }
 
     .frequency {
@@ -316,8 +336,14 @@ import { InstrumentService } from '../../core/services/instrument.service';
       visibility: hidden;
     }
 
+    /* ── Cents meter ────────────────────────────────────────────── */
     .cents-meter {
       margin: 2rem 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .cents-meter.inactive {
+      opacity: 0.4;
     }
 
     .meter-labels {
@@ -362,8 +388,10 @@ import { InstrumentService } from '../../core/services/instrument.service';
       height: 50px;
       background: #1e2d4b;
       transform: translate(-50%, -50%);
-      transition: left 0.1s ease-out;
+      /* Slightly longer transition than the UI update interval for a smooth feel */
+      transition: left 0.08s ease-out, background 0.25s ease, box-shadow 0.25s ease;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border-radius: 2px;
     }
 
     .meter-needle::before {
@@ -402,19 +430,23 @@ import { InstrumentService } from '../../core/services/instrument.service';
       color: var(--ion-color-success);
     }
 
+    /* ── Status badge ───────────────────────────────────────────── */
     .status-display {
       text-align: center;
-      margin: 2rem 0;
+      margin: 1.5rem 0;
       min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .status-badge {
       display: inline-block;
       padding: 0.75rem 2rem;
       border-radius: 25px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: bold;
-      transition: all 0.3s ease;
+      transition: background 0.25s ease, box-shadow 0.25s ease;
       border: 1px solid rgba(255, 255, 255, 0.35);
     }
 
@@ -434,6 +466,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       color: white;
     }
 
+    /* ── Clarity indicator ──────────────────────────────────────── */
     .clarity-indicator {
       text-align: center;
       color: var(--ion-color-medium);
@@ -446,6 +479,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       visibility: hidden;
     }
 
+    /* ── Control buttons ────────────────────────────────────────── */
     .control-buttons {
       margin: 2rem 0;
     }
@@ -467,6 +501,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       --box-shadow: 0 10px 18px rgba(221, 102, 102, 0.35);
     }
 
+    /* ── String guide ───────────────────────────────────────────── */
     .active-string {
       background: rgba(98, 154, 255, 0.14);
       border-radius: 12px;
@@ -526,6 +561,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
         linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(246, 250, 255, 0.97));
     }
 
+    /* ── Instructions ───────────────────────────────────────────── */
     .instructions-card {
       background:
         radial-gradient(circle at 6% 12%, rgba(255, 215, 163, 0.22), transparent 38%),
@@ -556,6 +592,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
       --inner-padding-end: 0;
     }
 
+    /* ── Dark mode ──────────────────────────────────────────────── */
     @media (prefers-color-scheme: dark) {
       .selection-card,
       .string-guide-card {
@@ -583,6 +620,10 @@ import { InstrumentService } from '../../core/services/instrument.service';
       .meter-ticks,
       .instructions,
       .instructions strong {
+        color: #eaf0ff !important;
+      }
+
+      .note-name.idle {
         color: #eaf0ff !important;
       }
 
@@ -654,131 +695,101 @@ export class TunerPage implements OnDestroy {
   private instrumentService = inject(InstrumentService);
   private alertController = inject(AlertController);
 
+  // ── Service bindings ───────────────────────────────────────────────────────
   currentInstrument = this.instrumentService.currentDisplayName;
+  isListening       = this.tunerService.isListening;
+  isInTune          = this.tunerService.isInTune;
+  tuningStatus      = this.tunerService.tuningStatus;
+  currentTuning     = this.tunerService.currentTuning;
+  availableTunings  = this.tunerService.availableTunings;
+  closestString     = this.tunerService.closestString;
 
-  // Tuner state
-  state = this.tunerService.state;
-  isListening = this.tunerService.isListening;
-  isInTune = this.tunerService.isInTune;
-  tuningStatus = this.tunerService.tuningStatus;
-  currentTuning = this.tunerService.currentTuning;
-  availableTunings = this.tunerService.availableTunings;
-  closestString = this.tunerService.closestString;
-
-  // Extract individual values
-  detectedNote = computed(() => this.state().detectedNote);
-  detectedOctave = computed(() => this.state().detectedOctave);
+  // ── State slices ───────────────────────────────────────────────────────────
+  private state    = this.tunerService.state;
+  detectedNote     = computed(() => this.state().detectedNote);
+  detectedOctave   = computed(() => this.state().detectedOctave);
   currentFrequency = computed(() => this.state().currentFrequency);
-  cents = computed(() => this.state().cents);
-  clarity = computed(() => this.state().clarity);
+  cents            = computed(() => this.state().cents);
+  clarity          = computed(() => this.state().clarity);
+
+  // ── Derived display values ─────────────────────────────────────────────────
+
+  /**
+   * Clamp cents to ±50 before mapping to 0–100% so the needle never leaves
+   * the track. The dead-zone rounding in the service already snaps ±3¢ to 0
+   * so no extra smoothing is needed here.
+   */
+  needlePosition = computed(() => {
+    const clamped = Math.max(-50, Math.min(50, this.cents()));
+    return ((clamped + 50) / 100) * 100;
+  });
+
+  /** Human-readable absolute cent value for the status badge. */
+  centsLabel = computed(() => Math.abs(this.cents()) + '¢');
+
+  // ── Setup indicator ────────────────────────────────────────────────────────
   private isSettingUp = signal(false);
+  private setupTimerId: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Show a "locking on" spinner from the moment Start is tapped until the
+   * service reports its first detected note (or after a max timeout).
+   */
   showSetupIndicator = computed(() =>
     this.isListening() && (this.isSettingUp() || !this.detectedNote())
   );
-  private setupTimerId: number | null = null;
-
-  // Needle position (0-100%)
-  needlePosition = computed(() => {
-    const cents = this.cents();
-    // Map -50 to +50 cents to 0% to 100%
-    return ((cents + 50) / 100) * 100;
-  });
 
   constructor() {
     addIcons({ play, stop, musicalNote, volumeHigh, settings });
   }
 
-  async startTuner() {
+  // ── Public actions ─────────────────────────────────────────────────────────
+
+  async startTuner(): Promise<void> {
     try {
       this.isSettingUp.set(true);
       await this.tunerService.start();
       this.scheduleSetupIndicatorClear();
     } catch (error) {
       this.isSettingUp.set(false);
-      const errorMessage = error instanceof Error ? error.message : '';
-      const isUnavailable = errorMessage.includes('not available');
-      let header = 'Microphone Access Required';
-      let message =
-        'Please allow microphone access to use the tuner.';
-
-      if (isUnavailable) {
-        header = 'Tuner Unavailable';
-        message = 'Tuner is only available for guitar, bass, and violin.';
-      } else if (errorMessage.includes('NotAllowedError')) {
-        message =
-          'Microphone access is blocked. On iOS, delete and reinstall the app, then accept the microphone prompt. You can also check Settings > Privacy & Security > Microphone.';
-      } else if (errorMessage.includes('NotFoundError')) {
-        message =
-          'No microphone was found. Please check that your device microphone is available.';
-      } else if (errorMessage.includes('SecurityError')) {
-        message =
-          'Microphone access is blocked by security settings. Please check your device restrictions.';
-      } else if (errorMessage.includes('getUserMedia')) {
-        message =
-          'Microphone access is not available on this device.';
-      } else if (errorMessage.length > 0) {
-        message = `${message}\n\nDetails: ${errorMessage}`;
-      }
-
-      const canOpenSettings = Capacitor.getPlatform() === 'ios';
-      const buttons = isUnavailable
-        ? ['OK']
-        : [
-            ...(canOpenSettings
-              ? [
-                  {
-                    text: 'Open Settings',
-                    handler: () => {
-                      this.openSettings();
-                    }
-                  }
-                ]
-              : []),
-            'OK'
-          ];
-
-      const alert = await this.alertController.create({
-        header,
-        message,
-        buttons
-      });
-      await alert.present();
+      await this.showMicrophoneErrorAlert(error);
     }
   }
 
-  stopTuner() {
+  stopTuner(): void {
     this.clearSetupTimer();
     this.isSettingUp.set(false);
     this.tunerService.stop();
   }
 
-  onTuningChange(event: any) {
-    this.tunerService.setTuning(event.detail.value);
+  onTuningChange(event: CustomEvent): void {
+    this.tunerService.setTuning(event.detail.value as string);
   }
 
-  async playReferenceTone(string: any): Promise<void> {
+  async playReferenceTone(string: StringInfo): Promise<void> {
     await this.tunerService.playReferenceTone(string, 1000);
   }
 
-  isActiveString(string: any): boolean {
-    const closest = this.closestString();
-    if (!closest) return false;
-    return closest.stringNumber === string.stringNumber;
+  isActiveString(string: StringInfo): boolean {
+    return this.closestString()?.stringNumber === string.stringNumber;
   }
 
+  /** Delegates to service so the template has no formatting logic. */
   formatCents(cents: number): string {
     return this.tunerService.formatCents(cents);
   }
 
-  private openSettings(): void {
-    if (Capacitor.getPlatform() === 'ios') {
-      window.location.assign('app-settings:');
-    }
+  ngOnDestroy(): void {
+    this.clearSetupTimer();
   }
+
+  // ── Private helpers ────────────────────────────────────────────────────────
 
   private scheduleSetupIndicatorClear(): void {
     this.clearSetupTimer();
-    this.setupTimerId = window.setTimeout(() => {
+    // Dismiss after 1.4 s regardless — by then the service will have either
+    // locked onto a note or the user will see the needle moving.
+    this.setupTimerId = setTimeout(() => {
       this.isSettingUp.set(false);
       this.setupTimerId = null;
     }, 1400);
@@ -786,12 +797,53 @@ export class TunerPage implements OnDestroy {
 
   private clearSetupTimer(): void {
     if (this.setupTimerId !== null) {
-      window.clearTimeout(this.setupTimerId);
+      clearTimeout(this.setupTimerId);
       this.setupTimerId = null;
     }
   }
 
-  ngOnDestroy(): void {
-    this.clearSetupTimer();
+  private async showMicrophoneErrorAlert(error: unknown): Promise<void> {
+    const errorMessage = error instanceof Error ? error.message : '';
+    const isUnavailable = errorMessage.includes('not available');
+
+    let header  = 'Microphone Access Required';
+    let message = 'Please allow microphone access to use the tuner.';
+
+    if (isUnavailable) {
+      header  = 'Tuner Unavailable';
+      message = 'The tuner is only available for guitar, bass, and violin.';
+    } else if (errorMessage.includes('NotAllowedError')) {
+      message =
+        'Microphone access is blocked. On iOS, delete and reinstall the app, ' +
+        'then accept the microphone prompt. You can also check ' +
+        'Settings › Privacy & Security › Microphone.';
+    } else if (errorMessage.includes('NotFoundError')) {
+      message = 'No microphone was found. Please check that your device microphone is available.';
+    } else if (errorMessage.includes('SecurityError')) {
+      message = 'Microphone access is blocked by security settings. Please check your device restrictions.';
+    } else if (errorMessage.includes('getUserMedia')) {
+      message = 'Microphone access is not available on this device.';
+    } else if (errorMessage.length > 0) {
+      message += `\n\nDetails: ${errorMessage}`;
+    }
+
+    const canOpenSettings = Capacitor.getPlatform() === 'ios';
+    const buttons = isUnavailable
+      ? ['OK']
+      : [
+          ...(canOpenSettings
+            ? [{ text: 'Open Settings', handler: () => this.openAppSettings() }]
+            : []),
+          'OK'
+        ];
+
+    const alert = await this.alertController.create({ header, message, buttons });
+    await alert.present();
+  }
+
+  private openAppSettings(): void {
+    if (Capacitor.getPlatform() === 'ios') {
+      window.location.assign('app-settings:');
+    }
   }
 }
