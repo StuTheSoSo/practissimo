@@ -9,21 +9,6 @@ Reference doc for planned UX/UI improvements. Each idea includes an implementati
 
 ---
 
-## Medium Effort / High Impact
-
-### 5. Dark Studio Color Palette
-The blue-gradient palette reads as a finance app. A dark studio aesthetic matches the music domain and makes the gamification pop.
-
-**Implementation Prompt:**
-> Update `src/global.scss` to introduce a new premium dark "studio" theme. Replace the current dark mode gradient (`#0f1729 → #101a31`) with a deeper `#0d0d12` base with a subtle radial spotlight glow. Change the primary accent color to amber `#f6b24a` (already used on splash) for XP, streaks, and level indicators. Add electric indigo `#7c5cfc` as a secondary accent for quests and action buttons. Update card backgrounds to `rgba(18, 18, 22, 0.97)` with a warm border `rgba(246, 178, 74, 0.18)`. Ensure light mode is unchanged.
-
----
-
-### 6. Stage Mode During Practice
-When the timer is running, the UI should feel immersive — not like filling out a form.
-
-**Implementation Prompt:**
-> In `practice.page.ts`, when the timer starts, trigger a "stage mode" state. In stage mode: dim all UI chrome except the timer display (use CSS `opacity` transitions), add a dark overlay behind the timer card, apply a pulsing ambient glow around the timer that matches the metronome BPM (update the glow animation duration via a CSS custom property bound to the BPM value). Add a subtle "tap to exit stage mode" hint. On timer pause or stop, restore the normal UI.
 
 ---
 

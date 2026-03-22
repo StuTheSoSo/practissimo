@@ -1,5 +1,5 @@
 // src/app/pages/practice/practice.page.ts
-import { Component, effect, inject, OnDestroy } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -44,7 +44,7 @@ import { PracticeSession } from '../../core/models/practice-session.model';
 @Component({
   selector: 'app-practice',
   template: `
-    <ion-header>
+    <ion-header [class.stage-dimmed]="stageMode()">
       <ion-toolbar color="primary">
         <ion-buttons slot="start">
           <ion-back-button defaultHref="/home"></ion-back-button>
@@ -55,6 +55,9 @@ import { PracticeSession } from '../../core/models/practice-session.model';
 
     <ion-content class="ion-padding">
       <div class="practice-container">
+        @if (stageMode()) {
+          <div class="stage-overlay"></div>
+        }
         <!-- Setup Phase -->
         @if (!timerState().isRunning) {
           <ion-card class="setup-card">
@@ -146,7 +149,7 @@ import { PracticeSession } from '../../core/models/practice-session.model';
 
         <!-- Practice Phase -->
         @if (timerState().isRunning) {
-          <ion-card class="timer-card">
+          <ion-card class="timer-card" [class.stage-glow]="stageMode()" [style.--beat-duration]="beatDuration()">
             <ion-card-header>
               <ion-card-title>{{ currentCategory() }}</ion-card-title>
             </ion-card-header>
@@ -183,12 +186,15 @@ import { PracticeSession } from '../../core/models/practice-session.model';
                   </ion-label>
                 </div>
               }
+              @if (stageMode()) {
+                <p class="stage-hint">🎵 tap pause to exit stage</p>
+              }
             </ion-card-content>
           </ion-card>
         }
 
         <!-- Persistent Metronome -->
-        <app-metronome></app-metronome>
+        <app-metronome [class.stage-dimmed]="stageMode()"></app-metronome>
       </div>
     </ion-content>
   `,
@@ -343,6 +349,72 @@ import { PracticeSession } from '../../core/models/practice-session.model';
       opacity: 1;
     }
 
+    /* ─── Stage Mode ──────────────────────────────── */
+    .stage-dimmed {
+      opacity: 0.08;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+
+    .stage-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 4, 8, 0.86);
+      z-index: 100;
+      pointer-events: none;
+      animation: stage-fade-in 0.45s ease-out forwards;
+    }
+
+    @keyframes stage-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .timer-card.stage-glow {
+      position: relative;
+      z-index: 101;
+      background: rgba(8, 6, 20, 0.98) !important;
+      border-color: rgba(124, 92, 252, 0.6) !important;
+      animation: beat-glow var(--beat-duration, 0.5s) ease-in-out infinite;
+    }
+
+    .timer-card.stage-glow ion-card-title,
+    .timer-card.stage-glow .timer-display h1,
+    .timer-card.stage-glow .timer-display p {
+      color: #f0f2fc !important;
+    }
+
+    @keyframes beat-glow {
+      0%, 100% {
+        box-shadow:
+          0 0 0 1px rgba(124, 92, 252, 0.35),
+          0 0 24px rgba(124, 92, 252, 0.22),
+          0 0 52px rgba(124, 92, 252, 0.08);
+      }
+      50% {
+        box-shadow:
+          0 0 0 2px rgba(124, 92, 252, 0.70),
+          0 0 42px rgba(124, 92, 252, 0.45),
+          0 0 84px rgba(124, 92, 252, 0.20);
+      }
+    }
+
+    .stage-hint {
+      font-size: 0.72rem;
+      color: rgba(200, 200, 230, 0.42);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 1.1rem 0 0;
+      font-weight: 600;
+      animation: hint-reveal 2.5s ease-out forwards;
+    }
+
+    @keyframes hint-reveal {
+      0%   { opacity: 0; }
+      60%  { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
     @media (prefers-color-scheme: dark) {
       .setup-card {
         background:
@@ -454,6 +526,9 @@ export class PracticePage implements OnDestroy {
   selectedRepertoireId: string | null = null;
 
   selectedCategory: string = '';
+
+  stageMode = computed(() => this.timerState().isRunning && !this.timerState().isPaused);
+  beatDuration = computed(() => `${(60 / this.metronomeService.bpm()).toFixed(3)}s`);
 
   constructor() {
     addIcons({ play, pause, stop, checkmark, star, trophy, flash });
