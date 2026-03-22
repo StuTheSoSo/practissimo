@@ -103,12 +103,40 @@ ion-chip {
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --app-page-bg: linear-gradient(180deg, #0f1729 0%, #101a31 100%);
-    --app-card-bg: linear-gradient(180deg, rgba(21, 30, 53, 0.96), rgba(15, 24, 46, 0.96));
-    --app-card-border: rgba(137, 167, 230, 0.34);
-    --app-card-shadow: 0 14px 24px rgba(0, 0, 0, 0.28);
-    --app-text-primary: #f3f7ff;
-    --app-text-secondary: #dce7ff;
+    /* Dark Studio palette */
+    --app-page-bg:
+      radial-gradient(ellipse 90% 35% at 50% 0%, rgba(124, 92, 252, 0.12) 0%, transparent 65%),
+      linear-gradient(180deg, #0d0d12 0%, #0d0d12 100%);
+    --app-card-bg: rgba(18, 18, 22, 0.97);
+    --app-card-border: rgba(246, 178, 74, 0.18);
+    --app-card-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+    --app-text-primary: #f0f2f8;
+    --app-text-secondary: #9ba3bc;
+
+    /* Studio accent system */
+    --app-accent: #f6b24a;
+    --app-accent-secondary: #7c5cfc;
+
+    /* Electric indigo for action buttons and primary UI */
+    --ion-color-primary: #7c5cfc;
+    --ion-color-primary-rgb: 124, 92, 252;
+    --ion-color-primary-contrast: #ffffff;
+    --ion-color-primary-contrast-rgb: 255, 255, 255;
+    --ion-color-primary-shade: #6d51dd;
+    --ion-color-primary-tint: #8a6dfc;
+
+    /* Amber for XP, streaks, and level indicators */
+    --ion-color-secondary: #f6b24a;
+    --ion-color-secondary-rgb: 246, 178, 74;
+    --ion-color-secondary-contrast: #1a1200;
+    --ion-color-secondary-contrast-rgb: 26, 18, 0;
+    --ion-color-secondary-shade: #d89d42;
+    --ion-color-secondary-tint: #f7bb5c;
+
+    /* Base surface */
+    --ion-background-color: #0d0d12;
+    --ion-background-color-rgb: 13, 13, 18;
+    --ion-item-background: transparent;
   }
 }
 

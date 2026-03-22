@@ -1316,35 +1316,82 @@ import { RepertoireService } from '../../core/services/repertoire.service';
     }
 
     @media (prefers-color-scheme: dark) {
+      /* Studio dark hero — deep indigo with amber glow */
+      .practice-hero {
+        background:
+          radial-gradient(circle at top right, rgba(246, 178, 74, 0.22), transparent 46%),
+          linear-gradient(145deg, #160e38, #241856);
+        box-shadow: 0 12px 28px rgba(124, 92, 252, 0.3);
+      }
+
+      .practice-hero.state-active {
+        background:
+          radial-gradient(circle at top right, rgba(178, 255, 214, 0.22), transparent 46%),
+          linear-gradient(145deg, #0f2e1e, #1a4a30);
+      }
+
+      .practice-hero.state-risk {
+        background:
+          radial-gradient(circle at top right, rgba(246, 178, 74, 0.25), transparent 46%),
+          linear-gradient(145deg, #2e1008, #4a1e0e);
+      }
+
+      .practice-hero.state-broken {
+        background:
+          radial-gradient(circle at top right, rgba(150, 150, 180, 0.18), transparent 46%),
+          linear-gradient(145deg, #141420, #1e1e30);
+      }
+
+      /* Amber CTA text on white button pops against the indigo hero */
+      .practice-hero-cta {
+        --color: #f6b24a;
+      }
+
+      /* Streak card — dark leather with amber border */
       .streak-card {
-        border-color: rgba(245, 199, 98, 0.35);
-        background: linear-gradient(135deg, rgba(74, 46, 12, 0.96), rgba(96, 63, 20, 0.96));
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+        border-color: rgba(246, 178, 74, 0.3);
+        background: linear-gradient(135deg, rgba(26, 16, 4, 0.97), rgba(36, 22, 6, 0.97));
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
       }
 
+      /* Feedback card — standard dark studio surface */
       .feedback-card {
-        border-color: rgba(147, 166, 255, 0.38);
-        background:
-          radial-gradient(circle at 95% 8%, rgba(143, 166, 255, 0.24), transparent 38%),
-          linear-gradient(180deg, rgba(24, 31, 58, 0.96), rgba(18, 27, 52, 0.96));
+        border-color: rgba(246, 178, 74, 0.14);
+        background: rgba(18, 18, 22, 0.97);
       }
 
+      /* Level progress card — amber glass */
       .level-progress-card {
-        border-color: rgba(96, 165, 250, 0.35);
+        border-color: rgba(246, 178, 74, 0.28);
         background:
-          radial-gradient(circle at 96% 4%, rgba(96, 165, 250, 0.24), transparent 40%),
-          linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96));
+          radial-gradient(circle at 96% 4%, rgba(246, 178, 74, 0.14), transparent 40%),
+          rgba(18, 18, 22, 0.97);
       }
 
+      /* Weekly target card — dark teal glass */
       .weekly-target-card {
-        border-color: rgba(45, 212, 191, 0.34);
+        border-color: rgba(45, 212, 191, 0.3);
         background:
-          radial-gradient(circle at 95% 8%, rgba(45, 212, 191, 0.2), transparent 38%),
-          linear-gradient(180deg, rgba(6, 41, 46, 0.95), rgba(8, 47, 56, 0.95));
+          radial-gradient(circle at 95% 8%, rgba(45, 212, 191, 0.16), transparent 38%),
+          rgba(8, 24, 26, 0.97);
+      }
+
+      /* Amber level XP fill */
+      .level-fill {
+        background: linear-gradient(90deg, #f6b24a, #ffd080);
+      }
+
+      /* Amber XP pop-up chip */
+      .xp-popup {
+        background: linear-gradient(135deg, #f6b24a, #ffd080);
+        color: #1a0e00;
+      }
+
+      .progress-track {
+        background: rgba(255, 255, 255, 0.12);
       }
 
       .level-progress-card ion-card-title,
-      .level-progress-card .xp-info span,
       .weekly-target-card ion-card-title,
       .weekly-target-card .weekly-target-meta span,
       .weekly-target-card .weekly-target-detail,
@@ -1352,8 +1399,9 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         color: #f8fafc !important;
       }
 
-      .progress-track {
-        background: rgba(255, 255, 255, 0.18);
+      /* XP display in amber to match the level fill */
+      .level-progress-card .xp-info span {
+        color: #f6b24a !important;
       }
 
       .weekly-target-card .weekly-target-detail strong {
@@ -1383,7 +1431,6 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 	      .stat-chip strong,
 	      .streak-status,
 	      .longest-streak,
-      .level-progress-card .xp-info span,
       .weekly-target-meta,
       .weekly-target-card .weekly-target-meta span,
       .weekly-target-detail,
@@ -1402,9 +1449,16 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         --color: #e5e7eb;
       }
 
+      /* Stat chips — dark studio surface with subtle amber border */
       .stat-chip {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.16);
+        background: rgba(18, 18, 26, 0.92);
+        border-color: rgba(246, 178, 74, 0.14);
+        backdrop-filter: blur(6px);
+      }
+
+      /* Level icon in amber to match XP theme */
+      .level-chip ion-icon {
+        color: #f6b24a;
       }
     }
   `],
