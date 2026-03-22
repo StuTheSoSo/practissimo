@@ -12,11 +12,6 @@ Reference doc for planned UX/UI improvements. Each idea includes an implementati
 
 ---
 
-### 7. Quest Cards RPG Redesign
-Quest cards should feel like rewards, not to-do items.
-
-**Implementation Prompt:**
-> Redesign the quest cards in `quests.page.ts`. Give each card a parchment-style background using a CSS `linear-gradient` (warm cream tones for light mode, dark leather tones for dark mode). Style the XP reward badge as a glowing gold coin/badge (`background: #f6b24a`, `box-shadow: 0 0 12px rgba(246,178,74,0.6)`). On quest completion, trigger a "checkmark burst" animation — scale the checkmark from 0 to 1.3 then back to 1 with a simultaneous ring-ripple effect using `::after` pseudo-element. Use CSS `@keyframes` only, no libraries.
 
 ---
 

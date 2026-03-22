@@ -7,20 +7,14 @@ import {
   IonTitle,
   IonToolbar,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
   IonCardContent,
   IonButtons,
   IonBackButton,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonBadge,
   IonProgressBar,
   IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { trophy, checkmarkCircle } from 'ionicons/icons';
+import { checkmarkCircle, trophy, ribbonOutline } from 'ionicons/icons';
 import { QuestService } from '../../core/services/quest.service';
 import { InstrumentService } from '../../core/services/instrument.service';
 
@@ -49,23 +43,28 @@ import { InstrumentService } from '../../core/services/instrument.service';
         }
 
         @for (quest of activeQuests(); track quest.id) {
-          <ion-card [class.completed]="quest.completed">
-            <ion-card-header>
-              <div class="quest-header">
-                <ion-icon [name]="quest.completed ? 'checkmark-circle' : 'trophy'"
-                         [color]="quest.completed ? 'success' : 'primary'"></ion-icon>
-                <ion-card-title>{{ quest.title }}</ion-card-title>
-              </div>
-            </ion-card-header>
+          <ion-card class="quest-card" [class.quest-card--done]="quest.completed">
             <ion-card-content>
-              <p>{{ quest.description }}</p>
-              <div class="quest-progress">
-                <span>{{ quest.progress }} / {{ quest.target }}</span>
-                <ion-badge [color]="quest.completed ? 'success' : 'primary'">
-                  {{ quest.completed ? 'Complete!' : '+' + quest.xpReward + ' XP' }}
-                </ion-badge>
+              <div class="quest-body">
+                <div class="quest-icon-wrap" [class.quest-icon-wrap--done]="quest.completed">
+                  <ion-icon
+                    class="quest-icon"
+                    [class.quest-icon--burst]="quest.completed"
+                    [name]="quest.completed ? 'checkmark-circle' : 'ribbon-outline'"
+                  ></ion-icon>
+                </div>
+                <div class="quest-text">
+                  <p class="quest-title">{{ quest.title }}</p>
+                  <p class="quest-desc">{{ quest.description }}</p>
+                  <div class="quest-progress-row">
+                    <span class="quest-tally">{{ quest.progress }} / {{ quest.target }}</span>
+                    <span class="quest-xp-badge" [class.quest-xp-badge--done]="quest.completed">
+                      {{ quest.completed ? '✓ Complete' : '+' + quest.xpReward + ' XP' }}
+                    </span>
+                  </div>
+                  <ion-progress-bar [value]="quest.progress / quest.target" [color]="quest.completed ? 'success' : 'warning'"></ion-progress-bar>
+                </div>
               </div>
-              <ion-progress-bar [value]="quest.progress / quest.target"></ion-progress-bar>
             </ion-card-content>
           </ion-card>
         }
@@ -78,30 +77,169 @@ import { InstrumentService } from '../../core/services/instrument.service';
       margin: 0 auto;
     }
 
-    .quest-header {
+    /* -- Parchment quest card ------------------------------ */
+    .quest-card {
+      border-radius: 16px;
+      border: 1px solid rgba(212, 168, 80, 0.35);
+      background:
+        radial-gradient(ellipse at 100% 0%, rgba(255, 237, 178, 0.55) 0%, transparent 55%),
+        linear-gradient(160deg, #fdf6e3, #faebd0);
+      box-shadow:
+        0 4px 14px rgba(161, 121, 52, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.9rem;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .quest-card--done {
+      opacity: 0.62;
+      transform: scale(0.985);
+    }
+
+    /* -- Layout -------------------------------------------- */
+    .quest-body {
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+    }
+
+    /* -- Icon medallion ------------------------------------- */
+    .quest-icon-wrap {
+      flex-shrink: 0;
+      width: 2.6rem;
+      height: 2.6rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f6b24a, #ffd57e);
+      box-shadow:
+        0 0 12px rgba(246, 178, 74, 0.6),
+        0 2px 6px rgba(0, 0, 0, 0.18);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      position: relative;
     }
 
-    .quest-header ion-icon {
-      font-size: 1.5rem;
+    .quest-icon-wrap--done {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      box-shadow:
+        0 0 12px rgba(74, 222, 128, 0.55),
+        0 2px 6px rgba(0, 0, 0, 0.18);
     }
 
-    .quest-progress {
+    /* ring-ripple on completed icon wrap */
+    .quest-icon-wrap--done::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid rgba(74, 222, 128, 0.7);
+      animation: ring-ripple 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    @keyframes ring-ripple {
+      0%   { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .quest-icon {
+      font-size: 1.3rem;
+      color: #fff;
+    }
+
+    /* checkmark burst on completion */
+    .quest-icon--burst {
+      animation: checkmark-burst 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes checkmark-burst {
+      0%   { transform: scale(0);   opacity: 0; }
+      60%  { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(1);   opacity: 1; }
+    }
+
+    /* -- Text content --------------------------------------- */
+    .quest-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quest-title {
+      font-size: 0.97rem;
+      font-weight: 800;
+      color: #2d1f00;
+      margin: 0 0 0.2rem;
+      line-height: 1.3;
+    }
+
+    .quest-desc {
+      font-size: 0.84rem;
+      color: #6b4d1a;
+      margin: 0 0 0.6rem;
+      line-height: 1.4;
+    }
+
+    /* -- Progress row --------------------------------------- */
+    .quest-progress-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 1rem 0 0.5rem 0;
+      margin-bottom: 0.45rem;
     }
 
-    ion-card.completed {
-      opacity: 0.7;
+    .quest-tally {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #7a5520;
+    }
+
+    /* -- XP badge (glowing gold coin) ---------------------- */
+    .quest-xp-badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: #f6b24a;
+      color: #2a1400;
+      box-shadow: 0 0 10px rgba(246, 178, 74, 0.6);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .quest-xp-badge--done {
+      background: #4ade80;
+      color: #052e16;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.55);
     }
 
     .empty-state {
       text-align: center;
       color: var(--ion-color-medium);
+    }
+
+    /* -- Dark mode ----------------------------------------- */
+    @media (prefers-color-scheme: dark) {
+      .quest-card {
+        border-color: rgba(180, 130, 50, 0.3);
+        background:
+          radial-gradient(ellipse at 100% 0%, rgba(80, 52, 14, 0.55) 0%, transparent 55%),
+          linear-gradient(160deg, rgba(34, 20, 6, 0.97), rgba(28, 16, 4, 0.97));
+        box-shadow:
+          0 4px 18px rgba(0, 0, 0, 0.45),
+          inset 0 1px 0 rgba(255, 220, 140, 0.06);
+      }
+
+      .quest-title {
+        color: #f5dfa0;
+      }
+
+      .quest-desc {
+        color: #c8a564;
+      }
+
+      .quest-tally {
+        color: #d4a84b;
+      }
     }
   `],
   standalone: true,
@@ -112,12 +250,9 @@ import { InstrumentService } from '../../core/services/instrument.service';
     IonTitle,
     IonToolbar,
     IonCard,
-    IonCardHeader,
-    IonCardTitle,
     IonCardContent,
     IonButtons,
     IonBackButton,
-    IonBadge,
     IonProgressBar,
     IonIcon
   ]
@@ -141,6 +276,6 @@ export class QuestsPage {
   });
 
   constructor() {
-    addIcons({ trophy, checkmarkCircle });
+    addIcons({ trophy, checkmarkCircle, ribbonOutline });
   }
 }
