@@ -598,6 +598,7 @@ export class PracticePage implements OnDestroy {
       await modal.onDidDismiss();
     }
 
+    sessionStorage.setItem('_pq_xp_popup', String(session.xpEarned));
     this.router.navigate(['/home']);
   }
 
@@ -708,6 +709,7 @@ export class PracticePage implements OnDestroy {
       await modal.onDidDismiss();
     }
 
+    sessionStorage.setItem('_pq_xp_popup', String(session.xpEarned));
     this.router.navigate(['/home']);
   }
 

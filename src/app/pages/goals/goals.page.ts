@@ -34,6 +34,7 @@ import {
 import { GOAL_TEMPLATES } from '../../core/config/goal-templates.config';
 import { Goal, GoalPriority, GoalTemplate } from '../../core/models/goal.model';
 import { GoalsService } from '../../core/services/goals.service';
+import { InstrumentService } from '../../core/services/instrument.service';
 
 @Component({
   selector: 'app-goals',
@@ -67,7 +68,9 @@ import { GoalsService } from '../../core/services/goals.service';
           </ion-card-header>
           <ion-card-content>
             @if (activeGoals().length === 0) {
-              <p class="empty-state">No active goals yet. Add your first goal to start tracking progress.</p>
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">{{ emptyGoalsMessage() }}</p>
+              </div>
             } @else {
               <ion-list>
                 @for (goal of activeGoals(); track goal.id) {
@@ -167,7 +170,9 @@ import { GoalsService } from '../../core/services/goals.service';
           </ion-card-header>
           <ion-card-content>
             @if (completedGoals().length === 0) {
-              <p class="empty-state">Completed goals will appear here.</p>
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">💪 Completed goals will appear here — you've got this!</p>
+              </div>
             } @else {
               <ion-list>
                 @for (goal of completedGoals(); track goal.id) {
@@ -250,6 +255,7 @@ import { GoalsService } from '../../core/services/goals.service';
 export class GoalsPage {
   private alertController = inject(AlertController);
   private goalsService = inject(GoalsService);
+  private instrumentService = inject(InstrumentService);
 
   activeGoals = this.goalsService.activeGoals;
   completedGoals = this.goalsService.completedGoals;
@@ -257,6 +263,18 @@ export class GoalsPage {
   overdueGoals = this.goalsService.overdueGoals;
 
   hasOverdueGoals = computed(() => this.overdueGoals().length > 0);
+
+  emptyGoalsMessage = computed(() => {
+    const msgs: Record<string, string> = {
+      guitar: '🎸 What do you want to master on guitar? Set your first goal!',
+      bass: '🎸 What bass skills are you chasing? Add your first goal!',
+      piano: '🎹 Set a goal to focus your piano practice!',
+      drums: '🥁 What drumming skills are you working toward?',
+      violin: '🎻 What do you want to master on violin? Set a goal!',
+      vocals: '🎤 What singing milestone are you working toward?',
+    };
+    return msgs[this.instrumentService.currentInstrument()] ?? 'Add your first goal to start tracking progress.';
+  });
 
   constructor() {
     addIcons({ add, archive, checkmarkCircle, create, pauseCircle, sparkles, trash, trendingUp });

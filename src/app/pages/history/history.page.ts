@@ -28,6 +28,7 @@ import { PracticeService } from '../../core/services/practice.service';
 import { PracticeSession } from '../../core/models/practice-session.model';
 import { ProgressStatsComponent } from '../../shared/components/progress-stats.component';
 import { RevenueCatService } from '../../core/services/revenuecat.service';
+import { InstrumentService } from '../../core/services/instrument.service';
 import { PaywallModalComponent } from '../../shared/components/paywall-modal.component';
 
 type CalendarDay = {
@@ -109,7 +110,9 @@ type CalendarDay = {
           </ion-card-header>
           <ion-card-content>
             @if (selectedDateSessions().length === 0) {
-              <p class="empty-state">No practice sessions for this day.</p>
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">{{ emptyHistoryMessage() }}</p>
+              </div>
             } @else {
               <div class="day-summary">
                 <ion-icon name="time"></ion-icon>
@@ -389,6 +392,19 @@ export class HistoryPage {
   sessions = this.practiceService.currentInstrumentSessions;
   private revenueCat = inject(RevenueCatService);
   isPro = this.revenueCat.isPro;
+  private instrumentService = inject(InstrumentService);
+
+  emptyHistoryMessage = computed(() => {
+    const msgs: Record<string, string> = {
+      guitar: '🎸 No strumming recorded here — pick up your guitar tomorrow!',
+      bass: '🎸 Bass was silent this day. Change that tomorrow!',
+      piano: '🎹 The keys were at rest on this day.',
+      drums: '🥁 Not a single beat logged. Make tomorrow count!',
+      violin: '🎻 The bow was at rest on this day.',
+      vocals: '🎤 Your voice had a day off — make tomorrow count!',
+    };
+    return msgs[this.instrumentService.currentInstrument()] ?? 'No practice sessions for this day.';
+  });
 
   private filteredSessionsByDate = computed(() => {
     const allSessions = this.sessions();

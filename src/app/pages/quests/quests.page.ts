@@ -1,5 +1,5 @@
 // src/app/pages/quests/quests.page.ts
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -22,6 +22,7 @@ import {
 import { addIcons } from 'ionicons';
 import { trophy, checkmarkCircle } from 'ionicons/icons';
 import { QuestService } from '../../core/services/quest.service';
+import { InstrumentService } from '../../core/services/instrument.service';
 
 @Component({
   selector: 'app-quests',
@@ -40,7 +41,9 @@ import { QuestService } from '../../core/services/quest.service';
         @if (activeQuests().length === 0) {
           <ion-card>
             <ion-card-content>
-              <p class="empty-state">No active quests. Start practicing to generate new quests!</p>
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">{{ emptyQuestsMessage() }}</p>
+              </div>
             </ion-card-content>
           </ion-card>
         }
@@ -121,8 +124,21 @@ import { QuestService } from '../../core/services/quest.service';
 })
 export class QuestsPage {
   private questService = inject(QuestService);
+  private instrumentService = inject(InstrumentService);
 
   activeQuests = this.questService.currentInstrumentQuests;
+
+  emptyQuestsMessage = computed(() => {
+    const msgs: Record<string, string> = {
+      guitar: '🎸 Your guitar is waiting! Start practicing to unlock quests.',
+      bass: '🎸 Lay down some bass lines to generate new quests!',
+      piano: '🎹 Tickle the ivories to unlock your daily quests!',
+      drums: '🥁 Hit something! Practicing generates new quests.',
+      violin: '🎻 Rosin up and get going — practicing unlocks quests!',
+      vocals: '🎤 Warm up those pipes to unlock your quests!',
+    };
+    return msgs[this.instrumentService.currentInstrument()] ?? 'Start practicing to generate new quests!';
+  });
 
   constructor() {
     addIcons({ trophy, checkmarkCircle });

@@ -83,6 +83,12 @@ import { RepertoireService } from '../../core/services/repertoire.service';
           <h1>{{ streakStatus() === 'active' ? 'Session Complete' : 'Start Practice' }}</h1>
           <p>{{ practiceHeroMessage() }}</p>
 
+          @if (streakStatus() === 'at_risk') {
+            <div class="risk-countdown">
+              ⏰ {{ hoursUntilMidnight() }}h left to save your streak
+            </div>
+          }
+
           @if (weeklyTargetCompleted()) {
             <div class="hero-complete-pill">
               <ion-icon name="trophy"></ion-icon>
@@ -103,7 +109,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 
 	        <section class="stat-chips reveal reveal-4">
 	          <div class="stat-chip streak-chip">
-	            <ion-icon name="flame"></ion-icon>
+	            <ion-icon name="flame" [className]="flameIconClass()"></ion-icon>
 	            <div>
               <span>Streak</span>
               <strong>{{ currentStreak() }} days</strong>
@@ -134,7 +140,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 	        <ion-card class="streak-card reveal reveal-5">
 	          <ion-card-header>
 	            <div class="streak-header">
-	              <ion-icon name="flame" color="danger"></ion-icon>
+	              <ion-icon name="flame" [className]="flameIconClass()"></ion-icon>
 	              <ion-card-title>{{ currentStreak() }} Day Streak</ion-card-title>
             </div>
           </ion-card-header>
@@ -195,7 +201,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
             <ion-col size="12">
               <ion-button expand="block" fill="outline" (click)="goToRepertoire()">
                 <ion-icon name="musical-notes" slot="start"></ion-icon>
-                Repertoire
+                Repertoires
               </ion-button>
             </ion-col>
           </ion-row>
@@ -236,9 +242,12 @@ import { RepertoireService } from '../../core/services/repertoire.service';
             <ion-card-title>Level Progress</ion-card-title>
           </ion-card-header>
           <ion-card-content>
-            <div class="xp-info">
-              <span>{{ levelInfo().currentXp }} / {{ levelInfo().xpForNextLevel - levelInfo().xpForCurrentLevel }} XP</span>
+            <div class="xp-info" style="position:relative">
+              <span>{{ displayedXp() }} / {{ levelInfo().xpForNextLevel - levelInfo().xpForCurrentLevel }} XP</span>
               <span>{{ levelProgressDisplay() }}%</span>
+              @if (xpPopupAmount() !== null) {
+                <div class="xp-popup">+{{ xpPopupAmount() }} XP</div>
+              }
             </div>
             <div class="progress-track">
               <div class="progress-fill level-fill" [style.width.%]="levelProgressAnimated()"></div>
@@ -599,6 +608,35 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         radial-gradient(circle at top right, rgba(255, 232, 165, 0.5), transparent 46%),
         linear-gradient(145deg, #cc7c2d, #e8a347);
       background-size: 130% 130%;
+      animation: hero-pan 10s ease-in-out infinite alternate, risk-border-pulse 1.6s ease-in-out infinite;
+      outline: 3px solid rgba(239, 68, 68, 0.8);
+      outline-offset: 0px;
+    }
+
+    @keyframes risk-border-pulse {
+      0%, 100% { outline-color: rgba(239, 68, 68, 0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      50%       { outline-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.18); }
+    }
+
+    .risk-countdown {
+      display: inline-block;
+      margin-top: 0.6rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(239, 68, 68, 0.28);
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.02em;
+      position: relative;
+      z-index: 1;
+      animation: risk-countdown-pulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes risk-countdown-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.7; }
     }
 
     .practice-hero.state-broken {
@@ -736,6 +774,30 @@ import { RepertoireService } from '../../core/services/repertoire.service';
     .level-chip ion-icon { color: #2563eb; }
     .weekly-chip ion-icon { color: #0ea5a4; }
 
+    @keyframes flame-flicker {
+      0%, 100% { transform: scale(1) rotate(0deg);    opacity: 1; }
+      25%       { transform: scale(1.1) rotate(-3deg); opacity: 0.85; }
+      50%       { transform: scale(0.94) rotate(2deg); opacity: 0.95; }
+      75%       { transform: scale(1.06) rotate(-1deg); opacity: 0.88; }
+    }
+
+    .flame-icon {
+      animation: flame-flicker 2s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    .flame-hot {
+      filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.9))
+              drop-shadow(0 0 10px rgba(249, 115, 22, 0.5));
+    }
+
+    .flame-super-hot {
+      color: #60a5fa !important;
+      filter: drop-shadow(0 0 6px rgba(96, 165, 250, 0.95))
+              drop-shadow(0 0 14px rgba(147, 197, 253, 0.65))
+              drop-shadow(0 0 24px rgba(191, 219, 254, 0.4));
+    }
+
     @media (min-width: 560px) {
       .stat-chips {
         grid-template-columns: repeat(3, 1fr);
@@ -840,6 +902,29 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         radial-gradient(circle at 96% 4%, rgba(128, 170, 248, 0.28), transparent 40%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 255, 0.96));
       box-shadow: 0 8px 18px rgba(108, 142, 209, 0.14);
+    }
+
+    .xp-popup {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #4f86f7, #7bb1ff);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      pointer-events: none;
+      white-space: nowrap;
+      animation: xp-float-up 1.8s ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes xp-float-up {
+      0%   { opacity: 1;   transform: translateX(-50%) translateY(0);    }
+      60%  { opacity: 1;   transform: translateX(-50%) translateY(-24px); }
+      100% { opacity: 0;   transform: translateX(-50%) translateY(-44px); }
     }
 
     .level-progress-card ion-card-title {
@@ -1378,6 +1463,8 @@ export class HomePage implements OnInit, OnDestroy {
   showMoreSection = signal(false);
   levelProgressAnimated = signal(0);
   weeklyProgressAnimated = signal(0);
+  xpPopupAmount = signal<number | null>(null);
+  displayedXp = signal(0);
   levelProgressDisplay = computed(() => Math.round(this.levelProgressAnimated()));
   weeklyProgressDisplay = computed(() => Math.round(this.weeklyProgressAnimated()));
   showPitchFinderAction = computed(() => this.currentInstrumentId() === 'vocals');
@@ -1419,6 +1506,23 @@ export class HomePage implements OnInit, OnDestroy {
 
   nextUpRepertoire = computed(() => this.repertoireService.nextUpItems().slice(0, 3));
 
+  private calcHoursUntilMidnight(): number {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    return Math.ceil((midnight.getTime() - now.getTime()) / (1000 * 60 * 60));
+  }
+
+  flameIconClass = computed(() => {
+    const streak = this.currentStreak();
+    if (streak >= 30) return 'flame-icon flame-super-hot';
+    if (streak >= 7) return 'flame-icon flame-hot';
+    return 'flame-icon';
+  });
+
+  hoursUntilMidnight = signal(this.calcHoursUntilMidnight());
+
+	  private midnightIntervalId: number | null = null;
 	  private paywallTimeoutId: number | null = null;
 
 	  constructor() {
@@ -1444,15 +1548,38 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
 	  ngOnInit() {
-	    this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
+	    const currentXp = this.levelInfo().currentXp;
+	    const rawPopup = sessionStorage.getItem('_pq_xp_popup');
+	    const xpGained = rawPopup ? Number.parseInt(rawPopup, 10) : 0;
+	    sessionStorage.removeItem('_pq_xp_popup');
+
+	    if (xpGained > 0) {
+	      // Count up from pre-session XP to current
+	      const startXp = Math.max(0, currentXp - xpGained);
+	      this.displayedXp.set(startXp);
+	      this.animateNumber(startXp, currentXp, this.displayedXp);
+	      // Show the floating +XP chip
+	      this.xpPopupAmount.set(xpGained);
+	      setTimeout(() => this.xpPopupAmount.set(null), 1800);
+	    } else {
+	      this.displayedXp.set(currentXp);
+	    }
+
 	    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
 	    this.checkTimeBasedPaywall();
+	    this.midnightIntervalId = window.setInterval(() => {
+	      this.hoursUntilMidnight.set(this.calcHoursUntilMidnight());
+	    }, 60_000);
 	  }
 
 	  ngOnDestroy() {
 	    if (this.paywallTimeoutId !== null) {
 	      clearTimeout(this.paywallTimeoutId);
 	      this.paywallTimeoutId = null;
+	    }
+	    if (this.midnightIntervalId !== null) {
+	      clearInterval(this.midnightIntervalId);
+	      this.midnightIntervalId = null;
 	    }
 	  }
 
@@ -1569,6 +1696,23 @@ export class HomePage implements OnInit, OnDestroy {
       const t = Math.min(1, elapsed / duration);
       const eased = 1 - Math.pow(1 - t, 3);
       targetSignal.set(start + (end - start) * eased);
+      if (t < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  }
+
+  private animateNumber(from: number, to: number, targetSignal: { set: (value: number) => void }) {
+    const duration = 900;
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      targetSignal.set(Math.round(from + (to - from) * eased));
       if (t < 1) {
         requestAnimationFrame(step);
       }

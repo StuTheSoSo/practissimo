@@ -84,22 +84,24 @@ import { RepertoireStatus } from '../../core/models/repertoire-item.model';
           <ion-card class="empty-state">
             <ion-card-content>
               <ion-icon name="musical-note"></ion-icon>
-              <p>
-                @switch (selectedStatus()) {
-                  @case ('Learning') {
-                    No items you're learning yet. Add a piece below!
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">
+                  @switch (selectedStatus()) {
+                    @case ('Learning') {
+                      🎵 No {{ instrumentService.currentDisplayName() }} pieces being learned yet — add one below!
+                    }
+                    @case ('Polishing') {
+                      ✨ Nothing in the polishing stage yet — move a piece here when it's nearly ready!
+                    }
+                    @case ('Ready') {
+                      🏆 Nothing performance-ready yet — keep working on those pieces!
+                    }
+                    @case ('Archived') {
+                      📦 No archived pieces — all your music is active and front and center!
+                    }
                   }
-                  @case ('Polishing') {
-                    No items in the polishing stage yet.
-                  }
-                  @case ('Ready') {
-                    No items ready to perform yet.
-                  }
-                  @case ('Archived') {
-                    No archived items.
-                  }
-                }
-              </p>
+                </p>
+              </div>
               <ion-button (click)="addNewItem()" expand="block">
                 <ion-icon name="add" slot="start"></ion-icon>
                 Add Repertoire Item
@@ -361,7 +363,7 @@ import { RepertoireStatus } from '../../core/models/repertoire-item.model';
 })
 export class RepertoirePage {
   private repertoireService = inject(RepertoireService);
-  private instrumentService = inject(InstrumentService);
+  instrumentService = inject(InstrumentService);
   private alertController = inject(AlertController);
 
   selectedStatus = signal<RepertoireStatus>('Learning');

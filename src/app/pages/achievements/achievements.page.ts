@@ -1,5 +1,5 @@
 // src/app/pages/achievements/achievements.page.ts
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonContent,
@@ -22,6 +22,7 @@ import {
 import { addIcons } from 'ionicons';
 import { star, lockClosed } from 'ionicons/icons';
 import { AchievementService } from '../../core/services/achievement.service';
+import { InstrumentService } from '../../core/services/instrument.service';
 
 @Component({
   selector: 'app-achievements',
@@ -50,7 +51,9 @@ import { AchievementService } from '../../core/services/achievement.service';
         @if (displayedAchievements().length === 0) {
           <ion-card>
             <ion-card-content>
-              <p class="empty-state">No achievements to display. Keep practicing to unlock achievements!</p>
+              <div class="fun-empty-state">
+                <p class="fun-empty-state-text">{{ emptyAchievementsMessage() }}</p>
+              </div>
             </ion-card-content>
           </ion-card>
         }
@@ -147,6 +150,7 @@ import { AchievementService } from '../../core/services/achievement.service';
 })
 export class AchievementsPage implements OnInit {
   achievementService = inject(AchievementService);
+  private instrumentService = inject(InstrumentService);
 
   allAchievements = this.achievementService.allAchievements;
   unlockedAchievements = this.achievementService.unlockedAchievements;
@@ -156,6 +160,18 @@ export class AchievementsPage implements OnInit {
 
   selectedSegment = signal<string>('all');
   displayedAchievements = signal(this.allAchievements());
+
+  emptyAchievementsMessage = computed(() => {
+    const msgs: Record<string, string> = {
+      guitar: '🎸 No achievements yet — shred your way to glory!',
+      bass: '🎸 Keep grooving — your first achievement is coming!',
+      piano: '🎹 Every maestro starts somewhere. Keep practicing!',
+      drums: '🥁 Keep the beat — achievements are on the way!',
+      violin: '🎻 Every great violinist started with zero achievements!',
+      vocals: '🎤 Sing your way to your first achievement!',
+    };
+    return msgs[this.instrumentService.currentInstrument()] ?? 'Keep practicing to unlock achievements!';
+  });
 
   constructor() {
     addIcons({ star, lockClosed });

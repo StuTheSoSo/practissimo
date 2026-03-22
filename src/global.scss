@@ -87,6 +87,20 @@ ion-chip {
   border-radius: 999px;
 }
 
+/* Fun instrument-aware empty states */
+.fun-empty-state {
+  text-align: center;
+  padding: 1.25rem 0.5rem 0.75rem;
+}
+
+.fun-empty-state-text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--app-text-secondary);
+  margin: 0;
+  font-weight: 600;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --app-page-bg: linear-gradient(180deg, #0f1729 0%, #101a31 100%);
