@@ -36,6 +36,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { MetronomeService } from '../../core/services/metronome.service';
 import { MilestoneService } from '../../core/services/milestone.service';
 import { GoalsService } from '../../core/services/goals.service';
+import { RepertoireService } from '../../core/services/repertoire.service';
 import { MetronomeComponent } from '../../shared/components/metronome.component';
 import { MilestoneModalComponent } from '../../shared/components/milestone-modal.component';
 import { PracticeSession } from '../../core/models/practice-session.model';
@@ -96,9 +97,28 @@ import { PracticeSession } from '../../core/models/practice-session.model';
                 <ion-label position="stacked">Notes (Optional)</ion-label>
                 <ion-textarea
                   [(ngModel)]="draftNotes"
-                  rows="3"
+                  rows="2"
                   placeholder="What will you practice today?"
                 ></ion-textarea>
+              </ion-item>
+
+              <ion-item>
+                <ion-label position="stacked">Repertoire (Optional)</ion-label>
+                <ion-select
+                  [(ngModel)]="selectedRepertoireId"
+                  placeholder="Link to a piece or exercise"
+                  interface="action-sheet"
+                >
+                  @for (item of repertoireService.currentInstrumentItems(); track item.id) {
+                    <ion-select-option [value]="item.id">
+                      {{ item.title }}
+                      @if (item.composer) {
+                        - {{ item.composer }}
+                      }
+                      ({{ item.status }})
+                    </ion-select-option>
+                  }
+                </ion-select>
               </ion-item>
             </ion-card-content>
           </ion-card>
@@ -191,11 +211,17 @@ import { PracticeSession } from '../../core/models/practice-session.model';
       background:
         radial-gradient(circle at 95% 8%, rgba(173, 190, 255, 0.25), transparent 38%),
         linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(245, 250, 255, 0.97));
+      margin-bottom: 0.85rem;
     }
 
     .practice-container ion-item {
       --color: #1f2937;
       --background: transparent;
+      margin-bottom: 0.85rem;
+    }
+
+    .setup-card ion-item:last-of-type {
+      margin-bottom: 0;
     }
 
     .practice-container ion-card-title {
@@ -224,10 +250,11 @@ import { PracticeSession } from '../../core/models/practice-session.model';
         radial-gradient(circle at 8% 0%, rgba(186, 247, 229, 0.32), transparent 35%),
         radial-gradient(circle at 95% 10%, rgba(173, 190, 255, 0.24), transparent 40%),
         linear-gradient(180deg, rgba(254, 255, 255, 0.98), rgba(246, 251, 255, 0.98));
+      margin-bottom: 0.85rem;
     }
 
     .timer-display {
-      margin: 2rem 0;
+      margin: 0.85rem 0;
     }
 
     .timer-display h1 {
@@ -250,7 +277,7 @@ import { PracticeSession } from '../../core/models/practice-session.model';
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
-      margin-top: 2rem;
+      margin-top: 0.85rem;
     }
 
     .timer-controls ion-button {
@@ -266,12 +293,21 @@ import { PracticeSession } from '../../core/models/practice-session.model';
       --box-shadow: 0 10px 20px rgba(214, 145, 57, 0.32);
       font-weight: 800;
       letter-spacing: 0.01em;
-      margin-top: 0.4rem;
+      margin-top: 0;
+      margin-bottom: 0.85rem;
       min-height: 52px;
     }
 
+    .practice-container ion-button {
+      margin-bottom: 0.85rem;
+    }
+
+    .practice-container ion-button:last-of-type {
+      margin-bottom: 0;
+    }
+
     .session-notes {
-      margin-top: 2rem;
+      margin-top: 0.85rem;
       padding: 1rem;
       background: rgba(255, 255, 255, 0.7);
       border: 1px solid rgba(148, 165, 205, 0.24);
@@ -403,6 +439,7 @@ export class PracticePage implements OnDestroy {
   private metronomeService = inject(MetronomeService);
   private milestoneService = inject(MilestoneService);
   private goalsService = inject(GoalsService);
+  repertoireService = inject(RepertoireService);
 
   currentInstrument = this.instrumentService.currentDisplayName;
   allInstruments = this.instrumentService.allInstruments;
@@ -414,6 +451,7 @@ export class PracticePage implements OnDestroy {
   elapsedMinutes = this.practiceService.elapsedMinutes;
   sessionNotes = this.practiceService.notes;
   draftNotes: string = '';
+  selectedRepertoireId: string | null = null;
 
   selectedCategory: string = '';
 
@@ -519,6 +557,12 @@ export class PracticePage implements OnDestroy {
     await this.notificationService.onPracticeCompleted();
 
     const newAchievements = await this.achievementService.checkAchievements();
+
+    // Link to repertoire if selected
+    if (this.selectedRepertoireId) {
+      this.repertoireService.updateAfterPractice(this.selectedRepertoireId, session.duration);
+      this.selectedRepertoireId = null; // Reset selection
+    }
 
     // Check for milestones
     const totalMinutes = this.practiceService.getTotalPracticeTime(this.instrumentService.currentInstrument());
@@ -720,3 +764,4 @@ export class PracticePage implements OnDestroy {
     await alert.present();
   }
 }
+

@@ -50,6 +50,7 @@ import { RevenueCatService } from '../../core/services/revenuecat.service';
 import { FeedbackModalComponent } from 'src/app/shared/components/feedback.component';
 import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.component';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
+import { RepertoireService } from '../../core/services/repertoire.service';
 
 @Component({
   selector: 'app-home',
@@ -147,7 +148,7 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 
         <ion-grid class="quick-actions reveal reveal-6">
           <ion-row>
-            <ion-col [size]="showPitchFinderAction() || supportsTuner() ? '6' : '12'">
+            <ion-col size="12">
               <ion-button expand="block" fill="outline" (click)="goToQuests()">
                 <ion-icon name="trophy" slot="start"></ion-icon>
                 Quests
@@ -156,37 +157,47 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
                 }
               </ion-button>
             </ion-col>
-            @if (showPitchFinderAction()) {
-              <ion-col size="6">
-                <ion-button expand="block" fill="outline" (click)="goToPitchFinder()">
-                  <ion-icon name="musical-note" slot="start"></ion-icon>
-                  Pitch Finder
-                </ion-button>
-              </ion-col>
-            } @else if (supportsTuner()) {
-              <ion-col size="6">
-                <ion-button expand="block" fill="outline" (click)="goToTuner()">
-                  <ion-icon name="musical-note" slot="start"></ion-icon>
-                  Tuner
-                </ion-button>
-              </ion-col>
-            }
           </ion-row>
-          <ion-row>
-            <ion-col [size]="supportsChords() ? '6' : '12'">
+                   <ion-row>
+            <ion-col size="12">
               <ion-button expand="block" fill="outline" (click)="goToAchievements()">
                 <ion-icon name="star" slot="start"></ion-icon>
                 Achievements
               </ion-button>
             </ion-col>
             @if (supportsChords()) {
-              <ion-col size="6">
+              <ion-col size="12">
                 <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
                   <ion-icon name="musical-notes" slot="start"></ion-icon>
                   Chord Charts
                 </ion-button>
               </ion-col>
             }
+          </ion-row>
+          
+          <ion-row>
+            <ion-col size="12">
+              @if (showPitchFinderAction()) {
+                <ion-button expand="block" fill="outline" (click)="goToPitchFinder()">
+                  <ion-icon name="musical-note" slot="start"></ion-icon>
+                  Pitch Finder
+                </ion-button>
+              } @else if (supportsTuner()) {
+                <ion-button expand="block" fill="outline" (click)="goToTuner()">
+                  <ion-icon name="musical-note" slot="start"></ion-icon>
+                  Tuner
+                </ion-button>
+              }
+            </ion-col>
+          </ion-row>
+ 
+          <ion-row>
+            <ion-col size="12">
+              <ion-button expand="block" fill="outline" (click)="goToRepertoire()">
+                <ion-icon name="musical-notes" slot="start"></ion-icon>
+                Repertoire
+              </ion-button>
+            </ion-col>
           </ion-row>
           <ion-row>
             <ion-col size="12">
@@ -378,11 +389,93 @@ import { WeeklyTargetService } from '../../core/services/weekly-target.service';
           </ion-card>
         }
 
+        <!-- Repertoire Preview -->
+        @if (nextUpRepertoire().length > 0) {
+          <ion-card class="repertoire-card reveal reveal-13">
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="musical-notes"></ion-icon>
+                Next Up ({{ nextUpRepertoire().length }})
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p class="intro-text">Pieces and exercises waiting for practice:</p>
+              <ion-list>
+                @for (item of nextUpRepertoire(); track item.id) {
+                  <ion-item lines="inset" (click)="goToRepertoire()" button>
+                    <ion-label>
+                      <h3>{{ item.title }}</h3>
+                      @if (item.composer) {
+                        <p>{{ item.composer }}</p>
+                      }
+                      <p class="item-meta">
+                        {{ item.status }}
+                        @if (item.lastPracticed) {
+                          · {{ daysSincePracticed(item.lastPracticed) }}d ago
+                        } @else {
+                          · Not yet practiced
+                        }
+                      </p>
+                    </ion-label>
+                    <ion-icon name="chevron-forward" slot="end"></ion-icon>
+                  </ion-item>
+                }
+              </ion-list>
+              <ion-button
+                expand="block"
+                fill="outline"
+                (click)="goToRepertoire()"
+                style="margin-top: 12px;"
+              >
+                <ion-icon name="musical-note" slot="start"></ion-icon>
+                View All Repertoire
+              </ion-button>
+            </ion-card-content>
+          </ion-card>
+        }
+
         <div class="bottom-spacer"></div>
       </div>
     </ion-content>
   `,
   styles: [`
+    .repertoire-card {
+      margin-bottom: 16px;
+    }
+
+    .repertoire-card ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+    }
+
+    .repertoire-card ion-icon {
+      font-size: 24px;
+      color: var(--ion-color-primary);
+    }
+
+    .repertoire-card .intro-text {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      margin: 0 0 12px 0;
+    }
+
+    .repertoire-card .item-meta {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+    }
+
+    .repertoire-card ion-list {
+      margin: 0;
+    }
+
+    .repertoire-card ion-item {
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      --border-color: rgba(230, 230, 230, 0.5);
+    }
+
     .home-content {
       --padding-top: 0;
     }
@@ -1261,6 +1354,7 @@ export class HomePage implements OnInit, OnDestroy {
   private revenueCat = inject(RevenueCatService);
   private modalController = inject(ModalController);
   private weeklyTargetService = inject(WeeklyTargetService);
+  private repertoireService = inject(RepertoireService);
 
   currentInstrumentId = this.instrumentService.currentInstrument;
   currentInstrument = this.instrumentService.currentDisplayName;
@@ -1322,6 +1416,8 @@ export class HomePage implements OnInit, OnDestroy {
         return 'Start a new streak today!';
     }
   });
+
+  nextUpRepertoire = computed(() => this.repertoireService.nextUpItems().slice(0, 3));
 
 	  private paywallTimeoutId: number | null = null;
 
@@ -1418,6 +1514,17 @@ export class HomePage implements OnInit, OnDestroy {
 
   goToSettings() {
     this.router.navigate(['/settings']);
+  }
+
+  goToRepertoire() {
+    this.router.navigate(['/repertoire']);
+  }
+
+  daysSincePracticed(dateString: string): number {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   }
 
   toggleMoreSection() {

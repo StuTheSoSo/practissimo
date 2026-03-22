@@ -12,4 +12,5 @@ export const STORAGE_KEYS = {
   CELEBRATED_MILESTONES: 'celebrated_milestones',
   CUSTOM_CATEGORIES: 'custom_categories',
   SAVED_CHORDS: 'saved_chords',
+  REPERTOIRE_ITEMS: 'repertoire_items',
 } as const;

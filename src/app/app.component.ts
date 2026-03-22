@@ -11,6 +11,7 @@ import { WeeklyTargetService } from './core/services/weekly-target.service';
 import { NotificationService } from './core/services/notification.service';
 import { AppRatingService } from './core/services/app-rating.service';
 import { GoalsService } from './core/services/goals.service';
+import { RepertoireService } from './core/services/repertoire.service';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +35,7 @@ export class AppComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private appRatingService = inject(AppRatingService);
   private goalsService = inject(GoalsService);
+  private repertoireService = inject(RepertoireService);
 
   async ngOnInit() {
     // Initialize storage first
@@ -48,7 +50,8 @@ export class AppComponent implements OnInit {
       this.achievementService.initialize(),
       this.weeklyTargetService.initialize(),
       this.notificationService.initialize(),
-      this.revenueCatService.initialize()
+      this.revenueCatService.initialize(),
+      this.repertoireService.initialize()
     ]);
 
     await this.goalsService.initialize();

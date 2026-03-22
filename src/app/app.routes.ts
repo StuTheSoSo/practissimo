@@ -22,6 +22,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/goals/goals.page').then((m) => m.GoalsPage),
   },
   {
+    path: 'repertoire',
+    loadComponent: () => import('./pages/repertoire/repertoire.page').then((m) => m.RepertoirePage),
+  },
+  {
     path: 'quests',
     loadComponent: () => import('./pages/quests/quests.page').then((m) => m.QuestsPage),
   },

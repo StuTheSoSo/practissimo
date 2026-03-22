@@ -8,6 +8,7 @@ import { StorageService } from './storage.service';
 import { PracticeService } from './practice.service';
 import { GamificationService } from './gamification.service';
 import { InstrumentService } from './instrument.service';
+import { RepertoireService } from './repertoire.service';
 
 interface LocalNotificationSchema {
   id: number;
@@ -54,6 +55,7 @@ export class NotificationService {
   private practiceService = inject(PracticeService, { optional: true });
   private gamificationService = inject(GamificationService, { optional: true });
   private instrumentService = inject(InstrumentService, { optional: true });
+  private repertoireService = inject(RepertoireService, { optional: true });
 
   private reminderSettings = signal<ReminderSettings>({
     enabled: false,
@@ -311,6 +313,19 @@ export class NotificationService {
       const practicedToday = recentSessions.some(s => new Date(s.date).toDateString() === today);
       if (!practicedToday) {
         return `Keep your ${streak}-day streak alive! 🔥 Practice now`;
+      }
+    }
+
+    // Check for neglected repertoire items (3+ days without practice)
+    if (this.repertoireService) {
+      const neglectedRepertoire = this.repertoireService.getNeglectedItems(3, instrument);
+      if (neglectedRepertoire.length > 0) {
+        const neglected = neglectedRepertoire[dayOffset % neglectedRepertoire.length];
+        const dayCount = neglected.lastPracticed 
+          ? Math.floor((Date.now() - new Date(neglected.lastPracticed).getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+        const dayLabel = dayCount > 99 ? 'a while' : `${dayCount} days`;
+        return `Haven't practiced "${neglected.title}" in ${dayLabel}! 🎼 Let's get back to it.`;
       }
     }
 
