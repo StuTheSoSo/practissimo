@@ -1,5 +1,5 @@
 export const environment = {
-  production: false,
+  production: true,
   appRating: {
     iosAppStoreId: '',
     androidPackageName: 'com.practissimo.app'
@@ -11,11 +11,11 @@ export const environment = {
   },
   revenuecat: {
     iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
-    androidApiKey: '',
-    entitlementId: 'pro',
+    androidApiKey: 'goog_BMXdGSnGMkRnpZComKJmPETQfNC',
+    entitlementId: 'PracticeQuest Pro',
     productIds: {
-      proMonthly: 'pq_premium_1month',
-      proYearly: 'pq_premium_1year'
+      proMonthly: 'pq_premium_play:premium-monthly',
+      proYearly: 'pq_premium_play:premium-yearly'
     }
   }
 };
