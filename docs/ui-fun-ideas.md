@@ -2,21 +2,6 @@
 
 Reference doc for planned UX/UI improvements. Each idea includes an implementation prompt ready to paste into Copilot Chat.
 
----
-
-## Quick Wins (Low Effort / High Impact)
-
-
----
-
-
----
-
-
----
-
-
----
 
 ### 9. Weekly Target Celebration
 Hitting the weekly goal should feel like an event, not a color change.
