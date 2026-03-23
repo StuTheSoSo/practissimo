@@ -194,7 +194,7 @@ import { PracticeSession } from '../../core/models/practice-session.model';
         }
 
         <!-- Persistent Metronome -->
-        <app-metronome [class.stage-dimmed]="stageMode()"></app-metronome>
+        <app-metronome></app-metronome>
       </div>
     </ion-content>
   `,
@@ -368,6 +368,11 @@ import { PracticeSession } from '../../core/models/practice-session.model';
     @keyframes stage-fade-in {
       from { opacity: 0; }
       to   { opacity: 1; }
+    }
+
+    app-metronome {
+      position: relative;
+      z-index: 101;
     }
 
     .timer-card.stage-glow {
