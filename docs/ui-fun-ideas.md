@@ -15,11 +15,6 @@ Reference doc for planned UX/UI improvements. Each idea includes an implementati
 
 ---
 
-### 8. Satisfying Micro-Interactions
-Small tactile responses throughout the app that make every tap feel good.
-
-**Implementation Prompt:**
-> Add global micro-interaction styles to `src/global.scss`. Apply to all `ion-button` and card-style elements: (1) a subtle `scale(0.96)` on `:active` with a fast `80ms ease` transition back to `scale(1.02)` then `scale(1)` — a "squish bounce". (2) On cards with `(click)` handlers, apply a slight 3D tilt effect on press using CSS `perspective(600px) rotateX(2deg) rotateY(-1deg)` transitions. (3) On achievement unlock, add a shimmer sweep animation across the badge using a `::after` pseudo-element with a `linear-gradient` moving left-to-right.
 
 ---
 
