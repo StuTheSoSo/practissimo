@@ -51,6 +51,10 @@ import { FeedbackModalComponent } from 'src/app/shared/components/feedback.compo
 import { PaywallModalComponent } from 'src/app/shared/components/paywall-modal.component';
 import { WeeklyTargetService } from '../../core/services/weekly-target.service';
 import { RepertoireService } from '../../core/services/repertoire.service';
+import { PracticeService } from '../../core/services/practice.service';
+import { MascotComponent } from 'src/app/shared/components/mascot.component';
+import { PraxOverlayComponent } from 'src/app/shared/components/prax-overlay.component';
+import { PraxTourComponent } from 'src/app/shared/components/prax-tour.component';
 
 @Component({
   selector: 'app-home',
@@ -107,176 +111,131 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 	          </ion-button>
 	        </section>
 
-	        <section class="stat-chips reveal reveal-4">
-	          <div class="stat-chip streak-chip">
-	            <ion-icon name="flame" [className]="flameIconClass()"></ion-icon>
-	            <div>
-              <span>Streak</span>
-              <strong>{{ currentStreak() }} days</strong>
-            </div>
+        <section class="stat-strip reveal reveal-3">
+          <div class="stat-item">
+            <ion-icon name="flame" [className]="flameIconClass()"></ion-icon>
+            <strong>{{ currentStreak() }}</strong>
+            <span>day streak</span>
           </div>
-          <div class="stat-chip level-chip">
-            <ion-icon name="star"></ion-icon>
-            <div>
-              <span>Level</span>
-              <strong>{{ level() }} ({{ levelProgressDisplay() }}%)</strong>
-            </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <ion-icon name="star" class="level-icon"></ion-icon>
+            <strong>{{ level() }}</strong>
+            <span>level</span>
           </div>
-          <div class="stat-chip weekly-chip">
-            <ion-icon name="calendar"></ion-icon>
-            <div>
-              <span>Weekly Target</span>
-              <strong>
-                @if (weeklyTargetCompleted()) {
-                  Complete
-                } @else {
-                  {{ weeklyMinutesRemaining() }} min left
-                }
-              </strong>
-	            </div>
-	          </div>
-	        </section>
-
-	        <ion-card class="streak-card reveal reveal-5">
-	          <ion-card-header>
-	            <div class="streak-header">
-	              <ion-icon name="flame" [className]="flameIconClass()"></ion-icon>
-	              <ion-card-title>{{ currentStreak() }} Day Streak</ion-card-title>
-            </div>
-          </ion-card-header>
-          <ion-card-content>
-            <p class="streak-status">{{ streakMessage() }}</p>
-            @if (longestStreak() > currentStreak()) {
-              <p class="longest-streak">Personal Best: {{ longestStreak() }} days</p>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <ion-icon name="calendar" class="weekly-icon"></ion-icon>
+            @if (weeklyTargetCompleted()) {
+              <strong class="weekly-done">&#x2713;&nbsp;Done</strong>
+            } @else {
+              <strong>{{ weeklyMinutesRemaining() }}m</strong>
             }
-          </ion-card-content>
-        </ion-card>
+            <span>weekly</span>
+          </div>
+        </section>
 
-        <ion-grid class="quick-actions reveal reveal-6">
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="outline" (click)="goToQuests()">
-                <ion-icon name="trophy" slot="start"></ion-icon>
-                Quests
-                @if (activeQuestsCount() > 0) {
-                  <ion-badge color="danger">{{ activeQuestsCount() }}</ion-badge>
-                }
-              </ion-button>
-            </ion-col>
-          </ion-row>
-                   <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="outline" (click)="goToAchievements()">
-                <ion-icon name="star" slot="start"></ion-icon>
-                Achievements
-              </ion-button>
-            </ion-col>
-            @if (supportsChords()) {
-              <ion-col size="12">
-                <ion-button expand="block" fill="outline" (click)="goToChordCharts()">
-                  <ion-icon name="musical-notes" slot="start"></ion-icon>
-                  Chord Charts
-                </ion-button>
-              </ion-col>
-            }
-          </ion-row>
-          
-          <ion-row>
-            <ion-col size="12">
-              @if (showPitchFinderAction()) {
-                <ion-button expand="block" fill="outline" (click)="goToPitchFinder()">
-                  <ion-icon name="musical-note" slot="start"></ion-icon>
-                  Pitch Finder
-                </ion-button>
-              } @else if (supportsTuner()) {
-                <ion-button expand="block" fill="outline" (click)="goToTuner()">
-                  <ion-icon name="musical-note" slot="start"></ion-icon>
-                  Tuner
-                </ion-button>
-              }
-            </ion-col>
-          </ion-row>
- 
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="outline" (click)="goToRepertoire()">
-                <ion-icon name="musical-notes" slot="start"></ion-icon>
-                Repertoires
-              </ion-button>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="clear" (click)="goToAnalytics()">
-                <ion-icon name="bar-chart" slot="start"></ion-icon>
-                Advanced Analytics
-                @if (isPro()) {
-                  <ion-badge color="warning" style="margin-left: 0.5rem;">PRO</ion-badge>
-                }
-                <ion-icon name="chevron-forward" slot="end"></ion-icon>
-              </ion-button>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="clear" (click)="goToHistory()">
-                <ion-icon name="calendar" slot="start"></ion-icon>
-                View History
-                <ion-icon name="chevron-forward" slot="end"></ion-icon>
-              </ion-button>
-            </ion-col>
-          </ion-row>
-          <ion-row>
-            <ion-col size="12">
-              <ion-button expand="block" fill="clear" (click)="goToGoals()">
-                <ion-icon name="checkmark-done" slot="start"></ion-icon>
-                Goals
-                <ion-icon name="chevron-forward" slot="end"></ion-icon>
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-
-        <ion-card class="level-progress-card reveal reveal-7">
-          <ion-card-header>
-            <ion-card-title>Level Progress</ion-card-title>
-          </ion-card-header>
+        <ion-card class="progress-card reveal reveal-4">
           <ion-card-content>
-            <div class="xp-info" style="position:relative">
-              <span>{{ displayedXp() }} / {{ levelInfo().xpForNextLevel - levelInfo().xpForCurrentLevel }} XP</span>
-              <span>{{ levelProgressDisplay() }}%</span>
-              @if (xpPopupAmount() !== null) {
-                <div class="xp-popup">+{{ xpPopupAmount() }} XP</div>
-              }
+            <div class="prog-section" style="position: relative">
+              <div class="prog-label-row">
+                <span class="prog-label-text">
+                  <ion-icon name="star" class="prog-icon"></ion-icon>
+                  Level {{ level() }}
+                </span>
+                <span class="prog-value">
+                  @if (xpPopupAmount() !== null) {
+                    <span class="xp-popup">+{{ xpPopupAmount() }} XP</span>
+                  }
+                  {{ displayedXp() }} XP &middot; {{ levelProgressDisplay() }}%
+                </span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill level-fill" [style.width.%]="levelProgressAnimated()"></div>
+              </div>
             </div>
-            <div class="progress-track">
-              <div class="progress-fill level-fill" [style.width.%]="levelProgressAnimated()"></div>
+            <div class="prog-section" style="margin-top: 14px">
+              <div class="prog-label-row">
+                <span class="prog-label-text">
+                  <ion-icon name="calendar" class="prog-icon weekly-prog-icon"></ion-icon>
+                  Weekly Goal
+                </span>
+                <span class="prog-value">
+                  {{ weeklyMinutesCompleted() }}/{{ weeklyTargetMinutes() }} min &middot; {{ weeklyProgressDisplay() }}%
+                </span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill weekly-fill" [style.width.%]="weeklyProgressAnimated()"></div>
+              </div>
             </div>
           </ion-card-content>
         </ion-card>
 
-	        <ion-card class="weekly-target-card reveal reveal-8" [class.complete]="weeklyTargetCompleted()">
-	          <ion-card-header>
-	            <ion-card-title>Weekly Target</ion-card-title>
-	          </ion-card-header>
-          <ion-card-content>
-            <div class="weekly-target-meta">
-              <span>{{ weekRangeLabel() }}</span>
-              <span>{{ weeklyProgressDisplay() }}%</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill weekly-fill" [style.width.%]="weeklyProgressAnimated()"></div>
-            </div>
-            <p class="weekly-target-detail">
-              {{ weeklyMinutesCompleted() }} / {{ weeklyTargetMinutes() }} minutes
-              @if (weeklyTargetCompleted()) {
-                <strong> complete</strong>
-              } @else {
-                <span> ({{ weeklyMinutesRemaining() }} min left)</span>
+        <section class="actions-grid reveal reveal-5">
+          <div class="action-tile" (click)="goToQuests()" role="button">
+            <div class="action-tile-icon trophy-bg">
+              <ion-icon name="trophy"></ion-icon>
+              @if (activeQuestsCount() > 0) {
+                <ion-badge color="danger" class="tile-badge">{{ activeQuestsCount() }}</ion-badge>
               }
-            </p>
-	          </ion-card-content>
-	        </ion-card>
+            </div>
+            <span>Quests</span>
+          </div>
+          <div class="action-tile" (click)="goToAchievements()" role="button">
+            <div class="action-tile-icon star-bg">
+              <ion-icon name="star"></ion-icon>
+            </div>
+            <span>Achievements</span>
+          </div>
+          @if (supportsChords()) {
+            <div class="action-tile" (click)="goToChordCharts()" role="button">
+              <div class="action-tile-icon chords-bg">
+                <ion-icon name="musical-notes"></ion-icon>
+              </div>
+              <span>Chords</span>
+            </div>
+          }
+          @if (showPitchFinderAction()) {
+            <div class="action-tile" (click)="goToPitchFinder()" role="button">
+              <div class="action-tile-icon pitch-bg">
+                <ion-icon name="musical-note"></ion-icon>
+              </div>
+              <span>Pitch Finder</span>
+            </div>
+          } @else if (supportsTuner()) {
+            <div class="action-tile" (click)="goToTuner()" role="button">
+              <div class="action-tile-icon tuner-bg">
+                <ion-icon name="musical-note"></ion-icon>
+              </div>
+              <span>Tuner</span>
+            </div>
+          }
+          <div class="action-tile" (click)="goToRepertoire()" role="button">
+            <div class="action-tile-icon repertoire-bg">
+              <ion-icon name="musical-notes"></ion-icon>
+            </div>
+            <span>Repertoire</span>
+          </div>
+          <div class="action-tile" (click)="goToHistory()" role="button">
+            <div class="action-tile-icon history-bg">
+              <ion-icon name="calendar"></ion-icon>
+            </div>
+            <span>History</span>
+          </div>
+          <div class="action-tile" (click)="goToGoals()" role="button">
+            <div class="action-tile-icon goals-bg">
+              <ion-icon name="checkmark-done"></ion-icon>
+            </div>
+            <span>Goals</span>
+          </div>
+          <div class="action-tile" (click)="goToAnalytics()" role="button">
+            <div class="action-tile-icon analytics-bg">
+              <ion-icon name="bar-chart"></ion-icon>
+            </div>
+            <span>Analytics</span>
+          </div>
+        </section>
+
 
 	        @if (!isPro()) {
 	          <ion-card class="pro-upgrade-card-prominent reveal reveal-9">
@@ -445,6 +404,18 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 
         <div class="bottom-spacer"></div>
       </div>
+
+      @if (showPraxOverlay()) {
+        <app-prax-overlay
+          [message]="praxMessage()"
+          [mood]="praxMood()"
+          (dismissed)="dismissPrax()"
+        ></app-prax-overlay>
+      }
+
+      @if (showTour()) {
+        <app-prax-tour (completed)="onTourCompleted()"></app-prax-tour>
+      }
     </ion-content>
   `,
   styles: [`
@@ -732,47 +703,57 @@ import { RepertoireService } from '../../core/services/repertoire.service';
       font-weight: 700;
     }
 
-    .stat-chips {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.65rem;
-      margin: 0.15rem 0 1rem;
-    }
-
-    .stat-chip {
+    /* ── Stat Strip ── */
+    .stat-strip {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
-      padding: 0.72rem 0.78rem;
-      border-radius: 14px;
-      border: 1px solid rgba(149, 175, 228, 0.24);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 250, 255, 0.9));
-      backdrop-filter: blur(4px);
+      justify-content: space-around;
+      padding: 0.85rem 1rem;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 250, 255, 0.92));
+      border: 1px solid rgba(149, 175, 228, 0.22);
+      backdrop-filter: blur(6px);
+      margin: 0.75rem 0 0.85rem;
     }
 
-    .stat-chip ion-icon {
+    .stat-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+    }
+
+    .stat-item ion-icon {
       font-size: 1.25rem;
+      margin-bottom: 0.1rem;
     }
 
-    .stat-chip span {
-      display: block;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #374151;
-      margin-bottom: 0.12rem;
-      font-weight: 700;
-    }
-
-    .stat-chip strong {
-      font-size: 1.05rem;
-      color: #111827;
+    .stat-item strong {
+      font-size: 1.15rem;
       font-weight: 800;
+      color: #111827;
+      line-height: 1.1;
     }
 
-    .streak-chip ion-icon { color: #f97316; }
-    .level-chip ion-icon { color: #2563eb; }
-    .weekly-chip ion-icon { color: #0ea5a4; }
+    .stat-item span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 32px;
+      background: rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+    }
+
+    .level-icon { color: #4f86f7; }
+    .weekly-icon { color: #0ea5a4; }
+    .weekly-done { color: #059669 !important; }
 
     @keyframes flame-flicker {
       0%, 100% { transform: scale(1) rotate(0deg);    opacity: 1; }
@@ -784,6 +765,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
     .flame-icon {
       animation: flame-flicker 2s ease-in-out infinite;
       display: inline-block;
+      color: #f97316;
     }
 
     .flame-hot {
@@ -798,83 +780,46 @@ import { RepertoireService } from '../../core/services/repertoire.service';
               drop-shadow(0 0 24px rgba(191, 219, 254, 0.4));
     }
 
-    @media (min-width: 560px) {
-      .stat-chips {
-        grid-template-columns: repeat(3, 1fr);
-      }
+    /* ── Combined Progress Card ── */
+    .progress-card {
+      border: 1px solid rgba(125, 164, 238, 0.28);
+      background:
+        radial-gradient(circle at 96% 4%, rgba(128, 170, 248, 0.2), transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(245, 250, 255, 0.97));
+      box-shadow: 0 6px 16px rgba(108, 142, 209, 0.1);
+      margin-bottom: 1rem;
     }
 
-    .streak-card {
-      background: linear-gradient(135deg, #fdf5df, #f7ebd8);
-      border: 1px solid rgba(224, 188, 110, 0.28);
-      box-shadow: 0 8px 18px rgba(161, 121, 52, 0.12);
-    }
+    .prog-section { position: relative; }
 
-    .streak-card ion-card-title {
-      color: #0f172a;
-      font-weight: 800;
-    }
-
-    .streak-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .streak-header ion-icon {
-      font-size: 2rem;
-    }
-
-    .streak-status {
-      font-size: 1.1rem;
-      margin: 0.5rem 0;
-      color: #1f2937;
-      font-weight: 700;
-    }
-
-    .longest-streak {
-      color: #334155;
-      font-size: 0.9rem;
-      margin: 0;
-      font-weight: 600;
-    }
-
-    .quick-actions {
-      margin: 1rem 0;
-    }
-
-    .quick-actions ion-button {
-      margin: 0;
-      --border-radius: 12px;
-      min-height: 52px;
-      height: 52px;
-      font-weight: 650;
-      transition: transform 140ms ease, filter 140ms ease;
-    }
-
-    .quick-actions ion-button[fill='clear'] {
-      --color: #1f2937;
-      font-weight: 700;
-    }
-
-    .quick-actions ion-button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.02);
-    }
-
-    .quick-actions ion-button:active {
-      transform: translateY(1px);
-    }
-
-    .xp-info {
+    .prog-label-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .prog-label-text {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .prog-icon { font-size: 0.95rem; color: #4f86f7; }
+    .weekly-prog-icon { color: #0ea5a4; }
+
+    .prog-value {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #6b7280;
+      position: relative;
     }
 
     .progress-track {
-      height: 10px;
+      height: 8px;
       width: 100%;
       border-radius: 999px;
       background: rgba(20, 20, 20, 0.1);
@@ -888,32 +833,18 @@ import { RepertoireService } from '../../core/services/repertoire.service';
       transition: width 750ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    .level-fill {
-      background: linear-gradient(90deg, #4f86f7, #7bb1ff);
-    }
-
-    .weekly-fill {
-      background: linear-gradient(90deg, #17bebb, #48d6a4);
-    }
-
-    .level-progress-card {
-      border: 1px solid rgba(125, 164, 238, 0.32);
-      background:
-        radial-gradient(circle at 96% 4%, rgba(128, 170, 248, 0.28), transparent 40%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 250, 255, 0.96));
-      box-shadow: 0 8px 18px rgba(108, 142, 209, 0.14);
-    }
+    .level-fill  { background: linear-gradient(90deg, #4f86f7, #7bb1ff); }
+    .weekly-fill { background: linear-gradient(90deg, #17bebb, #48d6a4); }
 
     .xp-popup {
       position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
+      right: 0;
+      top: -20px;
       background: linear-gradient(135deg, #4f86f7, #7bb1ff);
       color: #fff;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 800;
-      padding: 0.25rem 0.65rem;
+      padding: 0.2rem 0.55rem;
       border-radius: 999px;
       pointer-events: none;
       white-space: nowrap;
@@ -922,85 +853,76 @@ import { RepertoireService } from '../../core/services/repertoire.service';
     }
 
     @keyframes xp-float-up {
-      0%   { opacity: 1;   transform: translateX(-50%) translateY(0);    }
-      60%  { opacity: 1;   transform: translateX(-50%) translateY(-24px); }
-      100% { opacity: 0;   transform: translateX(-50%) translateY(-44px); }
+      0%   { opacity: 1; transform: translateY(0);    }
+      60%  { opacity: 1; transform: translateY(-16px); }
+      100% { opacity: 0; transform: translateY(-32px); }
     }
 
-    .level-progress-card ion-card-title {
-      color: #0f172a;
-      font-weight: 800;
+    /* ── Actions Grid ── */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+      margin: 0 0 1rem;
     }
 
-    .level-progress-card .xp-info span {
-      color: #1f2937;
-      font-weight: 700;
-    }
-
-    .weekly-target-meta {
+    .action-tile {
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #334155;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 1rem 0.5rem 0.85rem;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+      text-align: center;
     }
 
-    .weekly-target-detail {
-      margin: 0.75rem 0 0;
-      font-size: 0.95rem;
-      color: #1f2937;
-      font-weight: 600;
-    }
+    .action-tile:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); }
+    .action-tile:active { transform: scale(0.94); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06); }
 
-    .weekly-target-card {
-      border: 1px solid rgba(77, 198, 178, 0.3);
-      background:
-        radial-gradient(circle at 95% 8%, rgba(119, 219, 206, 0.24), transparent 38%),
-        linear-gradient(180deg, rgba(250, 255, 253, 0.96), rgba(241, 252, 248, 0.96));
+    .action-tile-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 18px rgba(84, 168, 150, 0.13);
     }
 
-    .weekly-target-card ion-card-title {
-      color: #0f172a;
-      font-weight: 800;
-    }
+    .action-tile-icon ion-icon { font-size: 1.5rem; color: #fff; }
 
-    .weekly-target-card .weekly-target-meta span {
-      color: #334155;
+    .action-tile > span {
+      font-size: 0.78rem;
       font-weight: 700;
+      color: #374151;
     }
 
-    .weekly-target-card .weekly-target-detail strong {
-      color: #0f766e;
-      font-weight: 800;
-    }
-
-    .weekly-target-card::after {
-      content: '';
+    .tile-badge {
       position: absolute;
-      top: -10%;
-      left: -20%;
-      width: 140%;
-      height: 140%;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 20% 60%, rgba(23, 190, 187, 0.08) 0 2px, transparent 3px),
-        radial-gradient(circle at 42% 34%, rgba(23, 190, 187, 0.09) 0 2px, transparent 3px),
-        radial-gradient(circle at 70% 70%, rgba(23, 190, 187, 0.08) 0 2px, transparent 3px);
-      animation: confetti-float 8s linear infinite;
-      opacity: 0;
+      top: -5px;
+      right: -5px;
+      font-size: 0.65rem;
+      min-width: 18px;
+      height: 18px;
     }
 
-    .weekly-target-card.complete::after {
-      opacity: 1;
-    }
-
-    @keyframes confetti-float {
-      from { transform: translateY(10%); }
-      to { transform: translateY(-10%); }
-    }
+    /* Tile icon backgrounds */
+    .trophy-bg      { background: linear-gradient(135deg, #f59e0b, #f97316); }
+    .star-bg        { background: linear-gradient(135deg, #6366f1, #818cf8); }
+    .chords-bg      { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+    .pitch-bg       { background: linear-gradient(135deg, #14b8a6, #0ea5e9); }
+    .tuner-bg       { background: linear-gradient(135deg, #14b8a6, #0ea5e9); }
+    .repertoire-bg  { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+    .history-bg     { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+    .goals-bg       { background: linear-gradient(135deg, #22c55e, #4ade80); }
+    .analytics-bg   { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
 
     .pro-upgrade-card-prominent {
       position: relative;
@@ -1253,6 +1175,16 @@ import { RepertoireService } from '../../core/services/repertoire.service';
       --color: #1f2937;
       font-weight: 700;
       letter-spacing: 0.01em;
+      color: #1f2937 !important;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.25);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .more-section ion-button {
+        --color: #f8fafc;
+        color: #f8fafc !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+      }
     }
 
     .more-chevron-open {
@@ -1297,7 +1229,6 @@ import { RepertoireService } from '../../core/services/repertoire.service';
       .reveal,
       .pulse-cta,
       .practice-hero,
-      .weekly-target-card::after,
       .pro-upgrade-card-prominent {
         animation: none !important;
       }
@@ -1309,8 +1240,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
 
       .progress-fill,
       ion-card,
-      .practice-hero-cta,
-      .quick-actions ion-button {
+      .practice-hero-cta {
         transition: none !important;
       }
     }
@@ -1347,33 +1277,10 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         --color: #f6b24a;
       }
 
-      /* Streak card — dark leather with amber border */
-      .streak-card {
-        border-color: rgba(246, 178, 74, 0.3);
-        background: linear-gradient(135deg, rgba(26, 16, 4, 0.97), rgba(36, 22, 6, 0.97));
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
-      }
-
       /* Feedback card — standard dark studio surface */
       .feedback-card {
         border-color: rgba(246, 178, 74, 0.14);
         background: rgba(18, 18, 22, 0.97);
-      }
-
-      /* Level progress card — amber glass */
-      .level-progress-card {
-        border-color: rgba(246, 178, 74, 0.28);
-        background:
-          radial-gradient(circle at 96% 4%, rgba(246, 178, 74, 0.14), transparent 40%),
-          rgba(18, 18, 22, 0.97);
-      }
-
-      /* Weekly target card — dark teal glass */
-      .weekly-target-card {
-        border-color: rgba(45, 212, 191, 0.3);
-        background:
-          radial-gradient(circle at 95% 8%, rgba(45, 212, 191, 0.16), transparent 38%),
-          rgba(8, 24, 26, 0.97);
       }
 
       /* Amber level XP fill */
@@ -1391,22 +1298,7 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         background: rgba(255, 255, 255, 0.12);
       }
 
-      .level-progress-card ion-card-title,
-      .weekly-target-card ion-card-title,
-      .weekly-target-card .weekly-target-meta span,
-      .weekly-target-card .weekly-target-detail,
-      .weekly-target-meta {
-        color: #f8fafc !important;
-      }
 
-      /* XP display in amber to match the level fill */
-      .level-progress-card .xp-info span {
-        color: #f6b24a !important;
-      }
-
-      .weekly-target-card .weekly-target-detail strong {
-        color: #5eead4 !important;
-      }
 
       .streak-card ion-card-title,
       .streak-status,
@@ -1444,12 +1336,43 @@ import { RepertoireService } from '../../core/services/repertoire.service';
         --color: #e5e7eb;
       }
 
-      .quick-actions ion-button[fill='clear'],
-      .more-section ion-button {
-        --color: #e5e7eb;
+      /* Stat strip — dark studio */
+      .stat-strip {
+        background: rgba(18, 18, 26, 0.92);
+        border-color: rgba(246, 178, 74, 0.14);
+        backdrop-filter: blur(6px);
       }
 
-      /* Stat chips — dark studio surface with subtle amber border */
+      .stat-item strong { color: #f3f4f6; }
+      .stat-item span   { color: #9ca3af; }
+      .stat-divider     { background: rgba(255, 255, 255, 0.1); }
+      .level-icon       { color: #f6b24a; }
+      .weekly-done      { color: #5eead4 !important; }
+
+      /* Progress card — dark glass */
+      .progress-card {
+        border-color: rgba(246, 178, 74, 0.2);
+        background:
+          radial-gradient(circle at 96% 4%, rgba(246, 178, 74, 0.1), transparent 40%),
+          rgba(18, 18, 22, 0.97);
+      }
+
+      .prog-label-text { color: #e5e7eb; }
+      .prog-value      { color: #9ca3af; }
+      .progress-track  { background: rgba(255, 255, 255, 0.1); }
+      .level-fill      { background: linear-gradient(90deg, #f6b24a, #ffd080); }
+      .xp-popup        { background: linear-gradient(135deg, #f6b24a, #ffd080); color: #1a0e00; }
+
+      /* Action tiles — dark */
+      .action-tile {
+        background: rgba(22, 22, 32, 0.92);
+        border-color: rgba(255, 255, 255, 0.07);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .action-tile > span { color: #d1d5db; }
+
+
       .stat-chip {
         background: rgba(18, 18, 26, 0.92);
         border-color: rgba(246, 178, 74, 0.14);
@@ -1477,12 +1400,12 @@ import { RepertoireService } from '../../core/services/repertoire.service';
     IonIcon,
     IonBadge,
     IonButtons,
-    IonGrid,
-    IonRow,
-    IonCol,
     IonList,
     IonItem,
-    IonLabel
+    IonLabel,
+    MascotComponent,
+    PraxOverlayComponent,
+    PraxTourComponent
   ]
 })
 export class HomePage implements OnInit, OnDestroy {
@@ -1494,6 +1417,7 @@ export class HomePage implements OnInit, OnDestroy {
   private modalController = inject(ModalController);
   private weeklyTargetService = inject(WeeklyTargetService);
   private repertoireService = inject(RepertoireService);
+  private practiceService = inject(PracticeService);
 
   currentInstrumentId = this.instrumentService.currentInstrument;
   currentInstrument = this.instrumentService.currentDisplayName;
@@ -1514,7 +1438,15 @@ export class HomePage implements OnInit, OnDestroy {
   weeklyProgressPercent = this.weeklyTargetService.progressPercent;
   weeklyTargetCompleted = this.weeklyTargetService.isCompleted;
 
+  hasAnySessions = computed(() => this.practiceService.allSessions().length > 0);
+
   showMoreSection = signal(false);
+  showPraxOverlay = signal(false);
+  praxMessage = signal('');
+  praxMood = signal<'neutral' | 'happy' | 'celebrating'>('neutral');
+  showTour = signal(false);
+  private praxTimerIds: number[] = [];
+  private praxShowCount = 0;
   levelProgressAnimated = signal(0);
   weeklyProgressAnimated = signal(0);
   xpPopupAmount = signal<number | null>(null);
@@ -1619,11 +1551,18 @@ export class HomePage implements OnInit, OnDestroy {
 	      this.displayedXp.set(currentXp);
 	    }
 
-	    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
+	    this.animateProgress(this.levelInfo().progressPercent, this.levelProgressAnimated);
+    this.animateProgress(this.weeklyProgressPercent(), this.weeklyProgressAnimated);
 	    this.checkTimeBasedPaywall();
 	    this.midnightIntervalId = window.setInterval(() => {
 	      this.hoursUntilMidnight.set(this.calcHoursUntilMidnight());
 	    }, 60_000);
+    if (localStorage.getItem('prax_tour_v1_done')) {
+      this.schedulePrax();
+    } else {
+      const id = window.setTimeout(() => this.showTour.set(true), 1200);
+      this.praxTimerIds.push(id);
+    }
 	  }
 
 	  ngOnDestroy() {
@@ -1635,7 +1574,81 @@ export class HomePage implements OnInit, OnDestroy {
 	      clearInterval(this.midnightIntervalId);
 	      this.midnightIntervalId = null;
 	    }
+    for (const id of this.praxTimerIds) {
+      clearTimeout(id);
+    }
+    this.praxTimerIds = [];
 	  }
+
+  private schedulePrax() {
+    const id = window.setTimeout(() => this.triggerPrax(), 45_000);
+    this.praxTimerIds.push(id);
+  }
+
+  private triggerPrax() {
+    if (this.praxShowCount >= 3) return;
+    this.praxShowCount++;
+    const { message, mood } = this.pickPraxMessage();
+    this.praxMessage.set(message);
+    this.praxMood.set(mood);
+    this.showPraxOverlay.set(true);
+    const autoId = window.setTimeout(() => this.dismissPrax(), 8_000);
+    this.praxTimerIds.push(autoId);
+    if (this.praxShowCount < 3) {
+      const nextId = window.setTimeout(() => this.triggerPrax(), 4 * 60_000);
+      this.praxTimerIds.push(nextId);
+    }
+  }
+
+  dismissPrax() {
+    this.showPraxOverlay.set(false);
+  }
+
+  onTourCompleted() {
+    this.showTour.set(false);
+    this.schedulePrax();
+  }
+
+  private pickPraxMessage(): { message: string; mood: 'neutral' | 'happy' | 'celebrating' } {
+    const status = this.streakStatus();
+    const streak = this.currentStreak();
+    const hours = this.hoursUntilMidnight();
+    const weeklyDone = this.weeklyTargetCompleted();
+    const remaining = this.weeklyMinutesRemaining();
+
+    if (status === 'at_risk' && hours <= 3) {
+      return { message: `Only ${hours}h left tonight — save that ${streak}-day streak! 🎵`, mood: 'neutral' };
+    }
+    if (status === 'at_risk') {
+      return { message: `Hey! Your ${streak}-day streak is on the line today 🎶`, mood: 'neutral' };
+    }
+    if (weeklyDone) {
+      return { message: `Weekly goal crushed! You're an absolute practice machine 🎉`, mood: 'celebrating' };
+    }
+    if (status === 'active' && streak >= 14) {
+      return { message: `${streak} days straight! You're seriously building something 🔥`, mood: 'happy' };
+    }
+    if (status === 'active' && streak >= 7) {
+      return { message: `${streak}-day streak! Keep that momentum going 🎵`, mood: 'happy' };
+    }
+    if (status === 'active') {
+      return {
+        message: remaining > 0
+          ? `Great practice today! ${remaining} min left on your weekly goal 🎶`
+          : `Practiced today — nice work! Weekly goal complete 🎵`,
+        mood: 'happy'
+      };
+    }
+    if (status === 'broken') {
+      return { message: `Fresh start — every great musician just keeps showing up 🎶`, mood: 'neutral' };
+    }
+    const pool: { message: string; mood: 'neutral' | 'happy' | 'celebrating' }[] = [
+      { message: 'Even 5 minutes of focused practice moves the needle 🎵', mood: 'neutral' },
+      { message: 'Your instrument is waiting for you 🎶', mood: 'neutral' },
+      { message: 'Consistency beats intensity — keep showing up! 🎵', mood: 'happy' },
+    ];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
 
 	  private checkTimeBasedPaywall() {
 	    if (this.isPro()) return;

@@ -617,11 +617,17 @@ export class PracticePage implements OnDestroy {
       buttons: [
         {
           text: 'Skip',
-          handler: () => this.stopSession()
+          handler: () => {
+            alert.dismiss().then(() => this.stopSession());
+            return false;
+          }
         },
         {
           text: 'Complete',
-          handler: (rating: string) => this.stopSession(parseInt(rating))
+          handler: (rating: string) => {
+            alert.dismiss().then(() => this.stopSession(parseInt(rating)));
+            return false;
+          }
         }
       ]
     });

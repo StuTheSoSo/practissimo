@@ -24,6 +24,7 @@ import { InstrumentService } from '../../core/services/instrument.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { StorageService } from '../../core/services/storage.service';
 import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
+import { MascotComponent } from '../../shared/components/mascot.component';
 
 @Component({
   selector: 'app-onboarding',
@@ -36,6 +37,13 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
 
     <ion-content class="ion-padding">
       <div class="onboarding-container">
+        <div class="mascot-intro">
+          <app-mascot mood="happy"></app-mascot>
+          <div class="speech-bubble">
+            Hey there! I'm Prax 🤖 Pick your instrument and let's level up together!
+          </div>
+        </div>
+
         <h1>Choose Your Instrument</h1>
         <p class="subtitle">Select your primary instrument to get started. You can change this later in settings.</p>
 
@@ -75,6 +83,49 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
       margin: 0 auto;
       text-align: center;
       padding: 1.1rem 0 0.75rem;
+    }
+
+    .mascot-intro {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .speech-bubble {
+      position: relative;
+      background: var(--ion-color-primary-tint);
+      border: 1.5px solid var(--ion-color-primary);
+      border-radius: 14px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ion-color-primary-shade);
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-width: 7px 10px 7px 0;
+      border-style: solid;
+      border-color: transparent var(--ion-color-primary) transparent transparent;
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      left: -7.5px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-width: 6px 9px 6px 0;
+      border-style: solid;
+      border-color: transparent var(--ion-color-primary-tint) transparent transparent;
     }
 
     h1 {
@@ -184,7 +235,8 @@ import { STORAGE_KEYS } from '../../core/models/storage-keys.model';
     IonIcon,
     IonGrid,
     IonRow,
-    IonCol
+    IonCol,
+    MascotComponent
   ]
 })
 export class OnboardingPage {
