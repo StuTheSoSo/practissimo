@@ -12,6 +12,7 @@ import {
 import { addIcons } from 'ionicons';
 import { close, shareSocial } from 'ionicons/icons';
 import { Milestone } from '../../core/models/milestone.model';
+import { MascotComponent } from './mascot.component';
 
 @Component({
   selector: 'app-milestone-modal',
@@ -23,6 +24,11 @@ import { Milestone } from '../../core/models/milestone.model';
 
       <div class="milestone-celebration">
         <div class="confetti">🎉</div>
+
+        <div class="mascot-wrapper">
+          <app-mascot mood="celebrating"></app-mascot>
+        </div>
+
         <div class="milestone-icon">{{ milestone.icon }}</div>
         <h1 class="milestone-title">{{ milestone.title }}</h1>
         <p class="milestone-message">{{ milestone.message }}</p>
@@ -95,6 +101,11 @@ import { Milestone } from '../../core/models/milestone.model';
       animation: bounce 1s ease-in-out;
     }
 
+    .mascot-wrapper {
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+    }
+
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-20px); }
@@ -140,7 +151,8 @@ import { Milestone } from '../../core/models/milestone.model';
     CommonModule,
     IonContent,
     IonButton,
-    IonIcon
+    IonIcon,
+    MascotComponent
   ]
 })
 export class MilestoneModalComponent {
