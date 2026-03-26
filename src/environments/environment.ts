@@ -14,12 +14,12 @@ export const environment = {
     privacyPolicyUrl: ''
   },
   revenuecat: {
-    iosApiKey: 'PASTE_NEW_KEY_HERE',
-    androidApiKey: 'goog_BMXdGSnGMkRnpZComKJmPETQfNC',
-    entitlementId: 'PracticeQuest Pro',
+    iosApiKey: 'appl_hUitJJIDOCHjFuAtzJOrOQoiOQD',
+    androidApiKey: '',
+    entitlementId: 'pro',
     productIds: {
-      proMonthly: 'pq_premium_play:premium-monthly',
-      proYearly: 'pq_premium_play:premium-yearly'
+      proMonthly: 'pq_premium_1month',
+      proYearly: 'pq_premium_1year'
     }
   }
 };

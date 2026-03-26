@@ -216,17 +216,17 @@ import { PraxTourComponent } from 'src/app/shared/components/prax-tour.component
             </div>
             <span>Repertoire</span>
           </div>
-          <div class="action-tile" (click)="goToHistory()" role="button">
-            <div class="action-tile-icon history-bg">
-              <ion-icon name="calendar"></ion-icon>
-            </div>
-            <span>History</span>
-          </div>
           <div class="action-tile" (click)="goToGoals()" role="button">
             <div class="action-tile-icon goals-bg">
               <ion-icon name="checkmark-done"></ion-icon>
             </div>
             <span>Goals</span>
+          </div>
+          <div class="action-tile" (click)="goToHistory()" role="button">
+            <div class="action-tile-icon history-bg">
+              <ion-icon name="calendar"></ion-icon>
+            </div>
+            <span>History</span>
           </div>
           <div class="action-tile" (click)="goToAnalytics()" role="button">
             <div class="action-tile-icon analytics-bg">
@@ -1403,7 +1403,6 @@ import { PraxTourComponent } from 'src/app/shared/components/prax-tour.component
     IonList,
     IonItem,
     IonLabel,
-    MascotComponent,
     PraxOverlayComponent,
     PraxTourComponent
   ]

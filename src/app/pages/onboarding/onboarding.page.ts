@@ -277,6 +277,11 @@ export class OnboardingPage {
     // Mark onboarding as completed
     await this.storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, true);
 
+    // Blur any focused element to prevent aria-hidden focus trap
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
     // Navigate to home
     this.router.navigate(['/home']);
   }

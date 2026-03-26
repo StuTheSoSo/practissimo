@@ -246,8 +246,12 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
   `,
   styles: [`
     .chord-charts-container {
+      width: 100%;
       max-width: 1200px;
       margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .instrument-header {
@@ -275,6 +279,47 @@ import { PaywallModalComponent } from '../../shared/components/paywall-modal.com
 
     .chord-grid {
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .chord-grid ion-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .chord-grid ion-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: auto;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .chord-card {
+      width: auto;
+      max-width: 370px;
+      margin-left: auto;
+      margin-right: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @media (max-width: 600px) {
+      .chord-charts-container {
+        max-width: 100vw;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .chord-card {
+        max-width: 95vw;
+      }
     }
 
     .chord-card {
