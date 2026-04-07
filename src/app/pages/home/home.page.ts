@@ -1455,12 +1455,12 @@ export class HomePage implements OnInit, OnDestroy {
   showPitchFinderAction = computed(() => this.currentInstrumentId() === 'vocals');
 
   streakStatus = computed(() => this.gamificationService.getStreakStatus());
-  primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Start a short, intentional session');
+  primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Practice Now');
   streakStatusLabel = computed(() => {
     const status = this.streakStatus();
-    if (status === 'active') return 'On Fire Today';
-    if (status === 'at_risk') return 'Streak At Risk';
-    return 'Fresh Start';
+    if (status === 'active') return 'Practice is on track';
+    if (status === 'at_risk') return 'Streak needs a practice';
+    return 'Fresh start';
   });
 
   practiceHeroMessage = computed(() => {

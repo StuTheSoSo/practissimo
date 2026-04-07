@@ -138,11 +138,13 @@ import { PracticeSession } from '../../core/models/practice-session.model';
 
           <ion-button
             expand="block"
-            fill="outline"
+            fill="clear"
+            color="medium"
+            class="secondary-action"
             (click)="quickLog()"
           >
             <ion-icon name="flash" slot="start"></ion-icon>
-            Quick Log Session
+            Log session
           </ion-button>
 
         }
@@ -302,6 +304,13 @@ import { PracticeSession } from '../../core/models/practice-session.model';
       margin-top: 0;
       margin-bottom: 0.85rem;
       min-height: 52px;
+    }
+
+    .secondary-action {
+      --border-radius: 14px;
+      font-weight: 600;
+      opacity: 0.85;
+      min-height: 48px;
     }
 
     .practice-container ion-button {
@@ -661,8 +670,8 @@ export class PracticePage implements OnDestroy {
     });
 
     const alert = await this.alertController.create({
-      header: 'Session Complete!',
-      message: `You earned ${session.xpEarned} XP!${newAchievements.length > 0 ? ` 🎉 ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''} unlocked!` : ''}`,
+      header: 'Nice practice!',
+      message: `Great work staying consistent.${newAchievements.length > 0 ? ` You earned ${session.xpEarned} XP and unlocked ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''}.` : ` You earned ${session.xpEarned} XP.`}`,
       buttons: ['Awesome!']
     });
 
@@ -773,8 +782,8 @@ export class PracticePage implements OnDestroy {
     });
 
     const alert = await this.alertController.create({
-      header: 'Session Logged!',
-      message: `You earned ${session.xpEarned} XP!${newAchievements.length > 0 ? ` 🎉 ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''} unlocked!` : ''}`,
+      header: 'Session logged',
+      message: `Nice work keeping the habit going.${newAchievements.length > 0 ? ` You earned ${session.xpEarned} XP and unlocked ${newAchievements.length} new achievement${newAchievements.length !== 1 ? 's' : ''}.` : ` You earned ${session.xpEarned} XP.`}`,
       buttons: ['Awesome!']
     });
 
