@@ -43,6 +43,23 @@ import { MetronomeService } from '../../core/services/metronome.service';
 
       @if (isExpanded) {
         <ion-card-content>
+          <!-- Play/Pause Button -->
+          <div class="control-buttons">
+            <ion-button
+              expand="block"
+              [color]="metronome.isPlaying() ? 'danger' : 'success'"
+              (click)="toggleMetronome()"
+              size="large"
+            >
+              <ion-icon
+                [name]="metronome.isPlaying() ? 'pause' : 'play'"
+                slot="start"
+              ></ion-icon>
+              {{ metronome.isPlaying() ? 'Stop' : 'Start' }}
+            </ion-button>
+          </div>
+
+          
           <!-- BPM Display -->
           <div class="bpm-display">
             <ion-button fill="clear" (click)="decreaseBpm()" size="large">
@@ -117,21 +134,7 @@ import { MetronomeService } from '../../core/services/metronome.service';
             ></ion-range>
           </ion-item>
 
-          <!-- Play/Pause Button -->
-          <div class="control-buttons">
-            <ion-button
-              expand="block"
-              [color]="metronome.isPlaying() ? 'danger' : 'success'"
-              (click)="toggleMetronome()"
-              size="large"
-            >
-              <ion-icon
-                [name]="metronome.isPlaying() ? 'pause' : 'play'"
-                slot="start"
-              ></ion-icon>
-              {{ metronome.isPlaying() ? 'Stop' : 'Start' }}
-            </ion-button>
-          </div>
+          
 
           <!-- Visual Beat Indicator -->
           @if (metronome.isPlaying()) {
