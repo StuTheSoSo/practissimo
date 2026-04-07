@@ -27,6 +27,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
     </ion-header>
 
     <ion-content class="ion-padding">
+      <p class="help-intro">PracticeQuest helps you build consistent, intentional practice. Start each session with a clear focus, practice regularly, and use notes to make each session more purposeful.</p>
       <ion-accordion-group>
         <ion-accordion value="getting-started">
           <ion-item slot="header">
@@ -36,9 +37,9 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
           </ion-item>
           <div class="ion-padding" slot="content">
             <p><strong>1. Choose your instrument</strong> in Settings</p>
-            <p><strong>2. Set a practice category</strong> (Scales, Technique, etc.)</p>
-            <p><strong>3. Start the timer</strong> and begin practicing</p>
-            <p><strong>4. Stop when done</strong> to earn XP and track progress</p>
+            <p><strong>2. Select a practice focus</strong> or category for today’s session</p>
+            <p><strong>3. Start the timer</strong> and begin practicing with purpose</p>
+            <p><strong>4. Stop when done</strong> and add notes to capture progress</p>
           </div>
         </ion-accordion>
 
@@ -50,9 +51,52 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
           </ion-item>
           <div class="ion-padding" slot="content">
             <p>The practice timer tracks your session time and keeps your device awake while practicing.</p>
-            <p><strong>Pause/Resume:</strong> Take breaks without losing your session</p>
-            <p><strong>Categories:</strong> Track what you practice (Scales, Technique, Repertoire, etc.)</p>
-            <p><strong>Notes:</strong> Add optional notes about your session</p>
+            <p><strong>Pause/Resume:</strong> Take breaks without losing your session.</p>
+            <p><strong>Categories:</strong> Track what you practice and why you’re practicing it.</p>
+            <p><strong>Notes:</strong> Add notes to capture your session focus and progress.</p>
+            <p><strong>Tip:</strong> It’s better to practice 10 focused minutes every day than a long session once a week.</p>
+          </div>
+        </ion-accordion>
+
+        <ion-accordion value="practice-categories">
+          <ion-item slot="header">
+            <ion-label>
+              <h2>How do practice categories work?</h2>
+            </ion-label>
+          </ion-item>
+          <div class="ion-padding" slot="content">
+            <p>Categories are more than labels — they help you decide what to practice.</p>
+            <p>Use them to group your session by purpose:</p>
+            <p>• Scales for warm-up and technique</p>
+            <p>• Repertoire for songs and pieces</p>
+            <p>• Technique for focused skill work</p>
+          </div>
+        </ion-accordion>
+
+        <ion-accordion value="intentional-practice">
+          <ion-item slot="header">
+            <ion-label>
+              <h2>What is intentional practice?</h2>
+            </ion-label>
+          </ion-item>
+          <div class="ion-padding" slot="content">
+            <p>Intentional practice means you practice with a clear goal and a focused plan, not just time on the clock.</p>
+            <p><strong>Keep it simple:</strong> one or two goals per session helps you stay focused.</p>
+            <p><strong>Make it regular:</strong> short, consistent sessions are more effective than rare, long marathons.</p>
+            <p><strong>Use notes or reflections:</strong> write down what improved and what to work on next time.</p>
+          </div>
+        </ion-accordion>
+
+        <ion-accordion value="session-notes">
+          <ion-item slot="header">
+            <ion-label>
+              <h2>How should I use session notes?</h2>
+            </ion-label>
+          </ion-item>
+          <div class="ion-padding" slot="content">
+            <p>Session notes help turn practice into learning.</p>
+            <p>After each session, note a quick win and one thing to improve next time.</p>
+            <p>This makes your practice more deliberate and easier to review later.</p>
           </div>
         </ion-accordion>
 
@@ -180,6 +224,7 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
             <p><strong>Reminders not working?</strong> Check notification permissions in your device settings.</p>
             <p><strong>Tuner not responding?</strong> Grant microphone permission and ensure no other app is using the mic.</p>
             <p><strong>Lost progress?</strong> Data is stored locally - avoid clearing app data or reinstalling.</p>
+            <p><strong>Need this page again?</strong> Open Settings and tap Help & FAQ.</p>
           </div>
         </ion-accordion>
       </ion-accordion-group>
