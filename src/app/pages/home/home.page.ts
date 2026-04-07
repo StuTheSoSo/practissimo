@@ -84,7 +84,7 @@ import { PraxTourComponent } from 'src/app/shared/components/prax-tour.component
           [class.state-broken]="streakStatus() === 'broken'"
         >
           <p class="practice-hero-kicker">{{ streakStatusLabel() }}</p>
-          <h1>{{ streakStatus() === 'active' ? 'Session Complete' : 'Start Practice' }}</h1>
+          <h1>{{ streakStatus() === 'active' ? 'Session Complete' : 'Practice with Purpose' }}</h1>
           <p>{{ practiceHeroMessage() }}</p>
 
           @if (streakStatus() === 'at_risk') {
@@ -1455,7 +1455,7 @@ export class HomePage implements OnInit, OnDestroy {
   showPitchFinderAction = computed(() => this.currentInstrumentId() === 'vocals');
 
   streakStatus = computed(() => this.gamificationService.getStreakStatus());
-  primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Start Practice');
+  primaryCtaLabel = computed(() => this.streakStatus() === 'active' ? 'Practice Again' : 'Start a short, intentional session');
   streakStatusLabel = computed(() => {
     const status = this.streakStatus();
     if (status === 'active') return 'On Fire Today';
@@ -1472,7 +1472,7 @@ export class HomePage implements OnInit, OnDestroy {
       return `${this.weeklyMinutesRemaining()} minutes left to reach your weekly target.`;
     }
     if (status === 'at_risk') {
-      return `Practice now to protect your ${this.currentStreak()} day streak.`;
+      return `Practice a short, intentional session to protect your ${this.currentStreak()} day streak.`;
     }
     return 'A short focused session is all it takes to restart momentum.';
   });

@@ -46,6 +46,7 @@ import { MascotComponent } from '../../shared/components/mascot.component';
 
         <h1>Choose Your Instrument</h1>
         <p class="subtitle">Select your primary instrument to get started. You can change this later in settings.</p>
+        <p class="mission-statement"><strong>Consistent. Intentional. Practice.</strong> Build a daily habit with focused, purposeful sessions.</p>
 
         <ion-grid>
           <ion-row>
@@ -99,10 +100,10 @@ import { MascotComponent } from '../../shared/components/mascot.component';
       border: 1.5px solid var(--ion-color-primary);
       border-radius: 14px;
       padding: 0.65rem 0.85rem;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--ion-color-primary-shade);
-      line-height: 1.4;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ion-color-dark);
+      line-height: 1.5;
       flex: 1;
     }
 
@@ -135,7 +136,14 @@ import { MascotComponent } from '../../shared/components/mascot.component';
 
     .subtitle {
       color: var(--ion-color-medium);
+      margin-bottom: 0.75rem;
+    }
+
+    .mission-statement {
+      color: var(--ion-color-dark);
+      font-weight: 600;
       margin-bottom: 1.25rem;
+      line-height: 1.4;
     }
 
     ion-grid {
@@ -176,10 +184,28 @@ import { MascotComponent } from '../../shared/components/mascot.component';
 
     .continue-button {
       margin-top: 0.6rem;
+      --background: var(--ion-color-primary);
+      --background-hover: var(--ion-color-primary-shade);
+      --background-focused: var(--ion-color-primary-shade);
+      --background-activated: var(--ion-color-primary-shade);
+      --color: #ffffff;
+      --color-activated: #ffffff;
+      --color-focused: #ffffff;
+      --color-hover: #ffffff;
+      --border-radius: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
     }
 
     .continue-button::part(native) {
       min-height: 44px;
+      color: #ffffff !important;
+    }
+
+    .continue-button[disabled] {
+      opacity: 0.85;
+      --background: rgba(255, 255, 255, 0.12);
+      --color: rgba(255, 255, 255, 0.8);
     }
 
     @media (max-width: 380px), (max-height: 700px) {
