@@ -20,6 +20,7 @@ import {
   IonItem,
   IonBadge,
   IonList,
+  IonFooter,
   AlertController,
   IonSpinner
 } from '@ionic/angular/standalone';
@@ -92,7 +93,7 @@ import { StringInfo } from '../../core/models/tuner.model';
                 }
               </div>
               <div class="frequency" [class.hidden]="currentFrequency() <= 0">
-                {{ currentFrequency() > 0 ? (currentFrequency() | number:'1.2-2') + ' Hz' : '' }}
+                {{ currentFrequency() > 0 ? (currentFrequency() | number:'1.1-1') + ' Hz' : '' }}
               </div>
             </div>
 
@@ -134,7 +135,30 @@ import { StringInfo } from '../../core/models/tuner.model';
                     @default          { ♯ {{ centsLabel() }} sharp }
                   }
                 </div>
+              } @else {
+                <div class="status-badge status-idle">
+                  {{ isListening() ? 'Listening…' : (isSettingUp() ? 'Starting tuner…' : 'Ready to tune — press Start') }}
+                </div>
               }
+            </div>
+
+            <div class="target-string-summary">
+              <div>
+                <strong>Nearest guitar string:</strong>
+                @if (nearestGuitarString()) {
+                  {{ nearestGuitarString()?.name }}{{ nearestGuitarString()?.octave }}
+                } @else {
+                  –
+                }
+              </div>
+              <div>
+                <strong>Deviation:</strong>
+                @if (nearestGuitarString()) {
+                  {{ centDeviationLabel() }}
+                } @else {
+                  –
+                }
+              </div>
             </div>
 
             <!-- Signal confidence -->
@@ -144,33 +168,6 @@ import { StringInfo } from '../../core/models/tuner.model';
 
           </ion-card-content>
         </ion-card>
-
-        <!-- Control Buttons -->
-        <div class="control-buttons">
-          @if (!isListening()) {
-            <ion-button
-              class="start-button"
-              expand="block"
-              size="large"
-              color="success"
-              (click)="startTuner()"
-            >
-              <ion-icon name="play" slot="start"></ion-icon>
-              Start Tuner
-            </ion-button>
-          } @else {
-            <ion-button
-              class="stop-button"
-              expand="block"
-              size="large"
-              color="danger"
-              (click)="stopTuner()"
-            >
-              <ion-icon name="stop" slot="start"></ion-icon>
-              Stop Tuner
-            </ion-button>
-          }
-        </div>
 
         <!-- String Guide -->
         @if (currentTuning()) {
@@ -202,6 +199,36 @@ import { StringInfo } from '../../core/models/tuner.model';
           </ion-card>
         }
 
+        <ion-card class="tone-signature-card">
+          <ion-card-header>
+            <ion-card-title>Tone Signature</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="tone-grid">
+              @for (entry of harmonicEntries(); track entry.index) {
+                <div class="tone-cell">
+                  <span>H{{ entry.index + 1 }}</span>
+                  <strong>{{ entry.value | number:'1.0-0' }}%</strong>
+                </div>
+              }
+            </div>
+            <div class="signature-metrics">
+              <div>
+                <small>HNR</small>
+                <strong>{{ toneSignature().hnr | number:'1.1-1' }} dB</strong>
+              </div>
+              <div>
+                <small>Sustain</small>
+                <strong>{{ toneSignature().sustainMs | number:'1.0-0' }} ms</strong>
+              </div>
+              <div>
+                <small>Brightness</small>
+                <strong>{{ toneSignature().brightness | number:'1.0-0' }}%</strong>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
         <!-- Instructions -->
         <ion-card class="instructions-card">
           <ion-card-content>
@@ -220,6 +247,35 @@ import { StringInfo } from '../../core/models/tuner.model';
 
       </div>
     </ion-content>
+
+    <ion-footer class="tuner-footer" translucent>
+      <ion-toolbar>
+        <div class="control-buttons">
+          <ion-button
+            class="start-button"
+            expand="block"
+            size="large"
+            color="success"
+            (click)="startTuner()"
+            [class.ion-hide]="isListening()"
+          >
+            <ion-icon name="play" slot="start"></ion-icon>
+            @if (isSettingUp()) { Starting… } @else { Start Tuner }
+          </ion-button>
+          <ion-button
+            class="stop-button"
+            expand="block"
+            size="large"
+            color="danger"
+            (click)="stopTuner()"
+            [class.ion-hide]="!isListening()"
+          >
+            <ion-icon name="stop" slot="start"></ion-icon>
+            Stop Tuner
+          </ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
   `,
   styles: [`
     .tuner-container {
@@ -256,7 +312,7 @@ import { StringInfo } from '../../core/models/tuner.model';
 
     /* ── Tuner display card ─────────────────────────────────────── */
     .tuner-display {
-      margin: 2rem 0;
+      margin: 1.2rem 0;
       background:
         radial-gradient(circle at 5% 2%, rgba(186, 247, 229, 0.3), transparent 34%),
         radial-gradient(circle at 95% 10%, rgba(165, 189, 255, 0.24), transparent 40%),
@@ -266,7 +322,7 @@ import { StringInfo } from '../../core/models/tuner.model';
     /* ── Note display ───────────────────────────────────────────── */
     .note-display {
       text-align: center;
-      margin: 2rem 0;
+      margin: 1rem 0;
     }
 
     .setup-indicator {
@@ -318,12 +374,122 @@ import { StringInfo } from '../../core/models/tuner.model';
       opacity: 0.35;
     }
 
-    .octave {
-      font-size: 3rem;
-      vertical-align: super;
-      line-height: 1;
-    }
+    @media (max-width: 540px) {
+      .tuner-container {
+        padding: 0 0.75rem;
+      }
 
+      .tuner-display {
+        margin: 0.9rem 0;
+      }
+
+      .note-display {
+        margin: 0.8rem 0;
+      }
+
+      .note-name {
+        font-size: 4.2rem;
+      }
+
+      .octave {
+        font-size: 2rem;
+      }
+
+      .frequency {
+        font-size: 1rem;
+      }
+
+      .cents-meter {
+        margin: 0.9rem 0;
+      }
+
+      .status-display {
+        margin: 0.6rem 0;
+        min-height: 36px;
+      }
+
+      .control-buttons {
+        margin: 0.5rem 0;
+      }
+
+      .status-badge,
+      .target-string-summary {
+        font-size: 0.95rem;
+      }
+
+      .status-badge {
+        min-width: 180px;
+      }
+
+      .target-string-summary {
+        margin-top: 0.25rem;
+      }
+
+      .note-name {
+        font-size: 4.6rem;
+        min-height: 5rem;
+      }
+
+      .note-name .octave {
+        font-size: 1.8rem;
+      }
+
+      .frequency {
+        font-size: 1rem;
+      }
+
+      .meter-labels {
+        margin-bottom: 0.35rem;
+        font-size: 0.85rem;
+      }
+
+      .meter-track {
+        height: 32px;
+      }
+
+      .meter-ticks {
+        margin-top: 0.35rem;
+        font-size: 0.8rem;
+      }
+
+      .tone-signature-card,
+      .instructions-card {
+        display: none;
+      }
+
+      .tuner-display {
+        margin: 0.8rem 0;
+        padding-bottom: 1rem;
+      }
+
+      .target-string-summary {
+        min-height: 36px;
+      }
+
+      .tuner-container {
+        padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
+      }
+
+      .control-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 0;
+      }
+
+      .control-buttons ion-button {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      .tuner-footer ion-toolbar {
+        --background: rgba(10, 16, 32, 0.98);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 0.75rem;
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+      }
+    }
     .frequency {
       font-size: 1.2rem;
       color: #4a5f80;
@@ -338,7 +504,7 @@ import { StringInfo } from '../../core/models/tuner.model';
 
     /* ── Cents meter ────────────────────────────────────────────── */
     .cents-meter {
-      margin: 2rem 0;
+      margin: 1rem 0;
       transition: opacity 0.3s ease;
     }
 
@@ -369,6 +535,17 @@ import { StringInfo } from '../../core/models/tuner.model';
       border-radius: 20px;
       overflow: hidden;
       border: 1px solid rgba(80, 99, 139, 0.16);
+    }
+
+    .meter-track::before {
+      content: '';
+      position: absolute;
+      left: 45%;
+      width: 10%;
+      top: 0;
+      bottom: 0;
+      background: rgba(52, 211, 153, 0.18);
+      pointer-events: none;
     }
 
     .meter-center {
@@ -438,16 +615,114 @@ import { StringInfo } from '../../core/models/tuner.model';
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     .status-badge {
       display: inline-block;
-      padding: 0.75rem 2rem;
-      border-radius: 25px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      transition: background 0.25s ease, box-shadow 0.25s ease;
+      padding: 0.75rem 1.5rem;
+      border-radius: 20px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      transition: background 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
       border: 1px solid rgba(255, 255, 255, 0.35);
+      min-width: 220px;
+    }
+
+    .status-badge.status-idle {
+      background: none;
+      color: #f9fbff;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
+      min-width: auto;
+      display: inline;
+      font-weight: 800;
+      font-size: 1.05rem;
+      cursor: default;
+      user-select: none;
+    }
+
+    .target-string-summary {
+      display: grid;
+      gap: 0.35rem;
+      color: #33415d;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 0.5rem;
+      min-height: 46px;
+    }
+
+    .tone-signature-card {
+      background:
+        radial-gradient(circle at 24% 12%, rgba(209, 196, 255, 0.18), transparent 40%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(244, 247, 255, 0.97));
+      margin-bottom: 1.5rem;
+    }
+
+    .tone-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .tone-cell {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 14px;
+      padding: 0.85rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(137, 157, 209, 0.22);
+      box-shadow: 0 8px 16px rgba(86, 111, 167, 0.08);
+    }
+
+    .tone-cell span {
+      color: #5a6d91;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .tone-cell strong {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 1.1rem;
+      color: #1d2d4f;
+    }
+
+    .signature-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .signature-metrics div {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 14px;
+      padding: 0.9rem 1rem;
+      border: 1px solid rgba(137, 157, 209, 0.18);
+      box-shadow: 0 8px 16px rgba(86, 111, 167, 0.08);
+      text-align: center;
+    }
+
+    .signature-metrics small {
+      display: block;
+      color: #6f7e9f;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .signature-metrics strong {
+      color: #172a4e;
+      font-size: 1.05rem;
     }
 
     .status-badge.in-tune {
@@ -481,10 +756,15 @@ import { StringInfo } from '../../core/models/tuner.model';
 
     /* ── Control buttons ────────────────────────────────────────── */
     .control-buttons {
-      margin: 2rem 0;
+      margin: 1rem 0;
+      position: relative;
+      z-index: 2;
     }
 
     .control-buttons ion-button {
+      position: relative;
+      z-index: 3;
+      pointer-events: auto;
       --border-radius: 14px;
       min-height: 50px;
       font-weight: 800;
@@ -687,6 +967,7 @@ import { StringInfo } from '../../core/models/tuner.model';
     IonItem,
     IonBadge,
     IonList,
+    IonFooter,
     IonSpinner
   ]
 })
@@ -711,6 +992,10 @@ export class TunerPage implements OnDestroy {
   currentFrequency = computed(() => this.state().currentFrequency);
   cents            = computed(() => this.state().cents);
   clarity          = computed(() => this.state().clarity);
+  nearestGuitarString = computed(() => this.state().nearestGuitarString);
+  centDeviation    = computed(() => this.state().centDeviation);
+  toneSignature    = computed(() => this.state().toneSignature);
+  harmonicEntries  = computed(() => this.toneSignature().harmonics.map((value, index) => ({ value, index })));
 
   // ── Derived display values ─────────────────────────────────────────────────
 
@@ -727,8 +1012,13 @@ export class TunerPage implements OnDestroy {
   /** Human-readable absolute cent value for the status badge. */
   centsLabel = computed(() => Math.abs(this.cents()) + '¢');
 
+  centDeviationLabel = computed(() => {
+    const value = this.centDeviation();
+    return value === 0 ? '0¢' : `${value > 0 ? '+' : ''}${value}¢`;
+  });
+
   // ── Setup indicator ────────────────────────────────────────────────────────
-  private isSettingUp = signal(false);
+  isSettingUp = signal(false);
   private setupTimerId: ReturnType<typeof setTimeout> | null = null;
 
   /**
@@ -736,8 +1026,10 @@ export class TunerPage implements OnDestroy {
    * service reports its first detected note (or after a max timeout).
    */
   showSetupIndicator = computed(() =>
-    this.isListening() && (this.isSettingUp() || !this.detectedNote())
+    this.isSettingUp() || (this.isListening() && !this.detectedNote())
   );
+
+  isStartButtonDisabled = computed(() => this.isListening() || this.isSettingUp());
 
   constructor() {
     addIcons({ play, stop, musicalNote, volumeHigh, settings });
@@ -746,6 +1038,7 @@ export class TunerPage implements OnDestroy {
   // ── Public actions ─────────────────────────────────────────────────────────
 
   async startTuner(): Promise<void> {
+    console.log('[TunerPage] startTuner called');
     try {
       this.isSettingUp.set(true);
       await this.tunerService.start();

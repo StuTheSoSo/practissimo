@@ -3,6 +3,13 @@
 /**
  * Tuner state
  */
+export interface ToneSignature {
+  harmonics: number[]; // H1 through H8 in percentage of fundamental
+  hnr: number; // harmonic-to-noise ratio in dB
+  sustainMs: number;
+  brightness: number; // 0-100%
+}
+
 export interface TunerState {
   isListening: boolean;
   currentFrequency: number;
@@ -10,7 +17,9 @@ export interface TunerState {
   detectedOctave: number;
   cents: number; // -50 to +50
   clarity: number; // 0 to 1 (confidence)
-  targetNote?: StringInfo;
+  nearestGuitarString?: StringInfo;
+  centDeviation: number;
+  toneSignature: ToneSignature;
 }
 
 /**

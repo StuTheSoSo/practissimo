@@ -1,9 +1,18 @@
 // src/app/core/services/tuner.service.ts
 import { Injectable, signal, computed, inject, effect, OnDestroy, isDevMode } from '@angular/core';
-import { TunerState, StringInfo, NoteInfo, TuningPreset } from '../models/tuner.model';
+import { TunerState, StringInfo, NoteInfo, TuningPreset, ToneSignature } from '../models/tuner.model';
 import { InstrumentService } from './instrument.service';
 import { TUNING_PRESETS, getTuningsForInstrument, NOTE_NAMES, ENHARMONIC_MAP } from '../config/tuner.config';
 import { TUNER_GUITAR_REFERENCE_SAMPLES_BY_OCTAVE } from '../config/tuner-samples.config';
+
+const STANDARD_GUITAR_STRINGS: StringInfo[] = [
+  { name: 'E', octave: 2, frequency: 82.41, stringNumber: 6 },
+  { name: 'A', octave: 2, frequency: 110.00, stringNumber: 5 },
+  { name: 'D', octave: 3, frequency: 146.83, stringNumber: 4 },
+  { name: 'G', octave: 3, frequency: 196.00, stringNumber: 3 },
+  { name: 'B', octave: 3, frequency: 246.94, stringNumber: 2 },
+  { name: 'E', octave: 4, frequency: 329.63, stringNumber: 1 }
+];
 
 /**
  * TunerService - Audio-based instrument tuner
@@ -24,6 +33,7 @@ export class TunerService implements OnDestroy {
   private highpassFilter?: BiquadFilterNode;
   private animationId?: number;
   private audioBuffer?: Float32Array<ArrayBuffer>;
+  private frequencyData?: Float32Array<ArrayBuffer>;
   private activeOscillators: Set<OscillatorNode> = new Set();
   private guitarReferenceSampleBuffers = new Map<string, AudioBuffer>();
   private activeReferenceSampleSource?: AudioBufferSourceNode;
@@ -36,7 +46,7 @@ export class TunerService implements OnDestroy {
   private readonly MIN_RMS = 0.0012;
   private readonly VERY_LOW_RMS = 0.00018;
   private readonly LOW_STRING_FREQUENCY = 180;
-  private readonly IN_TUNE_TOLERANCE_CENTS = 15;
+  private readonly IN_TUNE_TOLERANCE_CENTS = 5;
   private readonly CENTS_DEAD_ZONE = 3;
   private readonly CENTS_SMOOTHING_FACTOR = 0.22;
   private readonly STARTUP_STABILIZATION_MS = 1200;
@@ -44,6 +54,7 @@ export class TunerService implements OnDestroy {
   private readonly NOTE_LOCK_FRAMES_STEADY = 2;
   private readonly NOTE_SWITCH_HOLD_FRAMES_STARTUP = 8;
   private readonly NOTE_SWITCH_HOLD_FRAMES_STEADY = 5;
+  private readonly NOTE_DROPOUT_GRACE_MS = 280;
   private readonly NOISE_SAMPLE_WINDOW = 40;
   private readonly STRING_SWITCH_HZ_MARGIN = 12;
   private readonly STRING_SWITCH_FRAMES = 3;
@@ -62,7 +73,15 @@ export class TunerService implements OnDestroy {
     detectedNote: '',
     detectedOctave: 0,
     cents: 0,
-    clarity: 0
+    clarity: 0,
+    nearestGuitarString: undefined,
+    centDeviation: 0,
+    toneSignature: {
+      harmonics: [0, 0, 0, 0, 0, 0, 0, 0],
+      hnr: 0,
+      sustainMs: 0,
+      brightness: 0
+    }
   });
 
   private selectedTuning = signal<TuningPreset | null>(null);
@@ -75,10 +94,14 @@ export class TunerService implements OnDestroy {
   private candidateNoteKey = '';
   private candidateNoteFrames = 0;
   private acceptedNoteKey = '';
+  private acceptedNoteInfo: NoteInfo | null = null;
   private lockedString: StringInfo | null = null;
   private switchCandidateString: StringInfo | null = null;
   private switchCandidateFrames = 0;
+  private noteDropoutStart = 0;
   private lastUiUpdateAt = 0;
+  private sustainStartTime = 0;
+  private lastToneDetected = false;
   private pitchDetectionActive = false;
   private readonly visibilityHandler = () => {
     this.handleVisibilityChange().catch(err => console.error('Visibility handler error:', err));
@@ -217,6 +240,7 @@ export class TunerService implements OnDestroy {
 
       this.audioBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT));
       this.normalizedBuffer = new Float32Array(new ArrayBuffer(this.BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT));
+      this.frequencyData = new Float32Array(this.BUFFER_SIZE / 2);
       this.sessionStartTime = performance.now();
       this.rmsNoiseSamples = [];
       this.candidateNoteKey = '';
@@ -226,6 +250,8 @@ export class TunerService implements OnDestroy {
       this.switchCandidateString = null;
       this.switchCandidateFrames = 0;
       this.lastUiUpdateAt = 0;
+      this.sustainStartTime = 0;
+      this.lastToneDetected = false;
 
       // Mark active before scheduling the first frame so the loop guard is correct.
       this.pitchDetectionActive = true;
@@ -276,6 +302,7 @@ export class TunerService implements OnDestroy {
 
     this.audioBuffer = undefined;
     this.normalizedBuffer = undefined;
+    this.frequencyData = undefined;
     this.smoothedFrequency = 0;
     this.smoothedCents = 0;
     this.frequencyHistory = [];
@@ -288,6 +315,8 @@ export class TunerService implements OnDestroy {
     this.switchCandidateString = null;
     this.switchCandidateFrames = 0;
     this.lastUiUpdateAt = 0;
+    this.sustainStartTime = 0;
+    this.lastToneDetected = false;
 
     this.tunerState.update(state => ({
       ...state,
@@ -376,12 +405,15 @@ export class TunerService implements OnDestroy {
     // Use pitchDetectionActive as the authoritative loop guard. This flag is
     // set to false synchronously at the top of stop(), so even a frame that
     // was already queued will bail out here before rescheduling itself.
-    if (!this.pitchDetectionActive || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser) return;
+    if (!this.pitchDetectionActive || !this.audioContext || !this.audioBuffer || !this.nativeAnalyser || !this.frequencyData) return;
 
-    this.nativeAnalyser.getFloatTimeDomainData(this.audioBuffer);
+    this.nativeAnalyser.getFloatTimeDomainData(this.audioBuffer as Float32Array<ArrayBuffer>);
     const rms = this.calculateRMS(this.audioBuffer);
     this.collectNoiseSample(rms);
+    const toneSignature = this.analyzeToneSignature(this.audioBuffer, this.audioContext.sampleRate);
+
     if (rms < this.getAdaptiveMinRms()) {
+      this.updateTunerState(0, 0, toneSignature);
       if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
       return;
     }
@@ -393,7 +425,7 @@ export class TunerService implements OnDestroy {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
       if (autoResult.clarity >= autoMinClarity) {
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
-        this.updateTunerState(correctedFrequency, autoResult.clarity);
+        this.updateTunerState(correctedFrequency, autoResult.clarity, toneSignature);
         if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
         return;
       }
@@ -403,8 +435,12 @@ export class TunerService implements OnDestroy {
       const autoMinClarity = this.getAdaptiveClarity(autoResult.frequency);
       if (autoResult.clarity >= autoMinClarity) {
         const correctedFrequency = this.correctOctaveError(autoResult.frequency, autoResult.clarity);
-        this.updateTunerState(correctedFrequency, autoResult.clarity);
+        this.updateTunerState(correctedFrequency, autoResult.clarity, toneSignature);
+      } else {
+        this.updateTunerState(0, 0, toneSignature);
       }
+    } else {
+      this.updateTunerState(0, 0, toneSignature);
     }
 
     if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
@@ -447,7 +483,6 @@ export class TunerService implements OnDestroy {
     if (best.ratio !== 1 && this.DEBUG_MODE) {
       const sanitizedFreq = Math.max(0, Math.min(20000, frequency)).toFixed(1);
       const sanitizedCorrected = Math.max(0, Math.min(20000, corrected)).toFixed(1);
-      console.log(`Octave corrected: ${sanitizedFreq} Hz → ${sanitizedCorrected} Hz (ratio ${best.ratio})`);
     }
 
     return corrected;
@@ -459,8 +494,9 @@ export class TunerService implements OnDestroy {
     return Math.sqrt(sum / buffer.length);
   }
 
-  private updateTunerState(frequency: number, clarity: number): void {
+  private updateTunerState(frequency: number, clarity: number, toneSignature: ToneSignature): void {
     const stableFrequency = this.applyFrequencySmoothing(frequency);
+    const standardString = this.getNearestStandardGuitarString(stableFrequency);
     const targetNote = this.getStableTargetString(stableFrequency);
 
     // Resolve note name/octave from the actual detected frequency, NOT the snapped
@@ -473,21 +509,49 @@ export class TunerService implements OnDestroy {
     if (this.lastUiUpdateAt !== 0 && now - this.lastUiUpdateAt < this.UI_UPDATE_INTERVAL_MS) return;
     this.lastUiUpdateAt = now;
 
-    if (!stableNote) {
-      this.tunerState.update(state => ({ ...state, currentFrequency: stableFrequency, targetNote, clarity }));
+    if (!stableNote || stableFrequency <= 0 || clarity <= 0) {
+      const graceActive = this.acceptedNoteInfo && this.noteDropoutStart > 0 && (now - this.noteDropoutStart) < this.NOTE_DROPOUT_GRACE_MS;
+      if (this.acceptedNoteInfo && this.noteDropoutStart === 0) {
+        this.noteDropoutStart = now;
+      }
+      if (graceActive) {
+        if (this.pitchDetectionActive) this.animationId = requestAnimationFrame(() => this.detectPitch());
+        return;
+      }
+
+      this.noteDropoutStart = 0;
+      this.sustainStartTime = 0;
+      this.lastToneDetected = false;
+      this.tunerState.update(state => ({
+        ...state,
+        currentFrequency: 0,
+        detectedNote: '',
+        detectedOctave: 0,
+        cents: 0,
+        clarity: 0,
+        nearestGuitarString: undefined,
+        centDeviation: 0,
+        toneSignature
+      }));
       return;
     }
 
-    // Cents are measured against the locked target string so the needle reflects
-    // how far the string is from its intended pitch, regardless of which note
-    // the autocorrelator settled on.
-    const centTarget = targetNote ?? this.getBestExpectedStringCandidate(stableFrequency, clarity) ?? undefined;
-    const rawCents = centTarget
-      ? this.centsFromFrequencyToTarget(stableFrequency, centTarget.frequency)
+    this.noteDropoutStart = 0;
+
+    const rawCents = standardString
+      ? this.centsFromFrequencyToTarget(stableFrequency, standardString.frequency)
       : noteInfo.cents;
     const stableCents = this.applyCentsStabilization(rawCents);
     this.tuningHistory.push(stableCents);
     if (this.tuningHistory.length > this.TUNING_HISTORY_SIZE) this.tuningHistory.shift();
+
+    if (!this.lastToneDetected) {
+      this.sustainStartTime = now;
+      this.lastToneDetected = true;
+    }
+
+    const sustainMs = Math.round(now - this.sustainStartTime);
+    const updatedToneSignature = { ...toneSignature, sustainMs };
 
     this.tunerState.update(state => ({
       ...state,
@@ -495,9 +559,97 @@ export class TunerService implements OnDestroy {
       detectedNote: stableNote.note,
       detectedOctave: stableNote.octave,
       cents: stableCents,
-      targetNote,
-      clarity
+      clarity,
+      nearestGuitarString: standardString,
+      centDeviation: stableCents,
+      toneSignature: updatedToneSignature
     }));
+  }
+
+  private getNearestStandardGuitarString(frequency: number): StringInfo | undefined {
+    if (frequency <= 0) return undefined;
+
+    let best: StringInfo | undefined;
+    let bestDistance = Infinity;
+
+    for (const string of STANDARD_GUITAR_STRINGS) {
+      const centsDifference = Math.abs(this.centsFromFrequencyToTarget(frequency, string.frequency));
+      if (centsDifference < bestDistance) {
+        best = string;
+        bestDistance = centsDifference;
+      }
+    }
+
+    return best;
+  }
+
+  private analyzeToneSignature(buffer: Float32Array, sampleRate: number): ToneSignature {
+    const signature: ToneSignature = {
+      harmonics: [0, 0, 0, 0, 0, 0, 0, 0],
+      hnr: 0,
+      sustainMs: 0,
+      brightness: 0
+    };
+
+    if (!this.nativeAnalyser || !this.frequencyData || buffer.length === 0 || sampleRate <= 0) {
+      return signature;
+    }
+
+    this.nativeAnalyser.getFloatFrequencyData(this.frequencyData as Float32Array<ArrayBuffer>);
+    const fftSize = this.nativeAnalyser.fftSize;
+    const binWidth = sampleRate / fftSize;
+    const freq = this.detectorFrequencyFromBuffer(buffer, sampleRate);
+
+    if (freq <= 0) return signature;
+
+    const amplitudes: number[] = [];
+    let harmonicEnergy = 0;
+
+    for (let index = 0; index < 8; index++) {
+      const harmonicFrequency = freq * (index + 1);
+      const targetBin = Math.round(harmonicFrequency / binWidth);
+      const amplitude = this.getBandAmplitude(targetBin, 2);
+      amplitudes.push(Math.max(0, Math.min(100, Math.round(amplitude * 100))));
+      harmonicEnergy += amplitude * amplitude;
+    }
+
+    const totalEnergy = this.frequencyData.reduce((sum, db) => {
+      const power = Math.pow(10, db / 10);
+      return sum + (Number.isFinite(power) ? power : 0);
+    }, 0);
+
+    const noiseEnergy = Math.max(0, totalEnergy - harmonicEnergy);
+    const hnr = noiseEnergy > 0 ? 10 * Math.log10(harmonicEnergy / noiseEnergy) : 0;
+    const brightness = amplitudes.slice(2).reduce((sum, value) => sum + value, 0) / Math.max(1, amplitudes.reduce((sum, value) => sum + value, 0)) * 100;
+
+    return {
+      harmonics: amplitudes,
+      hnr: Number.isFinite(hnr) ? Math.max(0, Math.min(60, hnr)) : 0,
+      sustainMs: 0,
+      brightness: Number.isFinite(brightness) ? Math.max(0, Math.min(100, Math.round(brightness))) : 0
+    };
+  }
+
+  private detectorFrequencyFromBuffer(buffer: Float32Array, sampleRate: number): number {
+    const result = this.autoCorrelate(buffer, sampleRate);
+    return result ? result.frequency : 0;
+  }
+
+  private getBandAmplitude(centerBin: number, radiusBins: number): number {
+    if (!this.frequencyData) return 0;
+    const start = Math.max(0, centerBin - radiusBins);
+    const end = Math.min(this.frequencyData.length - 1, centerBin + radiusBins);
+    let sum = 0;
+    let count = 0;
+    for (let i = start; i <= end; i++) {
+      const db = this.frequencyData[i];
+      const amplitude = Math.pow(10, db / 20);
+      if (Number.isFinite(amplitude)) {
+        sum += amplitude;
+        count += 1;
+      }
+    }
+    return count === 0 ? 0 : sum / count;
   }
 
   private centsFromFrequencyToTarget(frequency: number, targetFrequency: number): number {
@@ -679,13 +831,21 @@ export class TunerService implements OnDestroy {
     if (!this.acceptedNoteKey) {
       if (this.candidateNoteFrames < initialRequiredFrames) return null;
       this.acceptedNoteKey = noteKey;
+      this.acceptedNoteInfo = noteInfo;
       return noteInfo;
     }
 
-    if (noteKey === this.acceptedNoteKey) return noteInfo;
-    if (this.candidateNoteFrames < switchRequiredFrames) return null;
+    if (noteKey === this.acceptedNoteKey) {
+      this.acceptedNoteInfo = noteInfo;
+      return noteInfo;
+    }
+
+    if (this.candidateNoteFrames < switchRequiredFrames) {
+      return this.acceptedNoteInfo;
+    }
 
     this.acceptedNoteKey = noteKey;
+    this.acceptedNoteInfo = noteInfo;
     return noteInfo;
   }
 
